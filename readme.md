@@ -9,7 +9,7 @@
 ```XML
 <ItemGroup>
   <PackageReference Include="Juxtapose" Version="1.0.*-*" />
-  <PackageReference Include="Juxtapose.SourceGenerator" OutputItemType="Analyzer" ReferenceOutputAssembly="false" Version="1.0.*-*" />
+  <PackageReference Include="Juxtapose.SourceGenerator" Version="1.0.*-*" />
 </ItemGroup>
 ```
 ## 参见示例，未完待续......

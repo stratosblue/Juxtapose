@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -8,7 +7,6 @@ namespace Juxtapose
     /// <summary>
     /// <inheritdoc cref="IInitializationContext"/>
     /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
     public abstract class JuxtaposeContext : IInitializationContext, IDisposable
     {
         #region Private 字段

@@ -9,7 +9,13 @@ namespace Juxtapose.SourceGenerator
 {
     internal class SyntaxContextReceiver : ISyntaxContextReceiver
     {
+        #region Public 属性
+
         public List<INamedTypeSymbol> ShouldGenerateTypes { get; } = new();
+
+        #endregion Public 属性
+
+        #region Public 方法
 
         public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
         {
@@ -20,11 +26,13 @@ namespace Juxtapose.SourceGenerator
                 && context.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax) is INamedTypeSymbol namedTypeSymbol
                 && namedTypeSymbol.IsBaseOnJuxtaposeContext())
             {
-                if (namedTypeSymbol.GetAttributes().Any(m => m.IsIllusionClassAttribute()))
+                if (namedTypeSymbol.GetAttributes().Any(m => m.IsIllusionClassAttribute() || m.IsIllusionStaticClassAttribute()))
                 {
                     ShouldGenerateTypes.Add(namedTypeSymbol);
                 }
             }
         }
+
+        #endregion Public 方法
     }
 }

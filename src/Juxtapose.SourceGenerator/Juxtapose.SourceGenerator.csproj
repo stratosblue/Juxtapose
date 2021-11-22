@@ -2,8 +2,13 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <IsRoslynComponent>true</IsRoslynComponent>
+
+    <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(OutputPath)\netstandard2.0\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\Juxtapose\SourceGenerator\IllusionClassAccessibility.cs" Link="IllusionClassAccessibility.cs" />
