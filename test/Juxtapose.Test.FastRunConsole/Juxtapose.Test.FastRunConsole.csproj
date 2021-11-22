@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Juxtapose.Test.RunningHost\Juxtapose.Test.RunningHost.csproj" />
+    <ProjectReference Include="..\Juxtapose.Test.Shared\Juxtapose.Test.Shared.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,28 @@
+name: Publish Nuget Package
+
+on:
+  release:
+    types: [released,prereleased]
+    branches: [ master,main ]
+
+jobs:
+  publish-with-build:
+
+    runs-on: ubuntu-latest
+        
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+    - name: build - main
+      run: dotnet build -c Release ./src/Juxtapose/Juxtapose.csproj
+    - name: build - source-generator
+      run: dotnet build -c Release ./src/Juxtapose.SourceGenerator/Juxtapose.SourceGenerator.csproj
+    - name: pack
+      run: dotnet pack -c Release -o ./output --include-symbols
+    - name: push package
+      shell: pwsh
+      working-directory: ./output
+      run: Get-ChildItem -File -Filter '*.nupkg' | ForEach-Object { dotnet nuget push $_ -k ${{secrets.NUGET_KEY}} -s https://api.nuget.org/v3/index.json --no-service-endpoint --skip-duplicate; dotnet nuget push $_ -k ${{secrets.NUGET_GITHUB_KEY}} -s https://nuget.pkg.github.com/StratosBlue/index.json --no-service-endpoint --skip-duplicate; }

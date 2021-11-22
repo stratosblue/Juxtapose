@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <IsRoslynComponent>true</IsRoslynComponent>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Juxtapose\SourceGenerator\IllusionClassAccessibility.cs" Link="IllusionClassAccessibility.cs" />
+    <Compile Include="..\Juxtapose\Constants.cs" Link="Juxtapose.Constants.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.0.1" PrivateAssets="All" />
+    <CompilerVisibleProperty Include="RootNamespace" />
+  </ItemGroup>
+</Project>

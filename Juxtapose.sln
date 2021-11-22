@@ -1,0 +1,121 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juxtapose", "src\Juxtapose\Juxtapose.csproj", "{4E1D4B24-1273-420B-B1C2-18C11EFA919C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{092F5E8B-3A7A-471F-8982-577F78134358}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		readme.md = readme.md
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juxtapose.SourceGenerator", "src\Juxtapose.SourceGenerator\Juxtapose.SourceGenerator.csproj", "{C6DE849D-F398-4F1E-9F1B-31F247534663}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{9573CBFF-B0E7-4BA2-A408-1A73AB31B7A7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{A1C626D9-488E-4450-A282-5B62E6DF8723}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juxtapose.Test.RunningHost", "test\Juxtapose.Test.RunningHost\Juxtapose.Test.RunningHost.csproj", "{4AC4B863-AC76-4DA3-BC43-3C095A784B73}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juxtapose.Test.Shared", "test\Juxtapose.Test.Shared\Juxtapose.Test.Shared.csproj", "{43BAFD7D-B222-43D2-B697-685B3247DF94}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juxtapose.Test", "test\Juxtapose.Test\Juxtapose.Test.csproj", "{54756658-0DD8-4468-AD42-582C71AD4996}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{B7F97DF7-A018-44B3-988A-16B93ACA10A4}"
+	ProjectSection(SolutionItems) = preProject
+		test\Directory.Build.props = test\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4B048AC9-D072-4A8A-9D2D-47EE31F24747}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juxtapose.Test.FastRunConsole", "test\Juxtapose.Test.FastRunConsole\Juxtapose.Test.FastRunConsole.csproj", "{A73CDB16-21E1-4C9D-AE60-136079FDFC80}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juxtapose.Test.Shared.CodeReview", "test\Juxtapose.Test.Shared\Juxtapose.Test.Shared.CodeReview.csproj", "{F624F0FB-2812-4498-8E22-DF991330D036}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{E3C1C312-9A71-4C6B-B48B-214E6E245488}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleLibrary", "sample\SampleLibrary\SampleLibrary.csproj", "{B7DC63BD-C001-4771-B271-686F35022172}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleConsoleApp", "sample\SampleConsoleApp\SampleConsoleApp.csproj", "{921D3051-7DC8-44A7-A8E4-0F3843DB9A51}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{C6BBEBE2-AA30-4E94-9850-F75447A22155}"
+	ProjectSection(SolutionItems) = preProject
+		sample\Directory.Build.props = sample\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{8E4BAE06-BC3F-4919-A8AA-751C41A84E5B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{5DEB5965-C48C-4822-8712-E26FF6E7FF6E}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\PublishNugetPackage.yml = .github\workflows\PublishNugetPackage.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4E1D4B24-1273-420B-B1C2-18C11EFA919C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E1D4B24-1273-420B-B1C2-18C11EFA919C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E1D4B24-1273-420B-B1C2-18C11EFA919C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E1D4B24-1273-420B-B1C2-18C11EFA919C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6DE849D-F398-4F1E-9F1B-31F247534663}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6DE849D-F398-4F1E-9F1B-31F247534663}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6DE849D-F398-4F1E-9F1B-31F247534663}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6DE849D-F398-4F1E-9F1B-31F247534663}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AC4B863-AC76-4DA3-BC43-3C095A784B73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AC4B863-AC76-4DA3-BC43-3C095A784B73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AC4B863-AC76-4DA3-BC43-3C095A784B73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AC4B863-AC76-4DA3-BC43-3C095A784B73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43BAFD7D-B222-43D2-B697-685B3247DF94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43BAFD7D-B222-43D2-B697-685B3247DF94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43BAFD7D-B222-43D2-B697-685B3247DF94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43BAFD7D-B222-43D2-B697-685B3247DF94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54756658-0DD8-4468-AD42-582C71AD4996}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54756658-0DD8-4468-AD42-582C71AD4996}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54756658-0DD8-4468-AD42-582C71AD4996}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54756658-0DD8-4468-AD42-582C71AD4996}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A73CDB16-21E1-4C9D-AE60-136079FDFC80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A73CDB16-21E1-4C9D-AE60-136079FDFC80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A73CDB16-21E1-4C9D-AE60-136079FDFC80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A73CDB16-21E1-4C9D-AE60-136079FDFC80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F624F0FB-2812-4498-8E22-DF991330D036}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F624F0FB-2812-4498-8E22-DF991330D036}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7DC63BD-C001-4771-B271-686F35022172}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7DC63BD-C001-4771-B271-686F35022172}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7DC63BD-C001-4771-B271-686F35022172}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7DC63BD-C001-4771-B271-686F35022172}.Release|Any CPU.Build.0 = Release|Any CPU
+		{921D3051-7DC8-44A7-A8E4-0F3843DB9A51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{921D3051-7DC8-44A7-A8E4-0F3843DB9A51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{921D3051-7DC8-44A7-A8E4-0F3843DB9A51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{921D3051-7DC8-44A7-A8E4-0F3843DB9A51}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4E1D4B24-1273-420B-B1C2-18C11EFA919C} = {9573CBFF-B0E7-4BA2-A408-1A73AB31B7A7}
+		{C6DE849D-F398-4F1E-9F1B-31F247534663} = {9573CBFF-B0E7-4BA2-A408-1A73AB31B7A7}
+		{4AC4B863-AC76-4DA3-BC43-3C095A784B73} = {A1C626D9-488E-4450-A282-5B62E6DF8723}
+		{43BAFD7D-B222-43D2-B697-685B3247DF94} = {A1C626D9-488E-4450-A282-5B62E6DF8723}
+		{54756658-0DD8-4468-AD42-582C71AD4996} = {A1C626D9-488E-4450-A282-5B62E6DF8723}
+		{B7F97DF7-A018-44B3-988A-16B93ACA10A4} = {092F5E8B-3A7A-471F-8982-577F78134358}
+		{4B048AC9-D072-4A8A-9D2D-47EE31F24747} = {092F5E8B-3A7A-471F-8982-577F78134358}
+		{A73CDB16-21E1-4C9D-AE60-136079FDFC80} = {A1C626D9-488E-4450-A282-5B62E6DF8723}
+		{F624F0FB-2812-4498-8E22-DF991330D036} = {A1C626D9-488E-4450-A282-5B62E6DF8723}
+		{B7DC63BD-C001-4771-B271-686F35022172} = {E3C1C312-9A71-4C6B-B48B-214E6E245488}
+		{921D3051-7DC8-44A7-A8E4-0F3843DB9A51} = {E3C1C312-9A71-4C6B-B48B-214E6E245488}
+		{C6BBEBE2-AA30-4E94-9850-F75447A22155} = {092F5E8B-3A7A-471F-8982-577F78134358}
+		{8E4BAE06-BC3F-4919-A8AA-751C41A84E5B} = {092F5E8B-3A7A-471F-8982-577F78134358}
+		{5DEB5965-C48C-4822-8712-E26FF6E7FF6E} = {8E4BAE06-BC3F-4919-A8AA-751C41A84E5B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {579A3F00-0FBD-4B97-9001-6CF9C247CC09}
+	EndGlobalSection
+EndGlobal
