@@ -21,7 +21,7 @@ jobs:
     - name: build - source-generator
       run: dotnet build -c Release ./src/Juxtapose.SourceGenerator/Juxtapose.SourceGenerator.csproj
     - name: pack
-      run: dotnet pack -c Release -o ./output --include-symbols
+      run: dotnet pack -c Release -o ./output
     - name: push package
       shell: pwsh
       working-directory: ./output

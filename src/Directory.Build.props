@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.0.0-pre-alpha-002</Version>
+    <Version>1.0.0-pre-alpha-003</Version>
 
     <Description>基于 `SourceGenerator` 的硬编码 `.Net` 多`进程`运行库。</Description>
 
@@ -27,12 +27,6 @@
   <ItemGroup>
     <None Include="..\..\readme.md" Link="readme.md" Pack="true" PackagePath="/" />
   </ItemGroup>
-
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-  </PropertyGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
