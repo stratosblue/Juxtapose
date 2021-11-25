@@ -123,6 +123,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                 var accessibility = constructor.GetAccessibilityCodeString();
 
                 _sourceBuilder.AppendIndentLine(ctorAnnotation);
+                _sourceBuilder.AppendIndentLine($"[Obsolete(\"Use static method \\\"{TypeName}.NewAsync()\\\" instead of sync constructor.\")]");
                 _sourceBuilder.AppendIndentLine($"{accessibility} {TypeName}({ctorArguments})");
                 _sourceBuilder.Scope(() =>
                 {
