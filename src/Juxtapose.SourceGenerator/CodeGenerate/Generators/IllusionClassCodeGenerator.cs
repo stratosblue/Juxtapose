@@ -148,7 +148,7 @@ _runningToken = _runningTokenSource.Token;");
                     paramPackContext.GenParamPackCode(_sourceBuilder, "parameterPack");
 
                     _sourceBuilder.AppendLine($@"
-var (executorOwner, instanceId) = await CreateObjectAsync(parameterPack, true, cancellation);
+var (executorOwner, instanceId) = await CreateObjectAsync(parameterPack, false, cancellation);
 return new {TypeName}(executorOwner, instanceId);");
                 });
                 _sourceBuilder.AppendLine();

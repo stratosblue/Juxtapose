@@ -24,7 +24,7 @@ namespace Juxtapose.Test.FastRunConsole
         {
             s_logger.LogInformation("Current ProcessId: {0}", Environment.ProcessId);
 
-            //await TestRunAsync();
+            await TestRunAsync();
 
             GreeterJuxtaposeContext.SharedInstance.UnSetConsoleLoggerFactory();
 
@@ -33,7 +33,7 @@ namespace Juxtapose.Test.FastRunConsole
             //await TestRunGCAsync(ParallelRunStaticAsyncMethodCancelableAsync);
             //await TestRunGCAsync(ParallelRunInstanceAsyncMethodCancelableAsync);
             //await TestRunGCAsync(ParallelRunInstanceMethodWithFuncAsync);
-            await TestRunGCAsync(ParallelRunStaticMethodWithFuncAsync);
+            //await TestRunGCAsync(ParallelRunStaticMethodWithFuncAsync);
 
             #region Test
 
