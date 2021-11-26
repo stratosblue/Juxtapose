@@ -222,6 +222,8 @@ namespace Juxtapose
                     WaitParentProcessExit(parentProcessId);
                 }
 
+                JuxtaposeEnvironment.IsSubProcess = true;
+
                 var context = contextLoader.Get(startupOptions.ContextIdentifier);
 
                 var executorCreationContext = new ExecutorCreationContext(typeof(JuxtaposeEntryPoint), nameof(TryRunAsync), true, false, startupOptions);

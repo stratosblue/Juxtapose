@@ -13,6 +13,7 @@ namespace Juxtapose.Test
 {
     [IllusionClass(typeof(IGreeter), typeof(Greeter), "Juxtapose.Test.GreeterAsIGreeterIllusion")]
     [IllusionStaticClass(typeof(StaticGreeter), "Juxtapose.Test.StaticGreeterIllusion")]
+    [IllusionStaticClass(typeof(JuxtaposeEnvironment), "Juxtapose.Test.ExternalJuxtaposeEnvironment")]
     public partial class GreeterJuxtaposeContext : JuxtaposeContext
     {
         #region Public 构造函数
@@ -35,11 +36,6 @@ namespace Juxtapose.Test
 
         #region Public 方法
 
-        public ILoggerFactory UnSetConsoleLoggerFactory()
-        {
-            return LoggerFactory = NullLoggerFactory.Instance;
-        }
-
         public ILoggerFactory FastSetConsoleLoggerFactory(LogLevel logLevel)
         {
             var logger = new LoggerConfiguration().WriteTo.Async(ic => ic.Console((Serilog.Events.LogEventLevel)logLevel, "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}"))
@@ -59,6 +55,11 @@ namespace Juxtapose.Test
                                                   .CreateLogger();
 
             return LoggerFactory = new SerilogLoggerFactory(logger);
+        }
+
+        public ILoggerFactory UnSetConsoleLoggerFactory()
+        {
+            return LoggerFactory = NullLoggerFactory.Instance;
         }
 
         #endregion Public 方法
