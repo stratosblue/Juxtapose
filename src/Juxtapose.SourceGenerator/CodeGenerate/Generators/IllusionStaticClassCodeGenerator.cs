@@ -135,7 +135,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         public IEnumerable<SourceCode> GetSources()
         {
-            var members = StaticClassType.GetProxyableMembers();
+            var members = StaticClassType.GetProxyableMembers().Where(m => m.DeclaredAccessibility == Accessibility.Public);
 
             Context.TryAddStaticMethods(StaticClassType, members.GetMethodSymbols().Where(m => m.DeclaredAccessibility == Accessibility.Public));
 
