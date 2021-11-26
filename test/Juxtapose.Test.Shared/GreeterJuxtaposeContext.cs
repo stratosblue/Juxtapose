@@ -13,7 +13,7 @@ namespace Juxtapose.Test
 {
     [IllusionClass(typeof(IGreeter), typeof(Greeter), "Juxtapose.Test.GreeterAsIGreeterIllusion")]
     [IllusionStaticClass(typeof(StaticGreeter), "Juxtapose.Test.StaticGreeterIllusion")]
-    [IllusionStaticClass(typeof(JuxtaposeEnvironment), "Juxtapose.Test.ExternalJuxtaposeEnvironment")]
+    [IllusionStaticClass(typeof(JuxtaposeEnvironmentProxy), "Juxtapose.Test.ExternalJuxtaposeEnvironment")]
     public partial class GreeterJuxtaposeContext : JuxtaposeContext
     {
         #region Public 构造函数

@@ -10,7 +10,7 @@ namespace Juxtapose.Test
         [TestMethod]
         public void ShouldCheckIsSubProcessSuccess()
         {
-            Assert.IsFalse(JuxtaposeEnvironment.IsSubProcess);
+            Assert.IsFalse(JuxtaposeEnvironmentProxy.IsSubProcess);
             Assert.IsTrue(ExternalJuxtaposeEnvironment.IsSubProcess);
         }
 
