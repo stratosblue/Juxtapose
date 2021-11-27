@@ -13,7 +13,7 @@ namespace Juxtapose.SourceGenerator
         /// <summary>
         /// 可访问性
         /// </summary>
-        public IllusionClassAccessibility Accessibility { get; }
+        public GeneratedAccessibility Accessibility { get; }
 
         /// <summary>
         /// 代理类型名
@@ -35,7 +35,7 @@ namespace Juxtapose.SourceGenerator
         /// <param name="type">静态类类型</param>
         /// <param name="proxyTypeName">指定生成的代理类型名称</param>
         /// <param name="accessibility">可访问性</param>
-        public IllusionStaticClassAttribute(Type type, string? proxyTypeName = null, IllusionClassAccessibility accessibility = IllusionClassAccessibility.Default)
+        public IllusionStaticClassAttribute(Type type, string? proxyTypeName = null, GeneratedAccessibility accessibility = GeneratedAccessibility.Default)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             if (!(type.IsAbstract && type.IsSealed))

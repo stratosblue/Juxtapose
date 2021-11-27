@@ -13,7 +13,7 @@ namespace Juxtapose.SourceGenerator
         /// <summary>
         /// 可访问性
         /// </summary>
-        public IllusionClassAccessibility Accessibility { get; }
+        public GeneratedAccessibility Accessibility { get; }
 
         /// <summary>
         /// 实现类型
@@ -41,7 +41,7 @@ namespace Juxtapose.SourceGenerator
         /// <param name="implementType">实现类型</param>
         /// <param name="proxyTypeName">指定生成的代理类型名称</param>
         /// <param name="accessibility">可访问性</param>
-        public IllusionClassAttribute(Type interfaceType, Type implementType, string? proxyTypeName = null, IllusionClassAccessibility accessibility = IllusionClassAccessibility.Default)
+        public IllusionClassAttribute(Type interfaceType, Type implementType, string? proxyTypeName = null, GeneratedAccessibility accessibility = GeneratedAccessibility.Default)
         {
             InterfaceType = interfaceType ?? throw new ArgumentNullException(nameof(interfaceType));
             ImplementType = implementType ?? throw new ArgumentNullException(nameof(implementType));

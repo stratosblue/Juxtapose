@@ -84,9 +84,11 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
             var accessibilityArgument = defineAttributeData.ConstructorArguments[2];
 
-            Accessibility = (IllusionClassAccessibility)accessibilityArgument.Value! switch
+            Accessibility = (GeneratedAccessibility)accessibilityArgument.Value! switch
             {
-                IllusionClassAccessibility.InheritContext => contextTypeSymbol.DeclaredAccessibility,
+                GeneratedAccessibility.InheritContext => contextTypeSymbol.DeclaredAccessibility,
+                GeneratedAccessibility.Public => Accessibility.Public,
+                GeneratedAccessibility.Internal => Accessibility.Internal,
                 _ => staticClassType.DeclaredAccessibility,
             };
 

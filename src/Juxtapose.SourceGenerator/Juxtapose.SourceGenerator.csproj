@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\Juxtapose\SourceGenerator\IllusionClassAccessibility.cs" Link="IllusionClassAccessibility.cs" />
+    <Compile Include="..\Juxtapose\SourceGenerator\GeneratedAccessibility.cs" Link="GeneratedAccessibility.cs" />
     <Compile Include="..\Juxtapose\Constants.cs" Link="Juxtapose.Constants.cs" />
   </ItemGroup>
 
