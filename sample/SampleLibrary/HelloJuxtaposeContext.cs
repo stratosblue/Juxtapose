@@ -3,7 +3,7 @@ using Juxtapose.SourceGenerator;
 
 namespace SampleLibrary
 {
-    [IllusionClass(typeof(IHello), typeof(Hello))]
+    [Illusion(typeof(Hello), typeof(IHello))]
     public partial class HelloJuxtaposeContext : JuxtaposeContext
     {
     }

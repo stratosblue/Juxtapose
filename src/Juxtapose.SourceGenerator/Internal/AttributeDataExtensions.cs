@@ -6,14 +6,9 @@ namespace Microsoft.CodeAnalysis
     {
         #region Public 方法
 
-        public static bool IsIllusionClassAttribute(this AttributeData attributeData)
+        public static bool IsIllusionAttribute(this AttributeData attributeData)
         {
-            return attributeData.AttributeClass?.ToDisplayString() == TypeFullNames.Juxtapose.SourceGenerator.IllusionClassAttribute_NoGlobal;
-        }
-
-        public static bool IsIllusionStaticClassAttribute(this AttributeData attributeData)
-        {
-            return attributeData.AttributeClass?.ToDisplayString() == TypeFullNames.Juxtapose.SourceGenerator.IllusionStaticClassAttribute_NoGlobal;
+            return attributeData.AttributeClass?.ToDisplayString() == TypeFullNames.Juxtapose.SourceGenerator.IllusionAttribute_NoGlobal;
         }
 
         #endregion Public 方法

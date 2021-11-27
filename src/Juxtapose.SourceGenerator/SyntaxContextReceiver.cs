@@ -26,7 +26,7 @@ namespace Juxtapose.SourceGenerator
                 && context.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax) is INamedTypeSymbol namedTypeSymbol
                 && namedTypeSymbol.IsBaseOnJuxtaposeContext())
             {
-                if (namedTypeSymbol.GetAttributes().Any(m => m.IsIllusionClassAttribute() || m.IsIllusionStaticClassAttribute()))
+                if (namedTypeSymbol.GetAttributes().Any(m => m.IsIllusionAttribute() || m.IsIllusionAttribute()))
                 {
                     ShouldGenerateTypes.Add(namedTypeSymbol);
                 }

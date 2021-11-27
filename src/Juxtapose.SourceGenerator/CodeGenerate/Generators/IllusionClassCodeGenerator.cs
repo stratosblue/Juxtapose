@@ -44,35 +44,21 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         #region Public 构造函数
 
-        public IllusionClassCodeGenerator(JuxtaposeSourceGeneratorContext context, AttributeData defineAttributeData, INamedTypeSymbol contextTypeSymbol)
+        public IllusionClassCodeGenerator(JuxtaposeSourceGeneratorContext context, IllusionAttributeDefine attributeDefine, INamedTypeSymbol contextTypeSymbol)
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
             ContextTypeSymbol = contextTypeSymbol ?? throw new ArgumentNullException(nameof(contextTypeSymbol));
 
-            if (defineAttributeData.ConstructorArguments[0].Value is not INamedTypeSymbol interfaceTypeSymbol
-               || defineAttributeData.ConstructorArguments[1].Value is not INamedTypeSymbol implementTypeSymbol)
-            {
-                throw new ArgumentException($"{TypeFullNames.Juxtapose.SourceGenerator.IllusionClassAttribute} 参数不正确");
-            }
+            ImplementTypeSymbol = attributeDefine.TargetType ?? throw new ArgumentNullException(nameof(attributeDefine.TargetType));
+            InterfaceTypeSymbol = attributeDefine.InheritType ?? throw new ArgumentNullException(nameof(attributeDefine.InheritType));
 
-            if (!implementTypeSymbol.AllInterfaces.Contains(interfaceTypeSymbol))
-            {
-                throw new ArgumentException($"{implementTypeSymbol.ToDisplayString()} 没有实现接口 {interfaceTypeSymbol.ToDisplayString()}");
-            }
-
-            InterfaceTypeSymbol = interfaceTypeSymbol ?? throw new ArgumentNullException(nameof(interfaceTypeSymbol));
-            ImplementTypeSymbol = implementTypeSymbol ?? throw new ArgumentNullException(nameof(implementTypeSymbol));
-
-            var proxyTypeNameArgument = defineAttributeData.ConstructorArguments[2];
-
-            var implementTypeFullName = implementTypeSymbol.ToDisplayString();
+            var implementTypeFullName = ImplementTypeSymbol.ToDisplayString();
             Namespace = implementTypeFullName.Substring(0, implementTypeFullName.LastIndexOf('.'));
 
-            if (proxyTypeNameArgument.IsNull
-                || proxyTypeNameArgument.Value is not string proxyTypeName
+            if (attributeDefine.GeneratedTypeName is not string proxyTypeName
                 || string.IsNullOrWhiteSpace(proxyTypeName))
             {
-                TypeFullName = $"{implementTypeFullName}As{interfaceTypeSymbol.Name}Illusion";
+                TypeFullName = $"{implementTypeFullName}As{InterfaceTypeSymbol.Name}Illusion";
                 TypeName = TypeFullName.Substring(Namespace.Length + 1);
             }
             else
@@ -90,15 +76,13 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                 }
             }
 
-            var accessibilityArgument = defineAttributeData.ConstructorArguments[3];
-
-            Accessibility = (GeneratedAccessibility)accessibilityArgument.Value! switch
+            Accessibility = attributeDefine.Accessibility switch
             {
                 GeneratedAccessibility.InheritContext => contextTypeSymbol.DeclaredAccessibility,
-                GeneratedAccessibility.InheritInterface => interfaceTypeSymbol.DeclaredAccessibility,
+                GeneratedAccessibility.InheritInterface => InterfaceTypeSymbol.DeclaredAccessibility,
                 GeneratedAccessibility.Public => Accessibility.Public,
                 GeneratedAccessibility.Internal => Accessibility.Internal,
-                _ => implementTypeSymbol.DeclaredAccessibility,
+                _ => ImplementTypeSymbol.DeclaredAccessibility,
             };
 
             SourceHintName = $"{TypeFullName}.g.cs";

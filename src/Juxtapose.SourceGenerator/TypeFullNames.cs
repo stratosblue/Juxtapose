@@ -49,13 +49,9 @@
             {
                 #region Public 字段
 
-                public const string IllusionClassAttribute = "global::Juxtapose.SourceGenerator.IllusionClassAttribute";
+                public const string IllusionAttribute = "global::Juxtapose.SourceGenerator.IllusionAttribute";
 
-                public const string IllusionClassAttribute_NoGlobal = "Juxtapose.SourceGenerator.IllusionClassAttribute";
-
-                public const string IllusionStaticClassAttribute = "global::Juxtapose.SourceGenerator.IllusionStaticClassAttribute";
-
-                public const string IllusionStaticClassAttribute_NoGlobal = "Juxtapose.SourceGenerator.IllusionStaticClassAttribute";
+                public const string IllusionAttribute_NoGlobal = "Juxtapose.SourceGenerator.IllusionAttribute";
 
                 #endregion Public 字段
             }

@@ -44,24 +44,17 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         #region Public 构造函数
 
-        public IllusionStaticClassCodeGenerator(JuxtaposeSourceGeneratorContext context, AttributeData defineAttributeData, INamedTypeSymbol contextTypeSymbol)
+        public IllusionStaticClassCodeGenerator(JuxtaposeSourceGeneratorContext context, IllusionAttributeDefine attributeDefine, INamedTypeSymbol contextTypeSymbol)
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
             ContextTypeSymbol = contextTypeSymbol ?? throw new ArgumentNullException(nameof(contextTypeSymbol));
-            if (defineAttributeData.ConstructorArguments[0].Value is not INamedTypeSymbol staticClassType)
-            {
-                throw new ArgumentException($"{TypeFullNames.Juxtapose.SourceGenerator.IllusionClassAttribute} 参数不正确");
-            }
 
-            StaticClassType = staticClassType ?? throw new ArgumentNullException(nameof(staticClassType));
+            StaticClassType = attributeDefine.TargetType ?? throw new ArgumentNullException(nameof(attributeDefine.TargetType));
 
-            var proxyTypeNameArgument = defineAttributeData.ConstructorArguments[1];
-
-            var staticClassTypeFullName = staticClassType.ToDisplayString();
+            var staticClassTypeFullName = StaticClassType.ToDisplayString();
             Namespace = staticClassTypeFullName.Substring(0, staticClassTypeFullName.LastIndexOf('.'));
 
-            if (proxyTypeNameArgument.IsNull
-                || proxyTypeNameArgument.Value is not string proxyTypeName
+            if (attributeDefine.GeneratedTypeName is not string proxyTypeName
                 || string.IsNullOrWhiteSpace(proxyTypeName))
             {
                 TypeFullName = $"{staticClassTypeFullName}Illusion";
@@ -82,14 +75,12 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                 }
             }
 
-            var accessibilityArgument = defineAttributeData.ConstructorArguments[2];
-
-            Accessibility = (GeneratedAccessibility)accessibilityArgument.Value! switch
+            Accessibility = attributeDefine.Accessibility switch
             {
                 GeneratedAccessibility.InheritContext => contextTypeSymbol.DeclaredAccessibility,
                 GeneratedAccessibility.Public => Accessibility.Public,
                 GeneratedAccessibility.Internal => Accessibility.Internal,
-                _ => staticClassType.DeclaredAccessibility,
+                _ => StaticClassType.DeclaredAccessibility,
             };
 
             SourceHintName = $"{TypeFullName}.g.cs";

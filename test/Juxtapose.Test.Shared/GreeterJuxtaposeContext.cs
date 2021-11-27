@@ -11,9 +11,9 @@ using Serilog.Extensions.Logging;
 
 namespace Juxtapose.Test
 {
-    [IllusionClass(typeof(IGreeter), typeof(Greeter), "Juxtapose.Test.GreeterAsIGreeterIllusion")]
-    [IllusionStaticClass(typeof(StaticGreeter), "Juxtapose.Test.StaticGreeterIllusion")]
-    [IllusionStaticClass(typeof(JuxtaposeEnvironmentProxy), "Juxtapose.Test.ExternalJuxtaposeEnvironment")]
+    [Illusion(typeof(Greeter), typeof(IGreeter), "Juxtapose.Test.GreeterAsIGreeterIllusion")]
+    [Illusion(typeof(StaticGreeter), generatedTypeName: "Juxtapose.Test.StaticGreeterIllusion")]
+    [Illusion(typeof(JuxtaposeEnvironmentProxy), generatedTypeName: "Juxtapose.Test.ExternalJuxtaposeEnvironment")]
     public partial class GreeterJuxtaposeContext : JuxtaposeContext
     {
         #region Public 构造函数

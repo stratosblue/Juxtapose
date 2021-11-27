@@ -25,7 +25,7 @@
 
 ### 4.2 建立上下文
 ```C#
-[IllusionClass(typeof(IGreeter), typeof(Greeter), "Juxtapose.Test.GreeterAsIGreeterIllusion")]
+[IllusionClass(typeof(Greeter), typeof(IGreeter), "Juxtapose.Test.GreeterAsIGreeterIllusion")]
 public partial class GreeterJuxtaposeContext : JuxtaposeContext
 {
 }

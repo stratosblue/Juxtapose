@@ -28,9 +28,9 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
         /// </summary>
         public INamedTypeSymbol ContextTypeSymbol { get; }
 
-        public AttributeData[] IllusionClassAttributes { get; }
+        public IllusionAttributeDefine[] IllusionAttributeDefines { get; }
 
-        public AttributeData[] IllusionStaticClassAttributes { get; }
+        public IllusionAttributeDefine[] IllusionStaticAttributeDefines { get; }
 
         /// <summary>
         /// 上下文的命名空间
@@ -57,8 +57,13 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
             Namespace = contextTypeSymbol.ContainingNamespace.ToDisplayString();
 
-            IllusionClassAttributes = contextTypeSymbol.GetAttributes().Where(m => m.IsIllusionClassAttribute()).ToArray();
-            IllusionStaticClassAttributes = contextTypeSymbol.GetAttributes().Where(m => m.IsIllusionStaticClassAttribute()).ToArray();
+            var allIllusionAttributes = contextTypeSymbol.GetAttributes()
+                                                         .Where(m => m.IsIllusionAttribute())
+                                                         .Select(m => new IllusionAttributeDefine(m))
+                                                         .ToArray();
+
+            IllusionAttributeDefines = allIllusionAttributes.Where(m => !m.TargetType.IsStatic).ToArray();
+            IllusionStaticAttributeDefines = allIllusionAttributes.Where(m => m.TargetType.IsStatic).ToArray();
 
             SourceHintName = $"{TypeFullName}.g.cs";
         }
@@ -185,9 +190,9 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
             var contextHashBuilder = new ContextHashBuilder();
 
-            foreach (var illusionClassAttributeData in IllusionClassAttributes)
+            foreach (var illusionAttributeDefine in IllusionAttributeDefines)
             {
-                var illusionClassCodeGenerator = new IllusionClassCodeGenerator(Context, illusionClassAttributeData, ContextTypeSymbol);
+                var illusionClassCodeGenerator = new IllusionClassCodeGenerator(Context, illusionAttributeDefine, ContextTypeSymbol);
 
                 contextHashBuilder.AddIllusionClass(illusionClassCodeGenerator.InterfaceTypeSymbol, illusionClassCodeGenerator.ImplementTypeSymbol);
 
@@ -203,9 +208,9 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                 }
             }
 
-            foreach (var illusionStaticClassAttributeData in IllusionStaticClassAttributes)
+            foreach (var illusionStaticAttributeDefine in IllusionStaticAttributeDefines)
             {
-                var illusionStaticClassCodeGenerator = new IllusionStaticClassCodeGenerator(Context, illusionStaticClassAttributeData, ContextTypeSymbol);
+                var illusionStaticClassCodeGenerator = new IllusionStaticClassCodeGenerator(Context, illusionStaticAttributeDefine, ContextTypeSymbol);
 
                 contextHashBuilder.AddStaticClass(illusionStaticClassCodeGenerator.StaticClassType);
 
