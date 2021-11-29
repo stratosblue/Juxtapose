@@ -104,9 +104,9 @@ namespace Juxtapose.Test
             return Reserve(input);
         }
 
-        public string MethodWithDefaultValue(string input1 = "input1", string? input2 = null, int input3 = 123)
+        public string MethodWithDefaultValue(string input1 = "input1", string? input2 = null, int input3 = 123, CancellationToken cancellation = default)
         {
-            return input1 + input2 + input3;
+            return input1 + input2 + input3 + cancellation.CanBeCanceled;
         }
 
         public string MethodWithDelegate(GetLongerString callback, string input)

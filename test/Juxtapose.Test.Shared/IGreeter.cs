@@ -38,7 +38,7 @@ namespace Juxtapose.Test
 
         string Method(string input);
 
-        string MethodWithDefaultValue(string input1 = "input1", string? input2 = null, int input3 = 123);
+        string MethodWithDefaultValue(string input1 = "input1", string? input2 = null, int input3 = 123, CancellationToken cancellation = default);
 
         string MethodWithAction(Action callback, string input);
 

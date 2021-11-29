@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis
 
             static string GetDefaultValueExpression(IParameterSymbol parameterSymbol)
             {
+                //TODO check params
                 if (!parameterSymbol.HasExplicitDefaultValue)
                 {
                     return string.Empty;
@@ -35,7 +36,9 @@ namespace Microsoft.CodeAnalysis
 
                 if (value is null)
                 {
-                    return " = null";
+                    return parameterSymbol.Type.IsValueType
+                           ? " = default"
+                           : " = null";
                 }
 
 #pragma warning disable IDE0071 // 简化内插
