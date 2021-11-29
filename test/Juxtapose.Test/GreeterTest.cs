@@ -144,6 +144,13 @@ namespace Juxtapose.Test
         }
 
         [TestMethod]
+        public void ShouldHasDefaultValue()
+        {
+            using var illusion = CreateObject(out var origin);
+            Assert.AreEqual(origin.MethodWithDefaultValue(), illusion.MethodWithDefaultValue());
+        }
+
+        [TestMethod]
         public void ShouldSuccessParallelInvokeMethod()
         {
             using var illusion = CreateObject(out var origin);

@@ -104,6 +104,11 @@ namespace Juxtapose.Test
             return Reserve(input);
         }
 
+        public static string MethodWithDefaultValue(string input1 = "input1", string? input2 = null, int input3 = 123)
+        {
+            return input1 + input2 + input3;
+        }
+
         public static string MethodWithDelegate(GetLongerString callback, string input)
         {
             return callback(input, Reserve(input));

@@ -128,6 +128,12 @@ namespace Juxtapose.Test
         }
 
         [TestMethod]
+        public void ShouldHasDefaultValue()
+        {
+            Assert.AreEqual(StaticGreeterOrigin.MethodWithDefaultValue(), StaticGreeterIllusion.MethodWithDefaultValue());
+        }
+
+        [TestMethod]
         public void ShouldSuccessParallelInvokeMethod()
         {
             Parallel.For(0, 100, _ =>

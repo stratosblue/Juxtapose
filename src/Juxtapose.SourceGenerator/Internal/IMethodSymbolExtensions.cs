@@ -22,7 +22,30 @@ namespace Microsoft.CodeAnalysis
             {
                 return string.Empty;
             }
-            return string.Join(", ", methodSymbol.Parameters.Select(m => $"{m.ToDisplayString()} {m.Name}"));
+            return string.Join(", ", methodSymbol.Parameters.Select(m => $"{m.ToDisplayString()} {m.Name}{GetDefaultValueExpression(m)}"));
+
+            static string GetDefaultValueExpression(IParameterSymbol parameterSymbol)
+            {
+                if (!parameterSymbol.HasExplicitDefaultValue)
+                {
+                    return string.Empty;
+                }
+
+                var value = parameterSymbol.ExplicitDefaultValue;
+
+                if (value is null)
+                {
+                    return " = null";
+                }
+
+#pragma warning disable IDE0071 // 简化内插
+
+                return value is string
+                       ? $" = \"{value}\""
+                       : $" = {value.ToString()}";
+
+#pragma warning restore IDE0071 // 简化内插
+            }
         }
 
         public static string GenerateMethodArgumentStringWithoutType(this IMethodSymbol methodSymbol)
