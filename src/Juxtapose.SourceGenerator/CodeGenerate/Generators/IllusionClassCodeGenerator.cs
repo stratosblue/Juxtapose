@@ -87,7 +87,10 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
             SourceHintName = $"{TypeFullName}.g.cs";
 
-            _vars = new VariableName();
+            _vars = new VariableName()
+            {
+                Executor = "Executor",
+            };
         }
 
         #endregion Public 构造函数
@@ -192,7 +195,7 @@ return (executorOwner, instanceId);");
                 {
                     _sourceBuilder.AppendIndentLine($"private static readonly {TypeFullNames.Juxtapose.ExecutorCreationContext} s__creationContext = new (typeof(global::{ImplementTypeSymbol.ToDisplayString()}), \"ctor\", false, true);", true);
                     _sourceBuilder.AppendIndentLine($"private {TypeFullNames.Juxtapose.IJuxtaposeExecutorOwner} _executorOwner;", true);
-                    _sourceBuilder.AppendIndentLine($"private {TypeFullNames.Juxtapose.JuxtaposeExecutor} _executor => _executorOwner.Executor;", true);
+                    _sourceBuilder.AppendIndentLine($"private {TypeFullNames.Juxtapose.JuxtaposeExecutor} {_vars.Executor} => _executorOwner.Executor;", true);
                     _sourceBuilder.AppendIndentLine("private readonly int _instanceId;", true);
                     _sourceBuilder.AppendIndentLine("private global::System.Threading.CancellationTokenSource _runningTokenSource;", true);
                     _sourceBuilder.AppendIndentLine("private readonly global::System.Threading.CancellationToken _runningToken;", true);
@@ -226,7 +229,7 @@ public void Dispose()
         return;
     }}
     _isDisposed = true;
-    _executor.DisposeObjectInstance(_instanceId);
+    {_vars.Executor}.DisposeObjectInstance(_instanceId);
     _runningTokenSource.Cancel();
     _runningTokenSource.Dispose();
     _executorOwner.Dispose();
