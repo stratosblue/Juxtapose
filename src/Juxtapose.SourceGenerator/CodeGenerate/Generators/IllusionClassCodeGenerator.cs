@@ -123,6 +123,8 @@ var (executorOwner, instanceId) = CreateObjectAsync(parameterPack, true, Cancell
 _executorOwner = executorOwner;
 _instanceId = instanceId;
 
+_executor = _executorOwner.Executor;
+
 _runningTokenRegistration = _executorOwner.Executor.RunningToken.Register(Dispose);
 _runningTokenSource = new CancellationTokenSource();
 _runningToken = _runningTokenSource.Token;");
@@ -146,6 +148,9 @@ return new {TypeName}(executorOwner, instanceId);");
 {{
     _executorOwner = executorOwner;
     _instanceId = instanceId;
+
+    _executor = _executorOwner.Executor;
+
     _runningTokenRegistration = _executorOwner.Executor.RunningToken.Register(Dispose);
     _runningTokenSource = new CancellationTokenSource();
     _runningToken = _runningTokenSource.Token;
@@ -189,17 +194,38 @@ return (executorOwner, instanceId);");
             _sourceBuilder.Namespace(() =>
             {
                 _sourceBuilder.AppendIndentLine($"/// <inheritdoc cref=\"global::{ImplementTypeSymbol.ToDisplayString()}\"/>");
-                _sourceBuilder.AppendIndentLine($"{Accessibility.ToCodeString()} sealed partial class {TypeName} : global::{InterfaceTypeSymbol.ToDisplayString()}, {TypeFullNames.System.IDisposable}");
+                _sourceBuilder.AppendIndentLine($"{Accessibility.ToCodeString()} sealed partial class {TypeName} : global::{InterfaceTypeSymbol.ToDisplayString()}, global::Juxtapose.IIllusion, {TypeFullNames.System.IDisposable}");
 
                 _sourceBuilder.Scope(() =>
                 {
-                    _sourceBuilder.AppendIndentLine($"private static readonly {TypeFullNames.Juxtapose.ExecutorCreationContext} s__creationContext = new (typeof(global::{ImplementTypeSymbol.ToDisplayString()}), \"ctor\", false, true);", true);
-                    _sourceBuilder.AppendIndentLine($"private {TypeFullNames.Juxtapose.IJuxtaposeExecutorOwner} _executorOwner;", true);
-                    _sourceBuilder.AppendIndentLine($"private {TypeFullNames.Juxtapose.JuxtaposeExecutor} {_vars.Executor} => _executorOwner.Executor;", true);
-                    _sourceBuilder.AppendIndentLine("private readonly int _instanceId;", true);
-                    _sourceBuilder.AppendIndentLine("private global::System.Threading.CancellationTokenSource _runningTokenSource;", true);
-                    _sourceBuilder.AppendIndentLine("private readonly global::System.Threading.CancellationToken _runningToken;", true);
-                    _sourceBuilder.AppendIndentLine("private CancellationTokenRegistration? _runningTokenRegistration;", true);
+                    _sourceBuilder.AppendIndentLine($"private static readonly {TypeFullNames.Juxtapose.ExecutorCreationContext} s__creationContext = new(typeof(global::{ImplementTypeSymbol.ToDisplayString()}), \"ctor\", false, true);", true);
+
+                    _sourceBuilder.AppendLine($@"
+private {TypeFullNames.Juxtapose.IJuxtaposeExecutorOwner} _executorOwner;
+
+private {TypeFullNames.Juxtapose.JuxtaposeExecutor} {_vars.Executor} => _executorOwner.Executor;
+
+private readonly int _instanceId;
+
+private global::System.Threading.CancellationTokenSource _runningTokenSource;
+
+private readonly global::System.Threading.CancellationToken _runningToken;
+
+private CancellationTokenRegistration? _runningTokenRegistration;
+
+#region IIllusion
+
+private readonly global::Juxtapose.JuxtaposeExecutor _executor;
+
+/// <inheritdoc/>
+JuxtaposeExecutor IIllusion.Executor => _executor;
+
+/// <inheritdoc/>
+bool IIllusion.IsAvailable => !_isDisposed;
+
+#endregion IIllusion
+");
+                    _sourceBuilder.AppendLine();
 
                     GenerateConstructorProxyCode();
 
