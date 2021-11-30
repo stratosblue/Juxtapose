@@ -115,7 +115,7 @@ namespace Juxtapose.Test
 
             await Task.WhenAll(tasks);
 
-            Assert.AreEqual(retainedNum, pool.CurrentCount);
+            Assert.AreEqual(retainedNum, pool.TotalCount);
         }
 
         [TestMethod]

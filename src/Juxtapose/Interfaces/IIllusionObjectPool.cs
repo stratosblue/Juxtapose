@@ -11,6 +11,20 @@ namespace Juxtapose
         : IDisposable
         where T : IIllusion
     {
+        #region Public 属性
+
+        /// <summary>
+        /// 空闲对象数量
+        /// </summary>
+        int IdleCount { get; }
+
+        /// <summary>
+        /// 对象总数量
+        /// </summary>
+        int TotalCount { get; }
+
+        #endregion Public 属性
+
         #region Public 方法
 
         /// <summary>

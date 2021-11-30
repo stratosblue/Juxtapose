@@ -34,7 +34,7 @@ namespace Juxtapose.ObjectPool
         #region Private 字段
 
         private readonly SemaphoreSlim? _getObjectSemaphore;
-        private volatile int _currentCount;
+        private volatile int _totalCount;
 
         #endregion Private 字段
 
@@ -64,10 +64,8 @@ namespace Juxtapose.ObjectPool
 
         #region Public 属性
 
-        /// <summary>
-        /// 当前数量
-        /// </summary>
-        public int CurrentCount => _currentCount;
+        /// <inheritdoc/>
+        public override int IdleCount => ObjectQueue.Count;
 
         /// <summary>
         /// 最大可创建对象数量
@@ -78,6 +76,9 @@ namespace Juxtapose.ObjectPool
         /// 可保留的对象总数
         /// </summary>
         public int RetainedObjectCount { get; }
+
+        /// <inheritdoc/>
+        public override int TotalCount => _totalCount;
 
         #endregion Public 属性
 
@@ -170,27 +171,36 @@ namespace Juxtapose.ObjectPool
 
             try
             {
-                if (ObjectQueue.TryDequeue(out var item))
+                while (!cancellation.IsCancellationRequested)
                 {
+                    if (ObjectQueue.TryDequeue(out var item))
+                    {
+                        if (!item.IsAvailable)
+                        {
+                            Interlocked.Decrement(ref _totalCount);
+                            continue;
+                        }
+                        return item;
+                    }
+
+                    if (MaximumObjectCount != -1
+                        && _totalCount >= MaximumObjectCount)
+                    {
+                        return default;
+                    }
+
+                    item = await CreateAsync(cancellation);
+
+                    if (item is null)
+                    {
+                        ReleaseGetObjectLock();
+                        return item;
+                    }
+
+                    Interlocked.Increment(ref _totalCount);
                     return item;
                 }
-
-                if (MaximumObjectCount != -1
-                    && _currentCount >= MaximumObjectCount)
-                {
-                    return default;
-                }
-
-                item = await CreateAsync(cancellation);
-
-                if (item is null)
-                {
-                    ReleaseGetObjectLock();
-                    return item;
-                }
-
-                Interlocked.Increment(ref _currentCount);
-                return item;
+                throw new OperationCanceledException(cancellation);
             }
             catch
             {
@@ -213,25 +223,25 @@ namespace Juxtapose.ObjectPool
             {
                 if (item.IsAvailable)
                 {
-                    if (_currentCount <= RetainedObjectCount
+                    if (_totalCount <= RetainedObjectCount
                         && !ShouldDestroy(item))
                     {
                         ObjectQueue.Enqueue(item);
                     }
                     else
                     {
-                        Interlocked.Decrement(ref _currentCount);
+                        Interlocked.Decrement(ref _totalCount);
                         item.Dispose();
                     }
                 }
                 else
                 {
-                    Interlocked.Decrement(ref _currentCount);
+                    Interlocked.Decrement(ref _totalCount);
                 }
             }
             catch
             {
-                Interlocked.Decrement(ref _currentCount);
+                Interlocked.Decrement(ref _totalCount);
                 item.Dispose();
                 throw;
             }

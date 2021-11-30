@@ -8,10 +8,24 @@ namespace Juxtapose.ObjectPool
     /// <summary>
     /// 幻象对象池
     /// </summary>
-    public abstract class IllusionObjectPool<T> 
-        : IIllusionObjectPool<T>, IDisposable 
+    public abstract class IllusionObjectPool<T>
+        : IIllusionObjectPool<T>, IDisposable
         where T : IIllusion
     {
+        #region Public 属性
+
+        /// <summary>
+        /// 空闲对象数量
+        /// </summary>
+        public abstract int IdleCount { get; }
+
+        /// <summary>
+        /// 对象总数量
+        /// </summary>
+        public abstract int TotalCount { get; }
+
+        #endregion Public 属性
+
         #region Public 方法
 
         /// <inheritdoc/>
