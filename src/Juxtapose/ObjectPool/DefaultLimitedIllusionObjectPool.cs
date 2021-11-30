@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 namespace Juxtapose.ObjectPool
 {
     /// <summary>
-    /// 默认的<inheritdoc cref="LimitedIIllusionObjectPool{T}"/>
+    /// 默认的<inheritdoc cref="LimitedIllusionObjectPool{T}"/>
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class DefaultLimitedIIllusionObjectPool<T>
-          : LimitedIIllusionObjectPool<T>
+    public class DefaultLimitedIllusionObjectPool<T>
+          : LimitedIllusionObjectPool<T>
           where T : IIllusion
     {
         #region Private 字段
@@ -22,7 +22,7 @@ namespace Juxtapose.ObjectPool
         #region Public 构造函数
 
         /// <summary>
-        /// <inheritdoc cref="DefaultLimitedIIllusionObjectPool{T}"/>
+        /// <inheritdoc cref="DefaultLimitedIllusionObjectPool{T}"/>
         /// </summary>
         /// <param name="objectCreateFunc">对象创建委托</param>
         /// <param name="checkObjectFunc">对象保留检查委托</param>
@@ -30,7 +30,7 @@ namespace Juxtapose.ObjectPool
         /// <param name="maximumObjectCount">最大总数(-1为不限制)</param>
         /// <param name="blockWhenNoAvailable">没有可用对象时，阻塞进行等待</param>
         /// <exception cref="ArgumentNullException"></exception>
-        public DefaultLimitedIIllusionObjectPool(Func<CancellationToken, Task<T?>> objectCreateFunc, Func<T, bool> checkObjectFunc, int retainedObjectCount, int maximumObjectCount, bool blockWhenNoAvailable)
+        public DefaultLimitedIllusionObjectPool(Func<CancellationToken, Task<T?>> objectCreateFunc, Func<T, bool> checkObjectFunc, int retainedObjectCount, int maximumObjectCount, bool blockWhenNoAvailable)
             : base(retainedObjectCount, maximumObjectCount, blockWhenNoAvailable)
         {
             _objectCreateFunc = objectCreateFunc ?? throw new ArgumentNullException(nameof(objectCreateFunc));

@@ -5,20 +5,20 @@ using System.Threading.Tasks;
 
 namespace Juxtapose.ObjectPool
 {
-    /// <inheritdoc cref="LimitedIIllusionObjectPool{T}"/>
-    public static class LimitedIIllusionObjectPool
+    /// <inheritdoc cref="LimitedIllusionObjectPool{T}"/>
+    public static class LimitedIllusionObjectPool
     {
         #region Public 方法
 
-        /// <inheritdoc cref="DefaultLimitedIIllusionObjectPool{T}"/>
-        public static LimitedIIllusionObjectPool<T> Create<T>(Func<CancellationToken, Task<T?>> objectCreateFunc,
+        /// <inheritdoc cref="DefaultLimitedIllusionObjectPool{T}"/>
+        public static LimitedIllusionObjectPool<T> Create<T>(Func<CancellationToken, Task<T?>> objectCreateFunc,
                                                               Func<T, bool> checkObjectFunc,
                                                               int retainedObjectCount,
                                                               int maximumObjectCount,
                                                               bool blockWhenNoAvailable)
             where T : IIllusion
         {
-            return new DefaultLimitedIIllusionObjectPool<T>(objectCreateFunc, checkObjectFunc, retainedObjectCount, maximumObjectCount, blockWhenNoAvailable);
+            return new DefaultLimitedIllusionObjectPool<T>(objectCreateFunc, checkObjectFunc, retainedObjectCount, maximumObjectCount, blockWhenNoAvailable);
         }
 
         #endregion Public 方法
@@ -27,8 +27,8 @@ namespace Juxtapose.ObjectPool
     /// <summary>
     /// 有限大小幻象对象池
     /// </summary>
-    public abstract class LimitedIIllusionObjectPool<T>
-        : IIllusionObjectPool<T>
+    public abstract class LimitedIllusionObjectPool<T>
+        : IllusionObjectPool<T>
         where T : IIllusion
     {
         #region Private 字段
@@ -84,13 +84,13 @@ namespace Juxtapose.ObjectPool
         #region Public 构造函数
 
         /// <summary>
-        /// <inheritdoc cref="LimitedIIllusionObjectPool{T}"/>
+        /// <inheritdoc cref="LimitedIllusionObjectPool{T}"/>
         /// </summary>
         /// <param name="retainedObjectCount">保留总数</param>
         /// <param name="maximumObjectCount">最大总数(-1为不限制)</param>
         /// <param name="blockWhenNoAvailable">没有可用对象时，阻塞进行等待</param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public LimitedIIllusionObjectPool(int retainedObjectCount, int maximumObjectCount, bool blockWhenNoAvailable)
+        public LimitedIllusionObjectPool(int retainedObjectCount, int maximumObjectCount, bool blockWhenNoAvailable)
         {
             if (retainedObjectCount < 0)
             {
@@ -200,7 +200,7 @@ namespace Juxtapose.ObjectPool
         }
 
         /// <inheritdoc/>
-        public override void Return(T item)
+        public override void Return(T? item)
         {
             if (item is null)
             {

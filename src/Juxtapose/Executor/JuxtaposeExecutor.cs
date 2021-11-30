@@ -112,6 +112,7 @@ namespace Juxtapose
             {
                 return instance;
             }
+            ThrowIfDisposed();
             throw new InstanceNotFoundException(instanceId);
         }
 

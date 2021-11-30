@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Juxtapose.Test
 {
     [TestClass]
-    public class DefaultLimitedIIllusionObjectPoolTest
+    public class DefaultLimitedIllusionObjectPoolTest
     {
         //TODO 覆盖未测试路径
 
@@ -19,7 +19,7 @@ namespace Juxtapose.Test
         [TestMethod]
         public async Task ShouldBlockAtGet()
         {
-            var pool = LimitedIIllusionObjectPool.Create(Create, NoCheck, 4, 4, true);
+            var pool = LimitedIllusionObjectPool.Create(Create, NoCheck, 4, 4, true);
             Assert.IsNotNull(await pool.GetAsync());
             Assert.IsNotNull(await pool.GetAsync());
             Assert.IsNotNull(await pool.GetAsync());
@@ -55,7 +55,7 @@ namespace Juxtapose.Test
         [TestMethod]
         public async Task ShouldNotBlockAtGet()
         {
-            var pool = LimitedIIllusionObjectPool.Create(Create, NoCheck, 4, 4, false);
+            var pool = LimitedIllusionObjectPool.Create(Create, NoCheck, 4, 4, false);
             Assert.IsNotNull(await pool.GetAsync());
             Assert.IsNotNull(await pool.GetAsync());
             Assert.IsNotNull(await pool.GetAsync());
@@ -95,7 +95,7 @@ namespace Juxtapose.Test
             var retainedNum = random.Next(10, 15);
             var maxNum = retainedNum * 2;
 
-            var pool = LimitedIIllusionObjectPool.Create(Create, NoCheck, retainedNum, maxNum, true);
+            var pool = LimitedIllusionObjectPool.Create(Create, NoCheck, retainedNum, maxNum, true);
 
             var tasks = Enumerable.Range(0, maxNum).Select(async m =>
             {
@@ -121,14 +121,14 @@ namespace Juxtapose.Test
         [TestMethod]
         public void ShouldThrownOnCreate()
         {
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => LimitedIIllusionObjectPool.Create(Create, NoCheck, 4, 3, true));
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => LimitedIIllusionObjectPool.Create(Create, NoCheck, 4, 0, true));
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => LimitedIIllusionObjectPool.Create(Create, NoCheck, 4, -2, true));
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => LimitedIIllusionObjectPool.Create(Create, NoCheck, -1, 3, true));
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => LimitedIIllusionObjectPool.Create(Create, NoCheck, -2, 3, true));
-            Assert.ThrowsException<ArgumentNullException>(() => LimitedIIllusionObjectPool.Create<TestClass>(null, NoCheck, 4, 4, true));
-            Assert.ThrowsException<ArgumentNullException>(() => LimitedIIllusionObjectPool.Create<TestClass>(Create, null, 4, 4, true));
-            Assert.ThrowsException<ArgumentNullException>(() => LimitedIIllusionObjectPool.Create<TestClass>(null, null, 4, 4, true));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => LimitedIllusionObjectPool.Create(Create, NoCheck, 4, 3, true));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => LimitedIllusionObjectPool.Create(Create, NoCheck, 4, 0, true));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => LimitedIllusionObjectPool.Create(Create, NoCheck, 4, -2, true));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => LimitedIllusionObjectPool.Create(Create, NoCheck, -1, 3, true));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => LimitedIllusionObjectPool.Create(Create, NoCheck, -2, 3, true));
+            Assert.ThrowsException<ArgumentNullException>(() => LimitedIllusionObjectPool.Create<TestClass>(null, NoCheck, 4, 4, true));
+            Assert.ThrowsException<ArgumentNullException>(() => LimitedIllusionObjectPool.Create<TestClass>(Create, null, 4, 4, true));
+            Assert.ThrowsException<ArgumentNullException>(() => LimitedIllusionObjectPool.Create<TestClass>(null, null, 4, 4, true));
         }
 
         #endregion Public 方法

@@ -7,8 +7,7 @@ namespace Juxtapose.ObjectPool
     /// <summary>
     /// 幻象对象池
     /// </summary>
-    public abstract class IIllusionObjectPool<T> : IDisposable
-        where T : IIllusion
+    public abstract class IllusionObjectPool<T> : IDisposable where T : IIllusion
     {
         #region Public 方法
 
@@ -23,7 +22,7 @@ namespace Juxtapose.ObjectPool
         /// 归还对象
         /// </summary>
         /// <param name="item"></param>
-        public abstract void Return(T item);
+        public abstract void Return(T? item);
 
         #endregion Public 方法
 
@@ -34,7 +33,7 @@ namespace Juxtapose.ObjectPool
         /// <summary>
         ///
         /// </summary>
-        ~IIllusionObjectPool()
+        ~IllusionObjectPool()
         {
             Dispose(disposing: false);
         }
@@ -54,7 +53,7 @@ namespace Juxtapose.ObjectPool
         {
             if (_isDisposed)
             {
-                throw new ObjectDisposedException(nameof(IIllusionObjectPool<T>));
+                throw new ObjectDisposedException(nameof(IllusionObjectPool<T>));
             }
         }
 
