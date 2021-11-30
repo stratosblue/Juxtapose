@@ -10,15 +10,15 @@ namespace Juxtapose.ObjectPool
     {
         #region Public 方法
 
-        /// <inheritdoc cref="DefaultLimitedIllusionObjectPool{T}"/>
+        /// <inheritdoc cref="DefaultLimitedIllusionObjectPool{T}.DefaultLimitedIllusionObjectPool"/>
         public static LimitedIllusionObjectPool<T> Create<T>(Func<CancellationToken, Task<T?>> objectCreateFunc,
-                                                              Func<T, bool> checkObjectFunc,
+                                                              Func<T, bool> checkShouldDestroyFunc,
                                                               int retainedObjectCount,
                                                               int maximumObjectCount,
                                                               bool blockWhenNoAvailable)
             where T : IIllusion
         {
-            return new DefaultLimitedIllusionObjectPool<T>(objectCreateFunc, checkObjectFunc, retainedObjectCount, maximumObjectCount, blockWhenNoAvailable);
+            return new DefaultLimitedIllusionObjectPool<T>(objectCreateFunc, checkShouldDestroyFunc, retainedObjectCount, maximumObjectCount, blockWhenNoAvailable);
         }
 
         #endregion Public 方法
@@ -132,13 +132,6 @@ namespace Juxtapose.ObjectPool
         #region Protected 方法
 
         /// <summary>
-        /// 检查对象是否该保留
-        /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        protected abstract bool CheckObject(T item);
-
-        /// <summary>
         /// 创建对象
         /// </summary>
         /// <param name="cancellation"></param>
@@ -156,6 +149,13 @@ namespace Juxtapose.ObjectPool
                 item.Dispose();
             }
         }
+
+        /// <summary>
+        /// 检查是否应该销毁实例
+        /// </summary>
+        /// <param name="instance"></param>
+        /// <returns></returns>
+        protected abstract bool ShouldDestroy(T instance);
 
         #endregion Protected 方法
 
@@ -214,7 +214,7 @@ namespace Juxtapose.ObjectPool
                 if (item.IsAvailable)
                 {
                     if (_currentCount <= RetainedObjectCount
-                        && CheckObject(item))
+                        && !ShouldDestroy(item))
                     {
                         ObjectQueue.Enqueue(item);
                     }

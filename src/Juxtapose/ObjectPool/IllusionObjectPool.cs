@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,21 +8,16 @@ namespace Juxtapose.ObjectPool
     /// <summary>
     /// 幻象对象池
     /// </summary>
-    public abstract class IllusionObjectPool<T> : IDisposable where T : IIllusion
+    public abstract class IllusionObjectPool<T> 
+        : IIllusionObjectPool<T>, IDisposable 
+        where T : IIllusion
     {
         #region Public 方法
 
-        /// <summary>
-        /// 获取对象
-        /// </summary>
-        /// <param name="cancellation"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public abstract Task<T?> GetAsync(CancellationToken cancellation = default);
 
-        /// <summary>
-        /// 归还对象
-        /// </summary>
-        /// <param name="item"></param>
+        /// <inheritdoc/>
         public abstract void Return(T? item);
 
         #endregion Public 方法
@@ -42,6 +38,7 @@ namespace Juxtapose.ObjectPool
         ///
         /// </summary>
         /// <param name="disposing"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected virtual void Dispose(bool disposing)
         {
         }
@@ -49,6 +46,7 @@ namespace Juxtapose.ObjectPool
         /// <summary>
         ///
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void ThrowIfDisposed()
         {
             if (_isDisposed)

@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.0.0-pre-alpha-009</Version>
+    <Version>1.0.0-dev-010</Version>
 
     <Description>基于 `SourceGenerator` 的硬编码 `.Net` 多`进程`运行库。</Description>
 
@@ -20,7 +20,7 @@
 
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
-    
+
     <PackageReadmeFile>readme.md</PackageReadmeFile>
   </PropertyGroup>
 
