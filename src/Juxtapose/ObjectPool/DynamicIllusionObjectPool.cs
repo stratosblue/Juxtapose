@@ -15,7 +15,6 @@ namespace Juxtapose.ObjectPool
         #region Private 字段
 
         private readonly SemaphoreSlim _getObjectLockSemaphore;
-        private volatile int _totalCount;
 
         #endregion Private 字段
 
@@ -26,6 +25,11 @@ namespace Juxtapose.ObjectPool
         /// </summary>
         protected readonly ConcurrentQueue<T> ObjectQueue = new();
 
+        /// <summary>
+        /// 当前对象总数
+        /// </summary>
+        protected volatile int InternalTotalCount;
+
         #endregion Protected 字段
 
         #region Public 属性
@@ -34,7 +38,7 @@ namespace Juxtapose.ObjectPool
         public override int IdleCount => ObjectQueue.Count;
 
         /// <inheritdoc/>
-        public override int TotalCount => _totalCount;
+        public override int TotalCount => InternalTotalCount;
 
         #endregion Public 属性
 
@@ -107,7 +111,7 @@ namespace Juxtapose.ObjectPool
                     {
                         if (!item.IsAvailable)
                         {
-                            Interlocked.Decrement(ref _totalCount);
+                            Interlocked.Decrement(ref InternalTotalCount);
                             continue;
                         }
                         return item;
@@ -125,7 +129,7 @@ namespace Juxtapose.ObjectPool
                         throw new InvalidOperationException("Create instance fail.");
                     }
 
-                    Interlocked.Increment(ref _totalCount);
+                    Interlocked.Increment(ref InternalTotalCount);
                     return item;
                 }
                 throw new OperationCanceledException(cancellation);
@@ -156,18 +160,18 @@ namespace Juxtapose.ObjectPool
                     }
                     else
                     {
-                        Interlocked.Decrement(ref _totalCount);
+                        Interlocked.Decrement(ref InternalTotalCount);
                         item.Dispose();
                     }
                 }
                 else
                 {
-                    Interlocked.Decrement(ref _totalCount);
+                    Interlocked.Decrement(ref InternalTotalCount);
                 }
             }
             catch
             {
-                Interlocked.Decrement(ref _totalCount);
+                Interlocked.Decrement(ref InternalTotalCount);
                 item.Dispose();
                 throw;
             }

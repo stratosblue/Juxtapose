@@ -131,13 +131,16 @@ namespace Juxtapose.SourceGenerator
 
             void AddSource(SourceCode sourceInfo)
             {
+                var hintName = string.Join(".", sourceInfo.HintName.Split('.').Reverse().Where(m => m != "cs" && m != "g"));
+                hintName = $"{hintName}.g.cs";
+
                 if (isSaveGeneratedCodeFile)
                 {
-                    var outputPath = Path.Combine(saveGeneratedCodePath!, sourceInfo.HintName);
+                    var outputPath = Path.Combine(saveGeneratedCodePath!, hintName);
                     File.WriteAllText(outputPath, sourceInfo.Source);
                 }
 
-                context.AddSource(sourceInfo.HintName, SourceText.From(sourceInfo.Source, Encoding.UTF8));
+                context.AddSource(hintName, SourceText.From(sourceInfo.Source, Encoding.UTF8));
             }
         }
 
