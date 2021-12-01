@@ -65,7 +65,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
             IllusionAttributeDefines = allIllusionAttributes.Where(m => !m.TargetType.IsStatic).ToArray();
             IllusionStaticAttributeDefines = allIllusionAttributes.Where(m => m.TargetType.IsStatic).ToArray();
 
-            SourceHintName = $"{TypeFullName}.g.cs";
+            SourceHintName = $"{TypeFullName}.Context.g.cs";
         }
 
         #endregion Public 构造函数

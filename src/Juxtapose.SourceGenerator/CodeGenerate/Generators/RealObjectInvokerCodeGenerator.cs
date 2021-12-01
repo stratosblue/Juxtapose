@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using Juxtapose.SourceGenerator.Internal;
 using Juxtapose.SourceGenerator.Model;
 
@@ -55,7 +56,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
             TypeFullName = $"{@namespace}.{targetTypeName}RealObjectInvoker";
             TypeName = TypeFullName.Substring(Namespace.Length + 1);
 
-            SourceHintName = $"{TypeFullName}.g.cs";
+            SourceHintName = $"{TypeFullName}.RealObjectInvoker.g.cs";
 
             _vars = new VariableName() { Executor = "executor" };
         }

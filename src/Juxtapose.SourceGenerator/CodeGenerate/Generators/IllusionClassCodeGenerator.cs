@@ -85,7 +85,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                 _ => ImplementTypeSymbol.DeclaredAccessibility,
             };
 
-            SourceHintName = $"{TypeFullName}.g.cs";
+            SourceHintName = $"{TypeFullName}.Illusion.g.cs";
 
             _vars = new VariableName()
             {
