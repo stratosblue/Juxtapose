@@ -364,11 +364,11 @@ finally
                     var propName = method.Name.Replace("get_", string.Empty).Replace("set_", string.Empty);
                     if (method.IsStatic)
                     {
-                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}(message.Id) {{ Result = new (global::{method.ContainingType.ToDisplayString()}.{propName}) }};");
+                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}(message.Id) {{ Result = new(global::{method.ContainingType.ToDisplayString()}.{propName}) }};");
                     }
                     else
                     {
-                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}(message.Id, {vars.InstanceId}) {{ Result = new ({vars.Instance}.{propName}) }};");
+                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}(message.Id, {vars.InstanceId}) {{ Result = new({vars.Instance}.{propName}) }};");
                     }
                     return;
                 }
@@ -418,11 +418,11 @@ finally
                 {
                     if (method.IsStatic)
                     {
-                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}(message.Id) {{ Result = new (result) }};");
+                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}(message.Id) {{ Result = new(result) }};");
                     }
                     else
                     {
-                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}(message.Id, {vars.InstanceId}) {{ Result = new (result) }};");
+                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}(message.Id, {vars.InstanceId}) {{ Result = new(result) }};");
                     }
                 }
             }, new VariableName(vars)

@@ -98,10 +98,13 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
                                 _sourceBuilder.AppendLine();
                                 _sourceBuilder.AppendIndentLine("default:");
+                                
+                                _sourceBuilder.Indent();
                                 _sourceBuilder.Scope(() =>
                                 {
                                     _sourceBuilder.AppendIndentLine("return await base.OnMessageAsync(message, __cancellation__);");
                                 });
+                                _sourceBuilder.Dedent();
                             });
                         });
                     });
@@ -150,6 +153,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
                     _sourceBuilder.AppendIndentLine($"case {methodInvokeMessageTypeName}:");
 
+                    _sourceBuilder.Indent();
                     _sourceBuilder.Scope(() =>
                     {
                         _sourceBuilder.AppendIndentLine($"var typedMessage = ({methodInvokeMessageTypeName})message;");
@@ -166,6 +170,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                             Executor = "this",
                         });
                     });
+                    _sourceBuilder.Dedent();
                 }
             }
         }
