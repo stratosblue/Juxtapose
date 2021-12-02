@@ -103,11 +103,11 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                     var allInvokeMessageTypes = Context.MethodParameterPacks.Select(m => m.Value).Select(GetParameterPackMessageTypeName).OrderBy(m => m).ToArray();
                     var allResultMessageTypes = Context.MethodResultPacks.Select(m => m.Value).OfType<ResultPackSourceCode>().Select(GetResultPackMessageTypeName).OrderBy(m => m).ToArray();
 
-                    if (allInvokeMessageTypes.Length == 0
-                        || allResultMessageTypes.Length == 0)
-                    {
-                        throw new ArgumentOutOfRangeException("there is no message packs in context. something wrong.");
-                    }
+                    //if (allInvokeMessageTypes.Length == 0
+                    //    || allResultMessageTypes.Length == 0)
+                    //{
+                    //    throw new ArgumentOutOfRangeException("there is no message packs in context. something wrong.");
+                    //}
 
                     var allMessageTypes = allDefaultMessageTypes.Concat(allInvokeMessageTypes).Concat(allResultMessageTypes);
 
