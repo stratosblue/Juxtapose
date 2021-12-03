@@ -43,7 +43,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
             builder.AppendIndentLine("/// <inheritdoc/>");
 
-            builder.AppendIndentLine($"public {(returnType.IsAwaitable() ? "async " : string.Empty)}{returnType.ToDisplayString()} {methodSymbol.Name}({methodSymbol.GenerateMethodArgumentString()})");
+            builder.AppendIndentLine($"public {(returnType.IsAwaitable() ? "async " : string.Empty)}{returnType.ToFullyQualifiedDisplayString()} {methodSymbol.Name}({methodSymbol.GenerateMethodArgumentString()})");
             builder.Scope(() =>
             {
                 GenerateMethodProxyBody(builder, methodSymbol);
@@ -58,7 +58,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
             builder.AppendIndentLine("/// <inheritdoc/>");
 
-            builder.AppendIndentLine($"public {propertySymbol.Type.ToDisplayString()} {propertySymbol.Name}");
+            builder.AppendIndentLine($"public {propertySymbol.Type.ToFullyQualifiedDisplayString()} {propertySymbol.Name}");
             builder.Scope(() =>
             {
                 if (propertySymbol.GetMethod is not null)

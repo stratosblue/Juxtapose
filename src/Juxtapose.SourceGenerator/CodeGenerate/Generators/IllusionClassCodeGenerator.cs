@@ -105,7 +105,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                 var parameterPackSourceCode = Context.MethodParameterPacks[constructor];
                 var paramPackContext = constructor.GetParamPackContext();
 
-                var ctorAnnotation = $"/// <inheritdoc cref=\"{implTypeName}.{implTypeName}({string.Join(", ", constructor.Parameters.Select(m => m.Type.ToDisplayString()))})\"/>";
+                var ctorAnnotation = $"/// <inheritdoc cref=\"{implTypeName}.{implTypeName}({string.Join(", ", constructor.Parameters.Select(m => m.Type.ToFullyQualifiedDisplayString()))})\"/>";
 
                 var ctorArguments = constructor.GenerateMethodArgumentString();
                 var accessibility = constructor.GetAccessibilityCodeString();
@@ -166,7 +166,7 @@ return new {TypeName}(executorOwner, instanceId);");
     await global::Juxtapose.SynchronizationContextRemover.Awaiter;
 }}
 
-var executorOwner = await global::{ContextTypeSymbol.ToDisplayString()}.SharedInstance.GetExecutorOwnerAsync(s__creationContext, cancellation);
+var executorOwner = await {ContextTypeSymbol.ToFullyQualifiedDisplayString()}.SharedInstance.GetExecutorOwnerAsync(s__creationContext, cancellation);
 var executor = executorOwner.Executor;
 
 var instanceId = executor.InstanceIdGenerator.Next();
@@ -193,12 +193,12 @@ return (executorOwner, instanceId);");
 
             _sourceBuilder.Namespace(() =>
             {
-                _sourceBuilder.AppendIndentLine($"/// <inheritdoc cref=\"global::{ImplementTypeSymbol.ToDisplayString()}\"/>");
-                _sourceBuilder.AppendIndentLine($"{Accessibility.ToCodeString()} sealed partial class {TypeName} : global::{InterfaceTypeSymbol.ToDisplayString()}, global::Juxtapose.IIllusion, {TypeFullNames.System.IDisposable}");
+                _sourceBuilder.AppendIndentLine($"/// <inheritdoc cref=\"{ImplementTypeSymbol.ToFullyQualifiedDisplayString()}\"/>");
+                _sourceBuilder.AppendIndentLine($"{Accessibility.ToCodeString()} sealed partial class {TypeName} : {InterfaceTypeSymbol.ToFullyQualifiedDisplayString()}, global::Juxtapose.IIllusion, {TypeFullNames.System.IDisposable}");
 
                 _sourceBuilder.Scope(() =>
                 {
-                    _sourceBuilder.AppendIndentLine($"private static readonly {TypeFullNames.Juxtapose.ExecutorCreationContext} s__creationContext = new(typeof(global::{ImplementTypeSymbol.ToDisplayString()}), \"ctor\", false, true);", true);
+                    _sourceBuilder.AppendIndentLine($"private static readonly {TypeFullNames.Juxtapose.ExecutorCreationContext} s__creationContext = new(typeof({ImplementTypeSymbol.ToFullyQualifiedDisplayString()}), \"ctor\", false, true);", true);
 
                     _sourceBuilder.AppendLine($@"
 private {TypeFullNames.Juxtapose.IJuxtaposeExecutorOwner} _executorOwner;

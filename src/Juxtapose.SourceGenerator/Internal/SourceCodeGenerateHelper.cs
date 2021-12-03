@@ -364,7 +364,7 @@ finally
                     var propName = method.Name.Replace("get_", string.Empty).Replace("set_", string.Empty);
                     if (method.IsStatic)
                     {
-                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}(message.Id) {{ Result = new(global::{method.ContainingType.ToDisplayString()}.{propName}) }};");
+                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}(message.Id) {{ Result = new({method.ContainingType.ToFullyQualifiedDisplayString()}.{propName}) }};");
                     }
                     else
                     {
@@ -377,7 +377,7 @@ finally
                     var propName = method.Name.Replace("get_", string.Empty).Replace("set_", string.Empty);
                     if (method.IsStatic)
                     {
-                        sourceBuilder.AppendIndentLine($"global::{method.ContainingType.ToDisplayString()}.{propName} = value;");
+                        sourceBuilder.AppendIndentLine($"{method.ContainingType.ToFullyQualifiedDisplayString()}.{propName} = value;");
                     }
                     else
                     {
@@ -403,7 +403,7 @@ finally
 
                 if (method.IsStatic)
                 {
-                    sourceBuilder.Append($"global::{method.ContainingType.ToDisplayString()}.{method.Name}({method.GenerateMethodArgumentStringWithoutType()});{Environment.NewLine}");
+                    sourceBuilder.Append($"{method.ContainingType.ToFullyQualifiedDisplayString()}.{method.Name}({method.GenerateMethodArgumentStringWithoutType()});{Environment.NewLine}");
                 }
                 else
                 {

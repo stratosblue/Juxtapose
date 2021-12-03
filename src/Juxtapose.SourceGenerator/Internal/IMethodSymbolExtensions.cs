@@ -30,13 +30,7 @@ namespace Microsoft.CodeAnalysis
                 //TODO check int out ref ...
 
                 var builder = new StringBuilder(128);
-                var displayString = parameterSymbol.ToDisplayString();
-
-                //判断是否需要加 global:: 应该还有更好的办法。。暂时先这样
-                if (displayString.Contains('.'))
-                {
-                    builder.Append("global::");
-                }
+                var displayString = parameterSymbol.Type.ToFullyQualifiedDisplayString();
 
                 builder.Append(displayString);
                 builder.Append(' ');

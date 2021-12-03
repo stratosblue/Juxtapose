@@ -161,7 +161,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
                         paramPackContext.GenParamUnPackCode(Context, _sourceBuilder, () =>
                         {
-                            _sourceBuilder.AppendIndentLine($"var instance = new global::{constructorMethod.ContainingType.ToDisplayString()}({constructorMethod.GenerateMethodArgumentStringWithoutType()});");
+                            _sourceBuilder.AppendIndentLine($"var instance = new {constructorMethod.ContainingType.ToFullyQualifiedDisplayString()}({constructorMethod.GenerateMethodArgumentStringWithoutType()});");
 
                             _sourceBuilder.AppendIndentLine($"AddObjectInstance(instanceId, new global::{realObjectInvokerTypeFullName}(instance, instanceId));");
                             _sourceBuilder.AppendIndentLine("return null;");

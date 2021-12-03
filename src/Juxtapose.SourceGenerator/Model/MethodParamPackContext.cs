@@ -91,6 +91,8 @@ namespace Juxtapose.SourceGenerator.Model
         private string GenParamPackClassCode()
         {
             var builder = new ClassStringBuilder();
+
+            builder.AppendLine("[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]");
             builder.AppendLine($"internal class {ParamPackClassName}");
             builder.Scope(() =>
             {
@@ -133,6 +135,7 @@ namespace Juxtapose.SourceGenerator.Model
             }
 
             var builder = new ClassStringBuilder();
+            builder.AppendLine("[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]");
             builder.AppendLine($"internal class {ResultPackClassName}");
             builder.Scope(() =>
             {
@@ -217,7 +220,7 @@ namespace Juxtapose.SourceGenerator.Model
                 callbackBodyBuilder.Indent();
                 SourceCodeGenerateHelper.GenerateInstanceMethodProxyBodyCode(callbackBodyBuilder, context, callbackMethod, delegateVars);
 
-                builder.AppendLine($@"global::{parameter.Type.ToDisplayString()} {parameter.Name} = null!;
+                builder.AppendLine($@"{parameter.Type.ToFullyQualifiedDisplayString()} {parameter.Name} = null!;
 if (paramPack.{parameter.Name}_RID.HasValue)
 {{
     {parameter.Name} = {(callbackMethod.ReturnType.IsAwaitable() ? "async " : string.Empty)}({callbackMethod.GenerateMethodArgumentStringWithoutType()}) =>

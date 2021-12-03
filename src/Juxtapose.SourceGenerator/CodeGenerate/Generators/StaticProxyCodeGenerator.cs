@@ -56,9 +56,9 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
             var returnType = methodSymbol.ReturnType;
 
-            builder.AppendIndentLine($"/// <inheritdoc cref=\"global::{methodSymbol.ToDisplayString()}\"/>");
+            builder.AppendIndentLine($"/// <inheritdoc cref=\"{methodSymbol.ToFullyQualifiedDisplayString()}\"/>");
 
-            builder.AppendIndentLine($"public static {(returnType.IsAwaitable() ? "async " : string.Empty)}{returnType.ToDisplayString()} {methodSymbol.Name}({methodSymbol.GenerateMethodArgumentString()})");
+            builder.AppendIndentLine($"public static {(returnType.IsAwaitable() ? "async " : string.Empty)}{returnType.ToFullyQualifiedDisplayString()} {methodSymbol.Name}({methodSymbol.GenerateMethodArgumentString()})");
             builder.Scope(() =>
             {
                 GenerateMethodProxyBody(builder, methodSymbol);
@@ -71,9 +71,9 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
         {
             var builder = new ClassStringBuilder();
 
-            builder.AppendIndentLine($"/// <inheritdoc cref=\"global::{propertySymbol.ToDisplayString()}\"/>");
+            builder.AppendIndentLine($"/// <inheritdoc cref=\"{propertySymbol.ToFullyQualifiedDisplayString()}\"/>");
 
-            builder.AppendIndentLine($"public static {propertySymbol.Type.ToDisplayString()} {propertySymbol.Name}");
+            builder.AppendIndentLine($"public static {propertySymbol.Type.ToFullyQualifiedDisplayString()} {propertySymbol.Name}");
             builder.Scope(() =>
             {
                 if (propertySymbol.GetMethod is not null)

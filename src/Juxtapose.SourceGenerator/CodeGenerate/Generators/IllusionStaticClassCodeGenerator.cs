@@ -98,11 +98,11 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
             _sourceBuilder.AppendLine();
             _sourceBuilder.Namespace(() =>
             {
-                _sourceBuilder.AppendIndentLine($"/// <inheritdoc cref=\"global::{StaticClassType.ToDisplayString()}\"/>");
+                _sourceBuilder.AppendIndentLine($"/// <inheritdoc cref=\"{StaticClassType.ToFullyQualifiedDisplayString()}\"/>");
                 _sourceBuilder.AppendIndentLine($"{Accessibility.ToCodeString()} static class {TypeName}");
                 _sourceBuilder.Scope(() =>
                 {
-                    _sourceBuilder.AppendIndentLine($"private static readonly global::{ContextTypeSymbol.ToDisplayString()} s_context = global::{ContextTypeSymbol.ToDisplayString()}.SharedInstance;", true);
+                    _sourceBuilder.AppendIndentLine($"private static readonly {ContextTypeSymbol.ToFullyQualifiedDisplayString()} s_context = {ContextTypeSymbol.ToFullyQualifiedDisplayString()}.SharedInstance;", true);
 
                     new StaticProxyCodeGenerator(Context, _sourceBuilder, StaticClassType, _vars).GenerateMemberProxyCode();
                 });

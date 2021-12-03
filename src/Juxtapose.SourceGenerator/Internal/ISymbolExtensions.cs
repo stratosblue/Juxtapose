@@ -45,6 +45,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public static string ToFullyQualifiedDisplayString(this ISymbol symbol)
+        {
+            return symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        }
+
         #endregion Public 方法
     }
 }

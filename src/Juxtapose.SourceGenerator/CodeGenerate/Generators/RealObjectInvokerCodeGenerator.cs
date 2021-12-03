@@ -77,15 +77,16 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
             _sourceBuilder.Namespace(() =>
             {
+                _sourceBuilder.AppendLine("[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]");
                 _sourceBuilder.AppendIndentLine($"internal partial class {TypeName} : {TypeFullNames.Juxtapose.IMessageExecutor}, {TypeFullNames.System.IDisposable}");
                 _sourceBuilder.Scope(() =>
                 {
                     _sourceBuilder.AppendLine(@"private readonly int _instanceId;
 private CancellationTokenSource _runningTokenSource;
 private readonly CancellationToken _runningToken;");
-                    _sourceBuilder.AppendIndentLine($"private global::{ImplementTypeSymbol.ToDisplayString()} _instance;", true);
+                    _sourceBuilder.AppendIndentLine($"private {ImplementTypeSymbol.ToFullyQualifiedDisplayString()} _instance;", true);
 
-                    _sourceBuilder.AppendLine($@"public {TypeName}(global::{ImplementTypeSymbol.ToDisplayString()} instance, int instanceId)
+                    _sourceBuilder.AppendLine($@"public {TypeName}({ImplementTypeSymbol.ToFullyQualifiedDisplayString()} instance, int instanceId)
 {{
     _instance = instance ?? throw new global::System.ArgumentNullException(nameof(instance));
     _instanceId = instanceId;
