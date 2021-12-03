@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.RegularExpressions;
 
 using Juxtapose.SourceGenerator.Model;
@@ -22,7 +23,28 @@ namespace Microsoft.CodeAnalysis
             {
                 return string.Empty;
             }
-            return string.Join(", ", methodSymbol.Parameters.Select(m => $"{m.ToDisplayString()} {m.Name}{GetDefaultValueExpression(m)}"));
+            return string.Join(", ", methodSymbol.Parameters.Select(Processparameter));
+
+            static string Processparameter(IParameterSymbol parameterSymbol)
+            {
+                //TODO check int out ref ...
+
+                var builder = new StringBuilder(128);
+                var displayString = parameterSymbol.ToDisplayString();
+
+                //判断是否需要加 global:: 应该还有更好的办法。。暂时先这样
+                if (displayString.Contains('.'))
+                {
+                    builder.Append("global::");
+                }
+
+                builder.Append(displayString);
+                builder.Append(' ');
+                builder.Append(parameterSymbol.Name);
+                builder.Append(GetDefaultValueExpression(parameterSymbol));
+
+                return builder.ToString();
+            }
 
             static string GetDefaultValueExpression(IParameterSymbol parameterSymbol)
             {
