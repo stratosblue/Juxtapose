@@ -235,6 +235,7 @@ namespace Juxtapose
                 }
                 else
                 {
+                    ThrowIfDisposed();
                     throw new OperationCanceledException(cancellation);
                 }
             }
