@@ -45,10 +45,29 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        #region ToFullyQualifiedDisplayString
+
+        /// <summary>
+        /// modified from <see cref="SymbolDisplayFormat.FullyQualifiedFormat"/>
+        /// </summary>
+        private static readonly SymbolDisplayFormat s_fullyQualifiedFormat = new(SymbolDisplayGlobalNamespaceStyle.Included,
+                                                                                 SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                                                                                 SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                                                                                 SymbolDisplayMemberOptions.None,
+                                                                                 SymbolDisplayDelegateStyle.NameOnly,
+                                                                                 SymbolDisplayExtensionMethodStyle.Default,
+                                                                                 SymbolDisplayParameterOptions.None,
+                                                                                 SymbolDisplayPropertyStyle.NameOnly,
+                                                                                 SymbolDisplayLocalOptions.None,
+                                                                                 SymbolDisplayKindOptions.None,
+                                                                                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
         public static string ToFullyQualifiedDisplayString(this ISymbol symbol)
         {
-            return symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            return symbol.ToDisplayString(s_fullyQualifiedFormat);
         }
+
+        #endregion ToFullyQualifiedDisplayString
 
         #endregion Public 方法
     }
