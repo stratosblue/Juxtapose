@@ -142,6 +142,11 @@ namespace Microsoft.CodeAnalysis
                    ;
         }
 
+        public static bool NotStatic(this IMethodSymbol methodSymbol)
+        {
+            return !methodSymbol.IsStatic;
+        }
+
         #endregion Public 方法
     }
 }

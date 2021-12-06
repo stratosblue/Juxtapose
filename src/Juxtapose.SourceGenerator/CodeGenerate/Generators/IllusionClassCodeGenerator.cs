@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 using Juxtapose.SourceGenerator.Model;
@@ -100,7 +101,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
         private void GenerateConstructorProxyCode()
         {
             var implTypeName = ImplementTypeSymbol.Name;
-            foreach (var constructor in ImplementTypeSymbol.Constructors)
+            foreach (var constructor in ImplementTypeSymbol.Constructors.Where(m => m.NotStatic()))
             {
                 var parameterPackSourceCode = Context.MethodParameterPacks[constructor];
                 var paramPackContext = constructor.GetParamPackContext();
@@ -299,7 +300,9 @@ public void Dispose()
                                                      .OfType<IMethodSymbol>()
                                                      .ToArray();
 
-            var members = InterfaceTypeSymbol.GetProxyableMembers().Concat(ImplementTypeSymbol.Constructors).Concat(delegateSymbols);
+            var members = InterfaceTypeSymbol.GetProxyableMembers()
+                                             .Concat(ImplementTypeSymbol.Constructors.Where(m => m.NotStatic()))
+                                             .Concat(delegateSymbols);
 
             Context.TryAddInterfaceMethods(InterfaceTypeSymbol, InterfaceTypeSymbol.GetProxyableMembers().GetMethodSymbols());
 
@@ -307,7 +310,7 @@ public void Dispose()
             var parameterPackTypeSources = parameterPackCodeGenerator.GetSources()
                                                                      .ToList();
 
-            Context.TryAddConstructorMethods(ImplementTypeSymbol, ImplementTypeSymbol.Constructors);
+            Context.TryAddConstructorMethods(ImplementTypeSymbol, ImplementTypeSymbol.Constructors.Where(m => m.NotStatic()).ToImmutableArray());
 
             Context.TryAddMethodArgumentPackSourceCodes(parameterPackTypeSources);
 

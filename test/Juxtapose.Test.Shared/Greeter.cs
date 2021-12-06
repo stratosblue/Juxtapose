@@ -25,6 +25,9 @@ namespace Juxtapose.Test
 
         #region Public 构造函数
 
+        static Greeter()
+        { }
+
         public Greeter()
         {
             _propField = string.Empty;

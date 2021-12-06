@@ -1,8 +1,12 @@
-﻿namespace Juxtapose
+﻿using System;
+using System.Runtime.Serialization;
+
+namespace Juxtapose
 {
     /// <summary>
     /// 实例重复异常
     /// </summary>
+    [Serializable]
     public class InstanceDuplicateException : JuxtaposeException
     {
         #region Public 属性
@@ -23,5 +27,14 @@
         }
 
         #endregion Public 构造函数
+
+        #region Protected 构造函数
+
+        /// <inheritdoc cref="InstanceDuplicateException"/>
+        protected InstanceDuplicateException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
+
+        #endregion Protected 构造函数
     }
 }

@@ -254,7 +254,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                     _builder.Append('&');
                 }
 
-                foreach (var item in implementTypeSymbol.Constructors)
+                foreach (var item in implementTypeSymbol.Constructors.Where(m => m.NotStatic()))
                 {
                     _builder.Append(item.ToDisplayString());
                     _builder.Append('&');
