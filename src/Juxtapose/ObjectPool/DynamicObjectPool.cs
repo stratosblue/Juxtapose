@@ -77,6 +77,11 @@ namespace Juxtapose.ObjectPool
         }
 
         /// <summary>
+        /// 是否已释放
+        /// </summary>
+        public virtual bool IsDisposed => _isDisposed;
+
+        /// <summary>
         /// 对象总数量
         /// </summary>
         public int TotalCount
@@ -131,7 +136,7 @@ namespace Juxtapose.ObjectPool
         #region Public 方法
 
         /// <inheritdoc/>
-        public async Task<T?> RentAsync(CancellationToken cancellation = default)
+        public virtual async Task<T?> RentAsync(CancellationToken cancellation = default)
         {
             ThrowIfDisposed();
 
@@ -183,7 +188,7 @@ namespace Juxtapose.ObjectPool
         }
 
         /// <inheritdoc/>
-        public void Return(T? item)
+        public virtual void Return(T? item)
         {
             if (item is null)
             {
