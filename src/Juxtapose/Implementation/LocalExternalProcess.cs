@@ -114,7 +114,12 @@ namespace Juxtapose
         public long? GetMemoryUsage()
         {
             ThrowIfDisposed();
-            return Process?.PrivateMemorySize64;
+            if (Process is not null)
+            {
+                Process.Refresh();
+                return Process.PrivateMemorySize64;
+            }
+            return null;
         }
 
         /// <inheritdoc/>
