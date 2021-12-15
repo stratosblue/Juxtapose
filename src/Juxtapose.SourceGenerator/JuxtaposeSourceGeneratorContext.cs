@@ -12,6 +12,15 @@ namespace Juxtapose.SourceGenerator
 {
     public class JuxtaposeSourceGeneratorContext
     {
+        #region Protected 属性
+
+        /// <summary>
+        /// 类型的真实调用器源码字典
+        /// </summary>
+        protected Dictionary<INamedTypeSymbol, Dictionary<INamedTypeSymbol, RealObjectInvokerSourceCode>> TypeRealObjectInvokers { get; private set; } = new(SymbolEqualityComparer.Default);
+
+        #endregion Protected 属性
+
         #region Public 属性
 
         /// <summary>
@@ -50,11 +59,6 @@ namespace Juxtapose.SourceGenerator
         /// 所有的静态方法
         /// </summary>
         public Dictionary<INamedTypeSymbol, HashSet<IMethodSymbol>> StaticMethods { get; private set; } = new(SymbolEqualityComparer.Default);
-
-        /// <summary>
-        /// 类型的真实调用器源码字典
-        /// </summary>
-        public Dictionary<INamedTypeSymbol, Dictionary<INamedTypeSymbol, RealObjectInvokerSourceCode>> TypeRealObjectInvokers { get; private set; } = new(SymbolEqualityComparer.Default);
 
         #endregion Public 属性
 
@@ -142,21 +146,47 @@ namespace Juxtapose.SourceGenerator
             return methodSymbols.Count(m => TryAddMethodArgumentPackSourceCode(m)) > 0;
         }
 
-        public bool TryAddRealObjectInvokerSourceCode(INamedTypeSymbol realObjectTypeSymbol, INamedTypeSymbol interfaceTypeSymbol, RealObjectInvokerSourceCode sourceCode)
+        #region RealObjectInvoker
+
+        /// <summary>
+        /// 尝试添加类型-继承类型-Invoker源码到上下文中
+        /// </summary>
+        /// <param name="originTypeSymbol"></param>
+        /// <param name="inheritTypeSymbol"></param>
+        /// <param name="invokerSourceCode"></param>
+        /// <returns></returns>
+        public bool TryAddRealObjectInvokerSourceCode(INamedTypeSymbol originTypeSymbol, INamedTypeSymbol inheritTypeSymbol, RealObjectInvokerSourceCode invokerSourceCode)
         {
-            if (TypeRealObjectInvokers.TryGetValue(realObjectTypeSymbol, out var interfaceInvokerSourceCodes))
+            if (TypeRealObjectInvokers.TryGetValue(originTypeSymbol, out var invokerSourceCodes))
             {
-                interfaceInvokerSourceCodes.Add(interfaceTypeSymbol, sourceCode);
+                invokerSourceCodes.Add(inheritTypeSymbol, invokerSourceCode);
             }
             else
             {
-                interfaceInvokerSourceCodes = new(SymbolEqualityComparer.Default);
-                interfaceInvokerSourceCodes.Add(interfaceTypeSymbol, sourceCode);
+                invokerSourceCodes = new(SymbolEqualityComparer.Default);
+                invokerSourceCodes.Add(inheritTypeSymbol, invokerSourceCode);
 
-                TypeRealObjectInvokers.Add(realObjectTypeSymbol, interfaceInvokerSourceCodes);
+                TypeRealObjectInvokers.Add(originTypeSymbol, invokerSourceCodes);
             }
             return true;
         }
+
+        public bool TryGetRealObjectInvokerSourceCode(INamedTypeSymbol originTypeSymbol, INamedTypeSymbol? inheritTypeSymbol, out RealObjectInvokerSourceCode? invokerSourceCode)
+        {
+            inheritTypeSymbol ??= BuildEnvironment.VoidSymbol;
+            if (TypeRealObjectInvokers.TryGetValue(originTypeSymbol, out var invokerSourceCodes)
+                && invokerSourceCodes.TryGetValue(inheritTypeSymbol, out invokerSourceCode))
+            {
+                return true;
+            }
+            else
+            {
+                invokerSourceCode = null;
+                return false;
+            }
+        }
+
+        #endregion RealObjectInvoker
 
         public bool TryAddStaticMethod(INamedTypeSymbol staticTypeSymbol, IMethodSymbol methodSymbol)
         {

@@ -98,7 +98,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
                                 _sourceBuilder.AppendLine();
                                 _sourceBuilder.AppendIndentLine("default:");
-                                
+
                                 _sourceBuilder.Indent();
                                 _sourceBuilder.Scope(() =>
                                 {
@@ -130,7 +130,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         private void GenerateConstructorProcessCode(KeyValuePair<INamedTypeSymbol, HashSet<IMethodSymbol>> constructorMethodInfo)
         {
-            var implementTypeSymbol = constructorMethodInfo.Key;
+            var originTypeSymbol = constructorMethodInfo.Key;
 
             var vars = new VariableName(_vars)
             {
@@ -139,11 +139,16 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
             foreach (var constructorMethod in constructorMethodInfo.Value)
             {
-                var interfaces = Context.ImplementInterfaces[implementTypeSymbol];
+                var inheritTypes = Context.ImplementInterfaces[originTypeSymbol];
 
-                foreach (var @interface in interfaces)
+                foreach (var inheritType in inheritTypes)
                 {
-                    var realObjectInvokerSourceCode = Context.TypeRealObjectInvokers[implementTypeSymbol][@interface];
+                    if (!Context.TryGetRealObjectInvokerSourceCode(originTypeSymbol, inheritType, out var realObjectInvokerSourceCode)
+                        || realObjectInvokerSourceCode is null)
+                    {
+                        Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ExecutorGenerateCanNotFoundGeneratedRealObjectInvoker, null, originTypeSymbol, inheritType));
+                        continue;
+                    }
                     var realObjectInvokerTypeFullName = realObjectInvokerSourceCode.TypeFullName;
 
                     var parameterPackSourceCode = Context.MethodParameterPacks[constructorMethod];
