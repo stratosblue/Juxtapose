@@ -194,7 +194,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
             {
                 var illusionClassCodeGenerator = new IllusionClassCodeGenerator(Context, illusionAttributeDefine, ContextTypeSymbol);
 
-                contextHashBuilder.AddIllusionClass(illusionClassCodeGenerator.InheritTypeSymbol, illusionClassCodeGenerator.ImplementTypeSymbol);
+                contextHashBuilder.AddIllusionClass(illusionClassCodeGenerator.ImplementTypeSymbol, illusionClassCodeGenerator.InheritTypeSymbol);
 
                 foreach (var sourceInfo in illusionClassCodeGenerator.GetSources())
                 {
@@ -246,15 +246,18 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
             #region Public 方法
 
-            public void AddIllusionClass(INamedTypeSymbol interfaceTypeSymbol, INamedTypeSymbol implementTypeSymbol)
+            public void AddIllusionClass(INamedTypeSymbol targetTypeSymbol, INamedTypeSymbol? inheritTypeSymbol)
             {
-                foreach (var item in interfaceTypeSymbol.GetProxyableMembers())
+                if (inheritTypeSymbol is not null)
                 {
-                    _builder.Append(item.ToDisplayString());
-                    _builder.Append('&');
+                    foreach (var item in inheritTypeSymbol.GetProxyableMembers())
+                    {
+                        _builder.Append(item.ToDisplayString());
+                        _builder.Append('&');
+                    }
                 }
 
-                foreach (var item in implementTypeSymbol.Constructors.Where(m => m.NotStatic()))
+                foreach (var item in targetTypeSymbol.Constructors.Where(m => m.NotStatic()))
                 {
                     _builder.Append(item.ToDisplayString());
                     _builder.Append('&');

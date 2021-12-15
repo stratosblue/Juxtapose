@@ -303,33 +303,34 @@ public void Dispose()
 
         public IEnumerable<SourceCode> GetSources()
         {
+            var targetTypeSymbol = InheritTypeSymbol ?? ImplementTypeSymbol;
             if (!Context.TryAddImplementInherit(ImplementTypeSymbol, InheritTypeSymbol))
             {
                 Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleIllusionClassDefine, null, ImplementTypeSymbol, InheritTypeSymbol));
                 yield break;
             }
             //HACK 暂不处理嵌套委托
-            var delegateSymbols = (InheritTypeSymbol ?? ImplementTypeSymbol).GetProxyableMembers()
-                                                                            .OfType<IMethodSymbol>()
-                                                                            .SelectMany(m => m.Parameters)
-                                                                            .Where(m => m.Type.IsDelegate())
-                                                                            .Select(m => m.Type)
-                                                                            .OfType<INamedTypeSymbol>()
-                                                                            .Select(m => m.DelegateInvokeMethod)
-                                                                            .Distinct(SymbolEqualityComparer.Default)
-                                                                            .OfType<IMethodSymbol>()
-                                                                            .ToArray();
+            var delegateSymbols = targetTypeSymbol.GetProxyableMembers()
+                                                  .OfType<IMethodSymbol>()
+                                                  .SelectMany(m => m.Parameters)
+                                                  .Where(m => m.Type.IsDelegate())
+                                                  .Select(m => m.Type)
+                                                  .OfType<INamedTypeSymbol>()
+                                                  .Select(m => m.DelegateInvokeMethod)
+                                                  .Distinct(SymbolEqualityComparer.Default)
+                                                  .OfType<IMethodSymbol>()
+                                                  .ToArray();
 
-            var members = (InheritTypeSymbol ?? ImplementTypeSymbol).GetProxyableMembers()
-                                                                    .Concat(ImplementTypeSymbol.Constructors.Where(m => m.NotStatic()))
-                                                                    .Concat(delegateSymbols)
-                                                                    .Distinct(SymbolEqualityComparer.Default)
-                                                                    .OfType<IMethodSymbol>()
-                                                                    .ToArray();
+            var members = targetTypeSymbol.GetProxyableMembers()
+                                          .Concat(ImplementTypeSymbol.Constructors.Where(m => m.NotStatic()))
+                                          .Concat(delegateSymbols)
+                                          .Distinct(SymbolEqualityComparer.Default)
+                                          .OfType<IMethodSymbol>()
+                                          .ToArray();
 
-            Context.TryAddInterfaceMethods(InheritTypeSymbol, InheritTypeSymbol.GetProxyableMembers().GetMethodSymbols());
+            Context.TryAddTargetGenerateTypeMethods(targetTypeSymbol, targetTypeSymbol.GetProxyableMembers().GetMethodSymbols());
 
-            var parameterPackCodeGenerator = new MethodParameterPackCodeGenerator(Context, members, Namespace, $"{InheritTypeSymbol.ToDisplayString()}.ParameterPack.g.cs");
+            var parameterPackCodeGenerator = new MethodParameterPackCodeGenerator(Context, members, Namespace, $"{targetTypeSymbol.ToDisplayString()}.ParameterPack.g.cs");
             var parameterPackTypeSources = parameterPackCodeGenerator.GetSources()
                                                                      .ToList();
 

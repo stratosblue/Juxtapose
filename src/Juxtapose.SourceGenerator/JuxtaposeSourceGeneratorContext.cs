@@ -144,13 +144,9 @@ namespace Juxtapose.SourceGenerator
 
         public bool TryAddImplementInherit(INamedTypeSymbol implementTypeSymbol, INamedTypeSymbol? inheritTypeSymbol)
         {
+            inheritTypeSymbol ??= BuildEnvironment.VoidSymbol;
             return TryAddTypeMap(InheritImplements, inheritTypeSymbol, implementTypeSymbol)
                    | TryAddTypeMap(ImplementInherits, implementTypeSymbol, inheritTypeSymbol);
-        }
-
-        public bool TryAddInterfaceMethods(INamedTypeSymbol interfaceTypeSymbol, IEnumerable<IMethodSymbol> methodSymbols)
-        {
-            return methodSymbols.Count(m => TryAddTargetGenerateTypeMethod(interfaceTypeSymbol, m)) > 0;
         }
 
         public bool TryAddMethodArgumentPackSourceCode(ArgumentPackSourceCode item)
@@ -214,9 +210,14 @@ namespace Juxtapose.SourceGenerator
             return methodSymbols.Count(m => TryAddStaticMethod(staticTypeSymbol, m)) > 0;
         }
 
-        public bool TryAddTargetGenerateTypeMethod(INamedTypeSymbol targetType, IMethodSymbol methodSymbol)
+        public bool TryAddTargetGenerateTypeMethod(INamedTypeSymbol targetTypeSymbol, IMethodSymbol methodSymbol)
         {
-            return TryAddMethodIntoCollection(TargetGenerateTypeMethods, targetType, methodSymbol);
+            return TryAddMethodIntoCollection(TargetGenerateTypeMethods, targetTypeSymbol, methodSymbol);
+        }
+
+        public bool TryAddTargetGenerateTypeMethods(INamedTypeSymbol targetTypeSymbol, IEnumerable<IMethodSymbol> methodSymbols)
+        {
+            return methodSymbols.Count(m => TryAddTargetGenerateTypeMethod(targetTypeSymbol, m)) > 0;
         }
 
         #region RealObjectInvoker
@@ -228,8 +229,9 @@ namespace Juxtapose.SourceGenerator
         /// <param name="inheritTypeSymbol"></param>
         /// <param name="invokerSourceCode"></param>
         /// <returns></returns>
-        public bool TryAddRealObjectInvokerSourceCode(INamedTypeSymbol originTypeSymbol, INamedTypeSymbol inheritTypeSymbol, RealObjectInvokerSourceCode invokerSourceCode)
+        public bool TryAddRealObjectInvokerSourceCode(INamedTypeSymbol originTypeSymbol, INamedTypeSymbol? inheritTypeSymbol, RealObjectInvokerSourceCode invokerSourceCode)
         {
+            inheritTypeSymbol ??= BuildEnvironment.VoidSymbol;
             if (TypeRealObjectInvokers.TryGetValue(originTypeSymbol, out var invokerSourceCodes))
             {
                 invokerSourceCodes.Add(inheritTypeSymbol, invokerSourceCode);
