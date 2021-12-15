@@ -22,7 +22,10 @@ namespace Juxtapose.SourceGenerator.Internal
         /// <param name="vars"></param>
         public static void GenerateInstanceMethodProxyBodyCode(ClassStringBuilder builder, JuxtaposeSourceGeneratorContext context, IMethodSymbol method, VariableName vars)
         {
-            var parameterPackSourceCode = context.MethodParameterPacks[method];
+            if (!context.TryGetParameterPackWithDiagnostic(method, out var parameterPackSourceCode))
+            {
+                return;
+            }
             var resultPackSourceCode = context.MethodResultPacks[method];
             var paramPackContext = method.GetParamPackContext();
             var isAwaitable = method.ReturnType.IsAwaitable();
@@ -166,7 +169,10 @@ finally
         /// <param name="vars"></param>
         public static void GenerateStaticMethodProxyBodyCode(ClassStringBuilder builder, JuxtaposeSourceGeneratorContext context, IMethodSymbol method, VariableName vars)
         {
-            var parameterPackSourceCode = context.MethodParameterPacks[method];
+            if (!context.TryGetParameterPackWithDiagnostic(method, out var parameterPackSourceCode))
+            {
+                return;
+            }
             var resultPackSourceCode = context.MethodResultPacks[method];
             var paramPackContext = method.GetParamPackContext();
             var isAwaitable = method.ReturnType.IsAwaitable();
@@ -324,7 +330,10 @@ finally
         /// <param name="vars"></param>
         public static void GenerateMethodInvokeThroughMessageCaseScopeCode(JuxtaposeSourceGeneratorContext context, ClassStringBuilder sourceBuilder, IMethodSymbol method, VariableName vars)
         {
-            var parameterPackSourceCode = context.MethodParameterPacks[method];
+            if (!context.TryGetParameterPackWithDiagnostic(method, out var parameterPackSourceCode))
+            {
+                return;
+            }
             var methodInvokeMessageTypeName = GetInvokeMessageFullTypeName(method, parameterPackSourceCode);
 
             sourceBuilder.AppendIndentLine($"case {methodInvokeMessageTypeName}:");
@@ -348,7 +357,10 @@ finally
         /// <param name="vars"></param>
         public static void GenerateMethodInvokeThroughMessageCode(JuxtaposeSourceGeneratorContext context, ClassStringBuilder sourceBuilder, IMethodSymbol method, VariableName vars)
         {
-            var parameterPackSourceCode = context.MethodParameterPacks[method];
+            if (!context.TryGetParameterPackWithDiagnostic(method, out var parameterPackSourceCode))
+            {
+                return;
+            }
             var resultPackSourceCode = context.MethodResultPacks[method];
             var paramPackContext = method.GetParamPackContext();
 

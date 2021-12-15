@@ -53,7 +53,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
         private ArgumentPackSourceCode? GenMethodParameterPackClassSource(IMethodSymbol? methodSymbol)
         {
             if (methodSymbol is null
-                || Context.MethodParameterPacks.ContainsKey(methodSymbol))
+                || Context.TryGetParameterPack(methodSymbol, out _))
             {
                 return null;
             }

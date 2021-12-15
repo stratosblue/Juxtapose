@@ -139,7 +139,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
             foreach (var constructorMethod in constructorMethodInfo.Value)
             {
-                var inheritTypes = Context.ImplementInterfaces[originTypeSymbol];
+                var inheritTypes = Context.ImplementInherits[originTypeSymbol];
 
                 foreach (var inheritType in inheritTypes)
                 {
@@ -149,9 +149,14 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                         Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ExecutorGenerateCanNotFoundGeneratedRealObjectInvoker, null, originTypeSymbol, inheritType));
                         continue;
                     }
+
+                    if (!Context.TryGetParameterPackWithDiagnostic(constructorMethod, out var parameterPackSourceCode))
+                    {
+                        continue;
+                    }
+
                     var realObjectInvokerTypeFullName = realObjectInvokerSourceCode.TypeFullName;
 
-                    var parameterPackSourceCode = Context.MethodParameterPacks[constructorMethod];
                     var paramPackContext = constructorMethod.GetParamPackContext();
 
                     var methodInvokeMessageTypeName = $"{TypeFullNames.Juxtapose.Messages.CreateObjectInstanceMessage}<{parameterPackSourceCode.TypeName}>";

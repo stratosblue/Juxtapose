@@ -31,7 +31,10 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         public INamedTypeSymbol ImplementTypeSymbol { get; }
 
-        public INamedTypeSymbol InterfaceTypeSymbol { get; }
+        /// <summary>
+        /// 继承的类型
+        /// </summary>
+        public INamedTypeSymbol InheritTypeSymbol { get; }
 
         public string Namespace { get; }
 
@@ -51,7 +54,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
             ContextTypeSymbol = contextTypeSymbol ?? throw new ArgumentNullException(nameof(contextTypeSymbol));
 
             ImplementTypeSymbol = attributeDefine.TargetType ?? throw new ArgumentNullException(nameof(attributeDefine.TargetType));
-            InterfaceTypeSymbol = attributeDefine.InheritType ?? throw new ArgumentNullException(nameof(attributeDefine.InheritType));
+            InheritTypeSymbol = attributeDefine.InheritType ?? throw new ArgumentNullException(nameof(attributeDefine.InheritType));
 
             var implementTypeFullName = ImplementTypeSymbol.ToDisplayString();
             Namespace = implementTypeFullName.Substring(0, implementTypeFullName.LastIndexOf('.'));
@@ -59,7 +62,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
             if (attributeDefine.GeneratedTypeName is not string proxyTypeName
                 || string.IsNullOrWhiteSpace(proxyTypeName))
             {
-                TypeFullName = $"{implementTypeFullName}As{InterfaceTypeSymbol.Name}Illusion";
+                TypeFullName = $"{implementTypeFullName}As{InheritTypeSymbol.Name}Illusion";
                 TypeName = TypeFullName.Substring(Namespace.Length + 1);
             }
             else
@@ -80,7 +83,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
             Accessibility = attributeDefine.Accessibility switch
             {
                 GeneratedAccessibility.InheritContext => contextTypeSymbol.DeclaredAccessibility,
-                GeneratedAccessibility.InheritInterface => InterfaceTypeSymbol.DeclaredAccessibility,
+                GeneratedAccessibility.InheritInterface => InheritTypeSymbol.DeclaredAccessibility,
                 GeneratedAccessibility.Public => Accessibility.Public,
                 GeneratedAccessibility.Internal => Accessibility.Internal,
                 _ => ImplementTypeSymbol.DeclaredAccessibility,
@@ -103,7 +106,10 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
             var implTypeName = ImplementTypeSymbol.Name;
             foreach (var constructor in ImplementTypeSymbol.Constructors.Where(m => m.NotStatic()))
             {
-                var parameterPackSourceCode = Context.MethodParameterPacks[constructor];
+                if (!Context.TryGetParameterPackWithDiagnostic(constructor, out var parameterPackSourceCode))
+                {
+                    continue;
+                }
                 var paramPackContext = constructor.GetParamPackContext();
 
                 var ctorAnnotation = $"/// <inheritdoc cref=\"{implTypeName}.{implTypeName}({string.Join(", ", constructor.Parameters.Select(m => m.Type.ToFullyQualifiedDisplayString()))})\"/>";
@@ -195,7 +201,7 @@ return (executorOwner, instanceId);");
             _sourceBuilder.Namespace(() =>
             {
                 _sourceBuilder.AppendIndentLine($"/// <inheritdoc cref=\"{ImplementTypeSymbol.ToFullyQualifiedDisplayString()}\"/>");
-                _sourceBuilder.AppendIndentLine($"{Accessibility.ToCodeString()} sealed partial class {TypeName} : {InterfaceTypeSymbol.ToFullyQualifiedDisplayString()}, global::Juxtapose.IIllusion, {TypeFullNames.System.IDisposable}");
+                _sourceBuilder.AppendIndentLine($"{Accessibility.ToCodeString()} sealed partial class {TypeName} : {InheritTypeSymbol.ToFullyQualifiedDisplayString()}, global::Juxtapose.IIllusion, {TypeFullNames.System.IDisposable}");
 
                 _sourceBuilder.Scope(() =>
                 {
@@ -225,12 +231,13 @@ JuxtaposeExecutor IIllusion.Executor => _executor;
 bool IIllusion.IsAvailable => !_isDisposed;
 
 #endregion IIllusion
+
 ");
                     _sourceBuilder.AppendLine();
 
                     GenerateConstructorProxyCode();
 
-                    new InstanceProxyCodeGenerator(Context, _sourceBuilder, InterfaceTypeSymbol, new(_vars) { MethodBodyPrefixSnippet = "ThrowIfDisposed();" }).GenerateMemberProxyCode();
+                    new InstanceProxyCodeGenerator(Context, _sourceBuilder, InheritTypeSymbol, new(_vars) { MethodBodyPrefixSnippet = "ThrowIfDisposed();" }).GenerateMemberProxyCode();
 
                     _sourceBuilder.AppendLine();
 
@@ -289,24 +296,29 @@ public void Dispose()
 
         public IEnumerable<SourceCode> GetSources()
         {
+            if (!Context.TryAddImplementInherit(ImplementTypeSymbol, InheritTypeSymbol))
+            {
+                Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleIllusionClassDefine, null, ImplementTypeSymbol, InheritTypeSymbol));
+                yield break;
+            }
             //HACK 暂不处理嵌套委托
-            var delegateSymbols = InterfaceTypeSymbol.GetProxyableMembers()
-                                                     .OfType<IMethodSymbol>()
-                                                     .SelectMany(m => m.Parameters)
-                                                     .Where(m => m.Type.IsDelegate())
-                                                     .Select(m => m.Type)
-                                                     .OfType<INamedTypeSymbol>()
-                                                     .Select(m => m.DelegateInvokeMethod)
-                                                     .OfType<IMethodSymbol>()
-                                                     .ToArray();
+            var delegateSymbols = InheritTypeSymbol.GetProxyableMembers()
+                                                   .OfType<IMethodSymbol>()
+                                                   .SelectMany(m => m.Parameters)
+                                                   .Where(m => m.Type.IsDelegate())
+                                                   .Select(m => m.Type)
+                                                   .OfType<INamedTypeSymbol>()
+                                                   .Select(m => m.DelegateInvokeMethod)
+                                                   .OfType<IMethodSymbol>()
+                                                   .ToArray();
 
-            var members = InterfaceTypeSymbol.GetProxyableMembers()
-                                             .Concat(ImplementTypeSymbol.Constructors.Where(m => m.NotStatic()))
-                                             .Concat(delegateSymbols);
+            var members = InheritTypeSymbol.GetProxyableMembers()
+                                           .Concat(ImplementTypeSymbol.Constructors.Where(m => m.NotStatic()))
+                                           .Concat(delegateSymbols);
 
-            Context.TryAddInterfaceMethods(InterfaceTypeSymbol, InterfaceTypeSymbol.GetProxyableMembers().GetMethodSymbols());
+            Context.TryAddInterfaceMethods(InheritTypeSymbol, InheritTypeSymbol.GetProxyableMembers().GetMethodSymbols());
 
-            var parameterPackCodeGenerator = new MethodParameterPackCodeGenerator(Context, members, Namespace, $"{InterfaceTypeSymbol.ToDisplayString()}.ParameterPack.g.cs");
+            var parameterPackCodeGenerator = new MethodParameterPackCodeGenerator(Context, members, Namespace, $"{InheritTypeSymbol.ToDisplayString()}.ParameterPack.g.cs");
             var parameterPackTypeSources = parameterPackCodeGenerator.GetSources()
                                                                      .ToList();
 
@@ -318,8 +330,6 @@ public void Dispose()
             {
                 yield return parameterPackTypeSource;
             }
-
-            Context.TryAddInterfaceImplement(InterfaceTypeSymbol, ImplementTypeSymbol);
 
             yield return new FullSourceCode(SourceHintName, GenerateProxyTypeSource());
         }

@@ -15,6 +15,16 @@ namespace Juxtapose.SourceGenerator
         #region Protected 属性
 
         /// <summary>
+        /// 方法参数包字典
+        /// </summary>
+        protected Dictionary<IMethodSymbol, ParameterPackSourceCode> MethodParameterPacks { get; private set; } = new(SymbolEqualityComparer.Default);
+
+        /// <summary>
+        /// 所有构造函数的参数包
+        /// </summary>
+        protected Dictionary<INamedTypeSymbol, HashSet<ParameterPackSourceCode>> TypeConstructorParameterPacks { get; private set; } = new(SymbolEqualityComparer.Default);
+
+        /// <summary>
         /// 类型的真实调用器源码字典
         /// </summary>
         protected Dictionary<INamedTypeSymbol, Dictionary<INamedTypeSymbol, RealObjectInvokerSourceCode>> TypeRealObjectInvokers { get; private set; } = new(SymbolEqualityComparer.Default);
@@ -31,24 +41,19 @@ namespace Juxtapose.SourceGenerator
         public GeneratorExecutionContext GeneratorExecutionContext { get; }
 
         /// <summary>
-        /// 类型的接口字典
+        /// 实现类型-继承基类 字典
         /// </summary>
-        public Dictionary<INamedTypeSymbol, HashSet<INamedTypeSymbol>> ImplementInterfaces { get; private set; } = new(SymbolEqualityComparer.Default);
+        public Dictionary<INamedTypeSymbol, HashSet<INamedTypeSymbol>> ImplementInherits { get; private set; } = new(SymbolEqualityComparer.Default);
 
         /// <summary>
-        /// 接口的类型字典
+        /// 继承基类-实现类型 字典
         /// </summary>
-        public Dictionary<INamedTypeSymbol, HashSet<INamedTypeSymbol>> InterfaceImplements { get; private set; } = new(SymbolEqualityComparer.Default);
+        public Dictionary<INamedTypeSymbol, HashSet<INamedTypeSymbol>> InheritImplements { get; private set; } = new(SymbolEqualityComparer.Default);
 
         /// <summary>
         /// 接口的方法列表
         /// </summary>
         public Dictionary<INamedTypeSymbol, HashSet<IMethodSymbol>> InterfaceMethods { get; private set; } = new(SymbolEqualityComparer.Default);
-
-        /// <summary>
-        /// 方法参数包字典
-        /// </summary>
-        public Dictionary<IMethodSymbol, ParameterPackSourceCode> MethodParameterPacks { get; private set; } = new(SymbolEqualityComparer.Default);
 
         /// <summary>
         /// 方法返回值包字典
@@ -73,6 +78,47 @@ namespace Juxtapose.SourceGenerator
 
         #region Public 方法
 
+        #region GetInfos
+
+        /// <summary>
+        /// 获取所有构造函数的参数包
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<ParameterPackSourceCode> GetAllConstructorParameterPacks()
+        {
+            foreach (var constructorParameterPacks in TypeConstructorParameterPacks)
+            {
+                foreach (var item in constructorParameterPacks.Value)
+                {
+                    yield return item;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 获取所有的参数包源码
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<ParameterPackSourceCode> GetAllParameterPacks()
+        {
+            foreach (var item in MethodParameterPacks)
+            {
+                yield return item.Value;
+            }
+        }
+
+        /// <summary>
+        /// 获取方法参数源码
+        /// </summary>
+        /// <param name="methodSymbol"></param>
+        /// <returns></returns>
+        public bool TryGetParameterPack(IMethodSymbol methodSymbol, out ParameterPackSourceCode? parameterPackSourceCode)
+        {
+            return MethodParameterPacks.TryGetValue(methodSymbol, out parameterPackSourceCode);
+        }
+
+        #endregion GetInfos
+
         public void Clear()
         {
             MethodParameterPacks = new(SymbolEqualityComparer.Default);
@@ -81,8 +127,9 @@ namespace Juxtapose.SourceGenerator
             ConstructorMethods = new(SymbolEqualityComparer.Default);
             StaticMethods = new(SymbolEqualityComparer.Default);
             TypeRealObjectInvokers = new(SymbolEqualityComparer.Default);
-            InterfaceImplements = new(SymbolEqualityComparer.Default);
-            ImplementInterfaces = new(SymbolEqualityComparer.Default);
+            InheritImplements = new(SymbolEqualityComparer.Default);
+            ImplementInherits = new(SymbolEqualityComparer.Default);
+            TypeConstructorParameterPacks = new(SymbolEqualityComparer.Default);
         }
 
         public bool TryAddConstructorMethod(INamedTypeSymbol typeSymbol, IMethodSymbol methodSymbol)
@@ -95,10 +142,10 @@ namespace Juxtapose.SourceGenerator
             return constructorMethods.Count(m => TryAddConstructorMethod(typeSymbol, m)) > 0;
         }
 
-        public bool TryAddInterfaceImplement(INamedTypeSymbol interfaceTypeSymbol, INamedTypeSymbol implementTypeSymbol)
+        public bool TryAddImplementInherit(INamedTypeSymbol implementTypeSymbol, INamedTypeSymbol? inheritTypeSymbol)
         {
-            return TryAddTypeMap(InterfaceImplements, interfaceTypeSymbol, implementTypeSymbol)
-                   | TryAddTypeMap(ImplementInterfaces, implementTypeSymbol, interfaceTypeSymbol);
+            return TryAddTypeMap(InheritImplements, inheritTypeSymbol, implementTypeSymbol)
+                   | TryAddTypeMap(ImplementInherits, implementTypeSymbol, inheritTypeSymbol);
         }
 
         public bool TryAddInterfaceMethod(INamedTypeSymbol interfaceTypeSymbol, IMethodSymbol methodSymbol)
@@ -113,13 +160,29 @@ namespace Juxtapose.SourceGenerator
 
         public bool TryAddMethodArgumentPackSourceCode(ArgumentPackSourceCode item)
         {
+            var method = item.MethodSymbol;
             switch (item)
             {
                 case ParameterPackSourceCode parameterPackSourceCode:
                     {
-                        if (!MethodParameterPacks.ContainsKey(parameterPackSourceCode.MethodSymbol))
+                        if (!MethodParameterPacks.ContainsKey(method))
                         {
-                            MethodParameterPacks.Add(parameterPackSourceCode.MethodSymbol, parameterPackSourceCode);
+                            MethodParameterPacks.Add(method, parameterPackSourceCode);
+
+                            if (method.MethodKind == MethodKind.Constructor)
+                            {
+                                var type = method.ContainingType;
+                                if (TypeConstructorParameterPacks.TryGetValue(type, out var constructorParameterPacks))
+                                {
+                                    constructorParameterPacks.Add(parameterPackSourceCode);
+                                }
+                                else
+                                {
+                                    constructorParameterPacks = new(ParameterPackSourceCode.EqualityComparer) { parameterPackSourceCode };
+                                    TypeConstructorParameterPacks.Add(type, constructorParameterPacks);
+                                }
+                            }
+
                             return true;
                         }
                     }
@@ -127,9 +190,9 @@ namespace Juxtapose.SourceGenerator
 
                 case ResultPackSourceCode resultPackSourceCode:
                     {
-                        if (!MethodResultPacks.ContainsKey(resultPackSourceCode.MethodSymbol))
+                        if (!MethodResultPacks.ContainsKey(method))
                         {
-                            MethodResultPacks.Add(resultPackSourceCode.MethodSymbol, resultPackSourceCode);
+                            MethodResultPacks.Add(method, resultPackSourceCode);
                             return true;
                         }
                     }

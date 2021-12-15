@@ -100,7 +100,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                         TypeFullNames.Juxtapose.Messages.DisposeObjectInstanceMessage,
                     };
 
-                    var allInvokeMessageTypes = Context.MethodParameterPacks.Select(m => m.Value).Select(GetParameterPackMessageTypeName).OrderBy(m => m).ToArray();
+                    var allInvokeMessageTypes = Context.GetAllParameterPacks().Select(GetParameterPackMessageTypeName).OrderBy(m => m).ToArray();
                     var allResultMessageTypes = Context.MethodResultPacks.Select(m => m.Value).OfType<ResultPackSourceCode>().Select(GetResultPackMessageTypeName).OrderBy(m => m).ToArray();
 
                     //if (allInvokeMessageTypes.Length == 0
@@ -194,14 +194,14 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
             {
                 var illusionClassCodeGenerator = new IllusionClassCodeGenerator(Context, illusionAttributeDefine, ContextTypeSymbol);
 
-                contextHashBuilder.AddIllusionClass(illusionClassCodeGenerator.InterfaceTypeSymbol, illusionClassCodeGenerator.ImplementTypeSymbol);
+                contextHashBuilder.AddIllusionClass(illusionClassCodeGenerator.InheritTypeSymbol, illusionClassCodeGenerator.ImplementTypeSymbol);
 
                 foreach (var sourceInfo in illusionClassCodeGenerator.GetSources())
                 {
                     yield return sourceInfo;
                 }
 
-                var realObjectInvokerCodeGenerator = new RealObjectInvokerCodeGenerator(Context, illusionClassCodeGenerator.InterfaceTypeSymbol, illusionClassCodeGenerator.ImplementTypeSymbol, illusionClassCodeGenerator.Namespace, illusionClassCodeGenerator.TypeName);
+                var realObjectInvokerCodeGenerator = new RealObjectInvokerCodeGenerator(Context, illusionClassCodeGenerator.InheritTypeSymbol, illusionClassCodeGenerator.ImplementTypeSymbol, illusionClassCodeGenerator.Namespace, illusionClassCodeGenerator.TypeName);
                 foreach (var sourceInfo in realObjectInvokerCodeGenerator.GetSources())
                 {
                     yield return sourceInfo;
