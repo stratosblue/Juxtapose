@@ -201,7 +201,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                     yield return sourceInfo;
                 }
 
-                var realObjectInvokerCodeGenerator = new RealObjectInvokerCodeGenerator(Context, illusionClassCodeGenerator.InheritTypeSymbol, illusionClassCodeGenerator.ImplementTypeSymbol, illusionClassCodeGenerator.Namespace, illusionClassCodeGenerator.TypeName);
+                var realObjectInvokerCodeGenerator = new RealObjectInvokerCodeGenerator(Context, illusionClassCodeGenerator.ImplementTypeSymbol, illusionClassCodeGenerator.InheritTypeSymbol, illusionClassCodeGenerator.Namespace, illusionClassCodeGenerator.TypeName);
                 foreach (var sourceInfo in realObjectInvokerCodeGenerator.GetSources())
                 {
                     yield return sourceInfo;

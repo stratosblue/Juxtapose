@@ -16,9 +16,9 @@
         InheritImplement = Default,
 
         /// <summary>
-        /// 继承自接口
+        /// 继承自基类型
         /// </summary>
-        InheritInterface,
+        InheritBase,
 
         /// <summary>
         /// 继承自Context

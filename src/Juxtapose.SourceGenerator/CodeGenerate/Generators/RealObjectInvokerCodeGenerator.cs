@@ -26,7 +26,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         public INamedTypeSymbol ImplementTypeSymbol { get; }
 
-        public INamedTypeSymbol InterfaceTypeSymbol { get; }
+        public INamedTypeSymbol? InheritTypeSymbol { get; }
 
         public string Namespace { get; }
 
@@ -41,15 +41,15 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
         #region Public 构造函数
 
         public RealObjectInvokerCodeGenerator(JuxtaposeSourceGeneratorContext context,
-                                              INamedTypeSymbol interfaceTypeSymbol,
                                               INamedTypeSymbol implementTypeSymbol,
+                                              INamedTypeSymbol? inheritTypeSymbol,
                                               string @namespace,
                                               string targetTypeName)
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
 
-            InterfaceTypeSymbol = interfaceTypeSymbol ?? throw new ArgumentNullException(nameof(interfaceTypeSymbol));
             ImplementTypeSymbol = implementTypeSymbol ?? throw new ArgumentNullException(nameof(implementTypeSymbol));
+            InheritTypeSymbol = inheritTypeSymbol;
 
             Namespace = @namespace;
 
@@ -67,9 +67,9 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         private void GenerateProxyClassSource()
         {
-            if (!Context.InterfaceMethods.TryGetValue(InterfaceTypeSymbol, out var methods))
+            if (!Context.TargetGenerateTypeMethods.TryGetValue(InheritTypeSymbol ?? ImplementTypeSymbol, out var methods))
             {
-                throw new ArgumentException($"can not find {InterfaceTypeSymbol} methods in Context.");
+                throw new ArgumentException($"can not find {InheritTypeSymbol ?? ImplementTypeSymbol} methods in Context.");
             }
 
             _sourceBuilder.AppendLine(Constants.JuxtaposeGenerateCodeHeader);
@@ -170,7 +170,7 @@ public void Dispose()
         {
             var sourceCode = new RealObjectInvokerSourceCode(SourceHintName, GenerateProxyTypeSource(), TypeName, TypeFullName);
 
-            Context.TryAddRealObjectInvokerSourceCode(ImplementTypeSymbol, InterfaceTypeSymbol, sourceCode);
+            Context.TryAddRealObjectInvokerSourceCode(ImplementTypeSymbol, InheritTypeSymbol, sourceCode);
 
             yield return sourceCode;
         }

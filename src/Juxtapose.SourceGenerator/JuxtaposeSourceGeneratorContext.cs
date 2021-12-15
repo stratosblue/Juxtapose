@@ -51,11 +51,6 @@ namespace Juxtapose.SourceGenerator
         public Dictionary<INamedTypeSymbol, HashSet<INamedTypeSymbol>> InheritImplements { get; private set; } = new(SymbolEqualityComparer.Default);
 
         /// <summary>
-        /// 接口的方法列表
-        /// </summary>
-        public Dictionary<INamedTypeSymbol, HashSet<IMethodSymbol>> InterfaceMethods { get; private set; } = new(SymbolEqualityComparer.Default);
-
-        /// <summary>
         /// 方法返回值包字典
         /// </summary>
         public Dictionary<IMethodSymbol, ResultPackSourceCode?> MethodResultPacks { get; private set; } = new(SymbolEqualityComparer.Default);
@@ -64,6 +59,11 @@ namespace Juxtapose.SourceGenerator
         /// 所有的静态方法
         /// </summary>
         public Dictionary<INamedTypeSymbol, HashSet<IMethodSymbol>> StaticMethods { get; private set; } = new(SymbolEqualityComparer.Default);
+
+        /// <summary>
+        /// 目标生成类型的方法字典
+        /// </summary>
+        public Dictionary<INamedTypeSymbol, HashSet<IMethodSymbol>> TargetGenerateTypeMethods { get; private set; } = new(SymbolEqualityComparer.Default);
 
         #endregion Public 属性
 
@@ -123,7 +123,7 @@ namespace Juxtapose.SourceGenerator
         {
             MethodParameterPacks = new(SymbolEqualityComparer.Default);
             MethodResultPacks = new(SymbolEqualityComparer.Default);
-            InterfaceMethods = new(SymbolEqualityComparer.Default);
+            TargetGenerateTypeMethods = new(SymbolEqualityComparer.Default);
             ConstructorMethods = new(SymbolEqualityComparer.Default);
             StaticMethods = new(SymbolEqualityComparer.Default);
             TypeRealObjectInvokers = new(SymbolEqualityComparer.Default);
@@ -148,14 +148,9 @@ namespace Juxtapose.SourceGenerator
                    | TryAddTypeMap(ImplementInherits, implementTypeSymbol, inheritTypeSymbol);
         }
 
-        public bool TryAddInterfaceMethod(INamedTypeSymbol interfaceTypeSymbol, IMethodSymbol methodSymbol)
-        {
-            return TryAddMethodIntoCollection(InterfaceMethods, interfaceTypeSymbol, methodSymbol);
-        }
-
         public bool TryAddInterfaceMethods(INamedTypeSymbol interfaceTypeSymbol, IEnumerable<IMethodSymbol> methodSymbols)
         {
-            return methodSymbols.Count(m => TryAddInterfaceMethod(interfaceTypeSymbol, m)) > 0;
+            return methodSymbols.Count(m => TryAddTargetGenerateTypeMethod(interfaceTypeSymbol, m)) > 0;
         }
 
         public bool TryAddMethodArgumentPackSourceCode(ArgumentPackSourceCode item)
@@ -209,6 +204,21 @@ namespace Juxtapose.SourceGenerator
             return methodSymbols.Count(m => TryAddMethodArgumentPackSourceCode(m)) > 0;
         }
 
+        public bool TryAddStaticMethod(INamedTypeSymbol staticTypeSymbol, IMethodSymbol methodSymbol)
+        {
+            return TryAddMethodIntoCollection(StaticMethods, staticTypeSymbol, methodSymbol);
+        }
+
+        public bool TryAddStaticMethods(INamedTypeSymbol staticTypeSymbol, IEnumerable<IMethodSymbol> methodSymbols)
+        {
+            return methodSymbols.Count(m => TryAddStaticMethod(staticTypeSymbol, m)) > 0;
+        }
+
+        public bool TryAddTargetGenerateTypeMethod(INamedTypeSymbol targetType, IMethodSymbol methodSymbol)
+        {
+            return TryAddMethodIntoCollection(TargetGenerateTypeMethods, targetType, methodSymbol);
+        }
+
         #region RealObjectInvoker
 
         /// <summary>
@@ -250,16 +260,6 @@ namespace Juxtapose.SourceGenerator
         }
 
         #endregion RealObjectInvoker
-
-        public bool TryAddStaticMethod(INamedTypeSymbol staticTypeSymbol, IMethodSymbol methodSymbol)
-        {
-            return TryAddMethodIntoCollection(StaticMethods, staticTypeSymbol, methodSymbol);
-        }
-
-        public bool TryAddStaticMethods(INamedTypeSymbol staticTypeSymbol, IEnumerable<IMethodSymbol> methodSymbols)
-        {
-            return methodSymbols.Count(m => TryAddStaticMethod(staticTypeSymbol, m)) > 0;
-        }
 
         #endregion Public 方法
 
