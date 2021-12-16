@@ -11,6 +11,7 @@ using Serilog.Extensions.Logging;
 
 namespace Juxtapose.Test
 {
+    [Illusion(typeof(Greeter), null, "Juxtapose.Test.GreeterIllusion")]
     [Illusion(typeof(Greeter), typeof(IGreeter), "Juxtapose.Test.GreeterAsIGreeterIllusion")]
     [Illusion(typeof(StaticGreeter), generatedTypeName: "Juxtapose.Test.StaticGreeterIllusion")]
     [Illusion(typeof(JuxtaposeEnvironmentProxy), generatedTypeName: "Juxtapose.Test.ExternalJuxtaposeEnvironment")]

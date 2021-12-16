@@ -24,11 +24,9 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         public JuxtaposeSourceGeneratorContext Context { get; }
 
-        public INamedTypeSymbol ImplementTypeSymbol { get; }
+        public IllusionInstanceClassDescriptor Descriptor { get; }
 
-        public INamedTypeSymbol? InheritTypeSymbol { get; }
-
-        public string Namespace { get; }
+        public SubResourceCollection Resources { get; }
 
         public string SourceHintName { get; }
 
@@ -40,21 +38,14 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         #region Public 构造函数
 
-        public RealObjectInvokerCodeGenerator(JuxtaposeSourceGeneratorContext context,
-                                              INamedTypeSymbol implementTypeSymbol,
-                                              INamedTypeSymbol? inheritTypeSymbol,
-                                              string @namespace,
-                                              string targetTypeName)
+        public RealObjectInvokerCodeGenerator(JuxtaposeSourceGeneratorContext context, IllusionInstanceClassDescriptor descriptor, SubResourceCollection resources)
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
+            Descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
+            Resources = resources ?? throw new ArgumentNullException(nameof(resources));
 
-            ImplementTypeSymbol = implementTypeSymbol ?? throw new ArgumentNullException(nameof(implementTypeSymbol));
-            InheritTypeSymbol = inheritTypeSymbol;
-
-            Namespace = @namespace;
-
-            TypeFullName = $"{@namespace}.{targetTypeName}RealObjectInvoker";
-            TypeName = TypeFullName.Substring(Namespace.Length + 1);
+            TypeFullName = $"{descriptor.TypeFullName}RealObjectInvoker";
+            TypeName = TypeFullName.Substring(descriptor.Namespace.Length + 1);
 
             SourceHintName = $"{TypeFullName}.RealObjectInvoker.g.cs";
 
@@ -67,10 +58,8 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         private void GenerateProxyClassSource()
         {
-            if (!Context.TargetGenerateTypeMethods.TryGetValue(InheritTypeSymbol ?? ImplementTypeSymbol, out var methods))
-            {
-                throw new ArgumentException($"can not find {InheritTypeSymbol ?? ImplementTypeSymbol} methods in Context.");
-            }
+            var inheritType = Descriptor.InheritType;
+            var targetType = Descriptor.TargetType;
 
             _sourceBuilder.AppendLine(Constants.JuxtaposeGenerateCodeHeader);
             _sourceBuilder.AppendLine();
@@ -84,9 +73,9 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                     _sourceBuilder.AppendLine(@"private readonly int _instanceId;
 private CancellationTokenSource _runningTokenSource;
 private readonly CancellationToken _runningToken;");
-                    _sourceBuilder.AppendIndentLine($"private {ImplementTypeSymbol.ToFullyQualifiedDisplayString()} _instance;", true);
+                    _sourceBuilder.AppendIndentLine($"private {targetType.ToFullyQualifiedDisplayString()} _instance;", true);
 
-                    _sourceBuilder.AppendLine($@"public {TypeName}({ImplementTypeSymbol.ToFullyQualifiedDisplayString()} instance, int instanceId)
+                    _sourceBuilder.AppendLine($@"public {TypeName}({targetType.ToFullyQualifiedDisplayString()} instance, int instanceId)
 {{
     _instance = instance ?? throw new global::System.ArgumentNullException(nameof(instance));
     _instanceId = instanceId;
@@ -104,7 +93,7 @@ private readonly CancellationToken _runningToken;");
                         _sourceBuilder.AppendIndentLine("switch (message)");
                         _sourceBuilder.Scope(() =>
                         {
-                            foreach (var method in methods)
+                            foreach (var method in Resources.GetAllMethods())
                             {
                                 SourceCodeGenerateHelper.GenerateMethodInvokeThroughMessageCaseScopeCode(Context, _sourceBuilder, method, _vars);
                             }
@@ -146,7 +135,7 @@ public void Dispose()
     global::System.GC.SuppressFinalize(this);
 }}");
                 });
-            }, Namespace);
+            }, Descriptor.Namespace);
         }
 
         private string GenerateProxyTypeSource()
@@ -170,7 +159,7 @@ public void Dispose()
         {
             var sourceCode = new RealObjectInvokerSourceCode(SourceHintName, GenerateProxyTypeSource(), TypeName, TypeFullName);
 
-            Context.TryAddRealObjectInvokerSourceCode(ImplementTypeSymbol, InheritTypeSymbol, sourceCode);
+            Resources.TryAddRealObjectInvokerSourceCode(Descriptor.TargetType, Descriptor.InheritType, sourceCode);
 
             yield return sourceCode;
         }

@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace System
 {
@@ -16,6 +17,11 @@ namespace System
         {
             using var md5 = MD5.Create();
             return md5.ComputeHash(Encoding.UTF8.GetBytes(text)).ToHexString();
+        }
+
+        public static string NormalizeAsClassName(this string text)
+        {
+            return Regex.Replace(text, "[^0-9a-zA-Z_]", "_");
         }
 
         #endregion Public 方法

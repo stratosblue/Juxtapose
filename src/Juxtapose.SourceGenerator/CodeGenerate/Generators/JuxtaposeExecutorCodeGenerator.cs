@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Juxtapose.SourceGenerator.Internal;
 using Juxtapose.SourceGenerator.Model;
@@ -122,66 +123,54 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         private void GenerateAllObjectConstructorProcessCode()
         {
-            foreach (var constructorMethodInfo in Context.ConstructorMethods)
+            foreach (var item in Context.IllusionInstanceClasses)
             {
-                GenerateConstructorProcessCode(constructorMethodInfo);
+                GenerateConstructorProcessCode(item.Key, item.Value);
             }
         }
 
-        private void GenerateConstructorProcessCode(KeyValuePair<INamedTypeSymbol, HashSet<IMethodSymbol>> constructorMethodInfo)
+        private void GenerateConstructorProcessCode(IllusionInstanceClassDescriptor descriptor, ResourceCollection resources)
         {
-            var originTypeSymbol = constructorMethodInfo.Key;
-
             var vars = new VariableName(_vars)
             {
                 ParameterPack = "typedMessage.ParameterPack!",
             };
 
-            foreach (var constructorMethod in constructorMethodInfo.Value)
+            if (!resources.TryGetRealObjectInvokerSourceCode(descriptor.TargetType, descriptor.InheritType, out var realObjectInvokerSourceCode)
+                || realObjectInvokerSourceCode is null)
             {
-                var inheritTypes = Context.ImplementInherits[originTypeSymbol];
+                Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ExecutorGenerateCanNotFoundGeneratedRealObjectInvoker, null, descriptor.TargetType, descriptor.InheritType));
+                return;
+            }
 
-                foreach (var inheritType in inheritTypes)
+            var realObjectInvokerTypeFullName = realObjectInvokerSourceCode.TypeFullName;
+
+            foreach (var parameterPackSourceCode in resources.GetAllConstructorParameterPacks())
+            {
+                var paramPackContext = parameterPackSourceCode.MethodSymbol.GetConstructorParamPackContext(descriptor.TypeFullName);
+
+                var methodInvokeMessageTypeName = $"{TypeFullNames.Juxtapose.Messages.CreateObjectInstanceMessage}<{parameterPackSourceCode.TypeName}>";
+
+                _sourceBuilder.AppendIndentLine($"case {methodInvokeMessageTypeName}:");
+
+                _sourceBuilder.Indent();
+                _sourceBuilder.Scope(() =>
                 {
-                    if (!Context.TryGetRealObjectInvokerSourceCode(originTypeSymbol, inheritType, out var realObjectInvokerSourceCode)
-                        || realObjectInvokerSourceCode is null)
+                    _sourceBuilder.AppendIndentLine($"var typedMessage = ({methodInvokeMessageTypeName})message;");
+                    _sourceBuilder.AppendIndentLine($"var instanceId = typedMessage.InstanceId;");
+
+                    paramPackContext.GenParamUnPackCode(Context, _sourceBuilder, () =>
                     {
-                        Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ExecutorGenerateCanNotFoundGeneratedRealObjectInvoker, null, originTypeSymbol, inheritType));
-                        continue;
-                    }
+                        _sourceBuilder.AppendIndentLine($"var instance = new {parameterPackSourceCode.MethodSymbol.ContainingType.ToFullyQualifiedDisplayString()}({parameterPackSourceCode.MethodSymbol.GenerateMethodArgumentStringWithoutType()});");
 
-                    if (!Context.TryGetParameterPackWithDiagnostic(constructorMethod, out var parameterPackSourceCode))
+                        _sourceBuilder.AppendIndentLine($"AddObjectInstance(instanceId, new global::{realObjectInvokerTypeFullName}(instance, instanceId));");
+                        _sourceBuilder.AppendIndentLine("return null;");
+                    }, new VariableName(vars)
                     {
-                        continue;
-                    }
-
-                    var realObjectInvokerTypeFullName = realObjectInvokerSourceCode.TypeFullName;
-
-                    var paramPackContext = constructorMethod.GetParamPackContext();
-
-                    var methodInvokeMessageTypeName = $"{TypeFullNames.Juxtapose.Messages.CreateObjectInstanceMessage}<{parameterPackSourceCode.TypeName}>";
-
-                    _sourceBuilder.AppendIndentLine($"case {methodInvokeMessageTypeName}:");
-
-                    _sourceBuilder.Indent();
-                    _sourceBuilder.Scope(() =>
-                    {
-                        _sourceBuilder.AppendIndentLine($"var typedMessage = ({methodInvokeMessageTypeName})message;");
-                        _sourceBuilder.AppendIndentLine($"var instanceId = typedMessage.InstanceId;");
-
-                        paramPackContext.GenParamUnPackCode(Context, _sourceBuilder, () =>
-                        {
-                            _sourceBuilder.AppendIndentLine($"var instance = new {constructorMethod.ContainingType.ToFullyQualifiedDisplayString()}({constructorMethod.GenerateMethodArgumentStringWithoutType()});");
-
-                            _sourceBuilder.AppendIndentLine($"AddObjectInstance(instanceId, new global::{realObjectInvokerTypeFullName}(instance, instanceId));");
-                            _sourceBuilder.AppendIndentLine("return null;");
-                        }, new VariableName(vars)
-                        {
-                            Executor = "this",
-                        });
+                        Executor = "this",
                     });
-                    _sourceBuilder.Dedent();
-                }
+                });
+                _sourceBuilder.Dedent();
             }
         }
 
@@ -189,12 +178,10 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         private void GenerateAllStaticMethodProcessCode()
         {
-            foreach (var staticTypeMethods in Context.StaticMethods)
+            var staticMethods = Context.Resources.GetAllMethods().Where(m => m.IsStatic).ToArray();
+            foreach (var method in staticMethods)
             {
-                foreach (var method in staticTypeMethods.Value)
-                {
-                    SourceCodeGenerateHelper.GenerateMethodInvokeThroughMessageCaseScopeCode(Context, _sourceBuilder, method, new VariableName(_vars) { RunningToken = "__cancellation__" });
-                }
+                SourceCodeGenerateHelper.GenerateMethodInvokeThroughMessageCaseScopeCode(Context, _sourceBuilder, method, new VariableName(_vars) { RunningToken = "__cancellation__" });
             }
         }
 

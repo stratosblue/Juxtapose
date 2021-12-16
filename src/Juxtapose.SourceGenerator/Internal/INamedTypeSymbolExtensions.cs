@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static IEnumerable<ISymbol> GetProxyableMembers(this INamedTypeSymbol namedTypeSymbol)
+        public static IEnumerable<ISymbol> GetProxyableMembers(this INamedTypeSymbol namedTypeSymbol, bool withConstructor)
         {
             if (namedTypeSymbol.TypeKind == TypeKind.Interface)
             {
@@ -32,22 +32,38 @@ namespace Microsoft.CodeAnalysis
             }
             return GetProxyableMembersDirectly(namedTypeSymbol);
 
-            static bool NotStaticConstructorMethod(ISymbol symbol)
+            bool IsProxyableConstructorMethod(ISymbol symbol)
             {
+                //TODO Internal？
                 return symbol is IMethodSymbol methodSymbol
+                       && methodSymbol.DeclaredAccessibility == Accessibility.Public
                        && methodSymbol.MethodKind != MethodKind.StaticConstructor
-                       && methodSymbol.MethodKind != MethodKind.SharedConstructor;
+                       && methodSymbol.MethodKind != MethodKind.SharedConstructor
+                       && (withConstructor || methodSymbol.MethodKind != MethodKind.Constructor);
             }
 
-            static IEnumerable<ISymbol> GetProxyableMembersDirectly(INamedTypeSymbol namedTypeSymbol)
+            IEnumerable<ISymbol> GetProxyableMembersDirectly(INamedTypeSymbol namedTypeSymbol)
             {
-                return namedTypeSymbol.GetMembers().Where(m => m is IPropertySymbol || NotStaticConstructorMethod(m));
+                return namedTypeSymbol.GetMembers().Where(m => m is IPropertySymbol || IsProxyableConstructorMethod(m));
             }
         }
 
         public static bool IsBaseOnJuxtaposeContext(this INamedTypeSymbol namedTypeSymbol)
         {
             return namedTypeSymbol.BaseType?.ToDisplayString() == TypeFullNames.Juxtapose.JuxtaposeContext_NoGlobal;
+        }
+
+        /// <summary>
+        /// 是否从类型<paramref name="baseType"/>派生
+        /// </summary>
+        /// <param name="namedTypeSymbol"></param>
+        /// <param name="baseType"></param>
+        /// <returns></returns>
+        public static bool IsDerivedFrom(this INamedTypeSymbol namedTypeSymbol, INamedTypeSymbol baseType)
+        {
+            return namedTypeSymbol.BaseType is not null
+                   && (SymbolEqualityComparer.Default.Equals(namedTypeSymbol.BaseType, baseType)
+                       || namedTypeSymbol.BaseType.IsDerivedFrom(baseType));
         }
 
         #endregion Public 方法

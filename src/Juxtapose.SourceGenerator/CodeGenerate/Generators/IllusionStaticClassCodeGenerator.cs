@@ -22,68 +22,24 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         #region Public 属性
 
-        public Accessibility Accessibility { get; }
-
         public JuxtaposeSourceGeneratorContext Context { get; }
 
-        public INamedTypeSymbol ContextTypeSymbol { get; }
+        public IllusionStaticClassDescriptor Descriptor { get; }
 
-        public GeneratorExecutionContext GeneratorExecutionContext { get; }
-
-        public string Namespace { get; }
+        public SubResourceCollection Resources { get; }
 
         public string SourceHintName { get; }
-
-        public INamedTypeSymbol StaticClassType { get; }
-
-        public string TypeFullName { get; }
-
-        public string TypeName { get; }
 
         #endregion Public 属性
 
         #region Public 构造函数
 
-        public IllusionStaticClassCodeGenerator(JuxtaposeSourceGeneratorContext context, IllusionAttributeDefine attributeDefine, INamedTypeSymbol contextTypeSymbol)
+        public IllusionStaticClassCodeGenerator(JuxtaposeSourceGeneratorContext context, IllusionStaticClassDescriptor descriptor, SubResourceCollection resources)
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
-            ContextTypeSymbol = contextTypeSymbol ?? throw new ArgumentNullException(nameof(contextTypeSymbol));
-
-            StaticClassType = attributeDefine.TargetType ?? throw new ArgumentNullException(nameof(attributeDefine.TargetType));
-
-            var staticClassTypeFullName = StaticClassType.ToDisplayString();
-            Namespace = staticClassTypeFullName.Substring(0, staticClassTypeFullName.LastIndexOf('.'));
-
-            if (attributeDefine.GeneratedTypeName is not string proxyTypeName
-                || string.IsNullOrWhiteSpace(proxyTypeName))
-            {
-                TypeFullName = $"{staticClassTypeFullName}Illusion";
-                TypeName = TypeFullName.Substring(Namespace.Length + 1);
-            }
-            else
-            {
-                if (proxyTypeName.Contains('.'))
-                {
-                    TypeName = proxyTypeName.Substring(proxyTypeName.LastIndexOf('.') + 1);
-                    TypeFullName = proxyTypeName;
-                    Namespace = proxyTypeName.Substring(0, proxyTypeName.LastIndexOf('.'));
-                }
-                else
-                {
-                    TypeName = proxyTypeName;
-                    TypeFullName = $"{Namespace}.{proxyTypeName}";
-                }
-            }
-
-            Accessibility = attributeDefine.Accessibility switch
-            {
-                GeneratedAccessibility.InheritContext => contextTypeSymbol.DeclaredAccessibility,
-                GeneratedAccessibility.Public => Accessibility.Public,
-                GeneratedAccessibility.Internal => Accessibility.Internal,
-                _ => StaticClassType.DeclaredAccessibility,
-            };
-
-            SourceHintName = $"{TypeFullName}.StaticIllusion.g.cs";
+            Descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
+            Resources = resources ?? throw new ArgumentNullException(nameof(resources));
+            SourceHintName = $"{Descriptor.TypeFullName}.StaticIllusion.g.cs";
 
             _vars = new VariableName();
         }
@@ -98,15 +54,15 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
             _sourceBuilder.AppendLine();
             _sourceBuilder.Namespace(() =>
             {
-                _sourceBuilder.AppendIndentLine($"/// <inheritdoc cref=\"{StaticClassType.ToFullyQualifiedDisplayString()}\"/>");
-                _sourceBuilder.AppendIndentLine($"{Accessibility.ToCodeString()} static class {TypeName}");
+                _sourceBuilder.AppendIndentLine($"/// <inheritdoc cref=\"{Descriptor.TargetType.ToFullyQualifiedDisplayString()}\"/>");
+                _sourceBuilder.AppendIndentLine($"{Descriptor.Accessibility.ToCodeString()} static class {Descriptor.TypeName}");
                 _sourceBuilder.Scope(() =>
                 {
-                    _sourceBuilder.AppendIndentLine($"private static readonly {ContextTypeSymbol.ToFullyQualifiedDisplayString()} s_context = {ContextTypeSymbol.ToFullyQualifiedDisplayString()}.SharedInstance;", true);
+                    _sourceBuilder.AppendIndentLine($"private static readonly {Descriptor.ContextType.ToFullyQualifiedDisplayString()} s_context = {Descriptor.ContextType.ToFullyQualifiedDisplayString()}.SharedInstance;", true);
 
-                    new StaticProxyCodeGenerator(Context, _sourceBuilder, StaticClassType, _vars).GenerateMemberProxyCode();
+                    new StaticProxyCodeGenerator(Context, _sourceBuilder, Descriptor.TargetType, _vars).GenerateMemberProxyCode();
                 });
-            }, Namespace);
+            }, Descriptor.Namespace);
         }
 
         private string GenerateProxyTypeSource()
@@ -128,19 +84,33 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         public IEnumerable<SourceCode> GetSources()
         {
-            var members = StaticClassType.GetProxyableMembers().Where(m => m.DeclaredAccessibility == Accessibility.Public);
+            var allProxyableMembers = Descriptor.TargetType.GetProxyableMembers(false).Where(m => m.DeclaredAccessibility == Accessibility.Public);
 
-            Context.TryAddStaticMethods(StaticClassType, members.GetMethodSymbols().Where(m => m.DeclaredAccessibility == Accessibility.Public));
+            #region 委托
 
-            var parameterPackCodeGenerator = new MethodParameterPackCodeGenerator(Context, members, Namespace, $"{StaticClassType.ToDisplayString()}.ParameterPack.g.cs");
-            var parameterPackTypeSources = parameterPackCodeGenerator.GetSources()
-                                                                     .ToList();
+            //HACK 暂不处理嵌套委托
+            var delegateSymbols = allProxyableMembers.OfType<IMethodSymbol>()
+                                                     .SelectMany(m => m.Parameters)
+                                                     .Where(m => m.Type.IsDelegate())
+                                                     .Select(m => m.Type)
+                                                     .OfType<INamedTypeSymbol>()
+                                                     .Select(m => m.DelegateInvokeMethod)
+                                                     .Distinct(SymbolEqualityComparer.Default)
+                                                     .OfType<IMethodSymbol>()
+                                                     .ToArray();
 
-            Context.TryAddMethodArgumentPackSourceCodes(parameterPackTypeSources);
-
-            foreach (var parameterPackTypeSource in parameterPackTypeSources)
+            foreach (var item in MethodParameterPackCodeGenerateUtil.Generate(delegateSymbols, "Delegates.ParameterPack.g.cs"))
             {
-                yield return parameterPackTypeSource;
+                Resources.TryAddDelegateArgumentPackSourceCode(item);
+                yield return item;
+            }
+
+            #endregion 委托
+
+            foreach (var item in MethodParameterPackCodeGenerateUtil.Generate(allProxyableMembers, $"{Descriptor.TargetType.ToDisplayString()}.ParameterPack.g.cs"))
+            {
+                Resources.TryAddMethodArgumentPackSourceCode(item);
+                yield return item;
             }
 
             yield return new FullSourceCode(SourceHintName, GenerateProxyTypeSource());

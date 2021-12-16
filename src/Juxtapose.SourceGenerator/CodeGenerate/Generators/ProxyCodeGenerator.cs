@@ -44,7 +44,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         public virtual void GenerateMemberProxyCode()
         {
-            var typeMembers = TypeSymbol.GetProxyableMembers();
+            var typeMembers = TypeSymbol.GetProxyableMembers(false);
 
             foreach (var typeMember in typeMembers)
             {

@@ -56,7 +56,7 @@ namespace Juxtapose.SourceGenerator.Model
         /// <summary>
         /// 参数包的类名
         /// </summary>
-        public string ParamPackClassName => _paramPackClassName ??= MethodSymbol.GetParamPackClassName();
+        public string ParamPackClassName => _paramPackClassName ??= GenParamPackClassName();
 
         /// <summary>
         /// 结果包的代码
@@ -264,5 +264,19 @@ if (paramPack.{parameter.Name}_RID.HasValue)
         }
 
         #endregion Private 方法
+
+        #region Protected 方法
+
+        /// <summary>
+        /// 生成参数包类名
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        protected virtual string GenParamPackClassName()
+        {
+            return MethodSymbol.GetParamPackClassName();
+        }
+
+        #endregion Protected 方法
     }
 }

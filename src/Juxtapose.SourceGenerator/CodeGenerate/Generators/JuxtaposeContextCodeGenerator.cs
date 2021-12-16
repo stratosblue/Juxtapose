@@ -100,16 +100,19 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                         TypeFullNames.Juxtapose.Messages.DisposeObjectInstanceMessage,
                     };
 
-                    var allInvokeMessageTypes = Context.GetAllParameterPacks().Select(GetParameterPackMessageTypeName).OrderBy(m => m).ToArray();
-                    var allResultMessageTypes = Context.MethodResultPacks.Select(m => m.Value).OfType<ResultPackSourceCode>().Select(GetResultPackMessageTypeName).OrderBy(m => m).ToArray();
+                    var allConstructorMessageTypes = Context.Resources.GetAllConstructorParameterPacks().Select(GetParameterPackMessageTypeName).OrderBy(m => m).ToArray();
 
-                    //if (allInvokeMessageTypes.Length == 0
-                    //    || allResultMessageTypes.Length == 0)
-                    //{
-                    //    throw new ArgumentOutOfRangeException("there is no message packs in context. something wrong.");
-                    //}
+                    var allDelegateInvokeMessageTypes = Context.Resources.GetAllDelegateParameterPacks().Select(GetParameterPackMessageTypeName).OrderBy(m => m).ToArray();
+                    var allDelegateResultMessageTypes = Context.Resources.GetAllDelegateResultPacks().Select(GetResultPackMessageTypeName).OrderBy(m => m).ToArray();
 
-                    var allMessageTypes = allDefaultMessageTypes.Concat(allInvokeMessageTypes).Concat(allResultMessageTypes);
+                    var allMethodInvokeMessageTypes = Context.Resources.GetAllMethodParameterPacks().Select(GetParameterPackMessageTypeName).OrderBy(m => m).ToArray();
+                    var allMethodResultMessageTypes = Context.Resources.GetAllMethodResultPacks().Select(GetResultPackMessageTypeName).OrderBy(m => m).ToArray();
+
+                    var allMessageTypes = allDefaultMessageTypes.Concat(allConstructorMessageTypes)
+                                                                .Concat(allDelegateInvokeMessageTypes)
+                                                                .Concat(allDelegateResultMessageTypes)
+                                                                .Concat(allMethodInvokeMessageTypes)
+                                                                .Concat(allMethodResultMessageTypes);
 
                     var newHashString = hash + string.Join(", ", allMessageTypes);
 
@@ -192,27 +195,51 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
             foreach (var illusionAttributeDefine in IllusionAttributeDefines)
             {
-                var illusionClassCodeGenerator = new IllusionClassCodeGenerator(Context, illusionAttributeDefine, ContextTypeSymbol);
+                var descriptor = new IllusionInstanceClassDescriptor(illusionAttributeDefine, ContextTypeSymbol);
+                var resources = new SubResourceCollection(Context.Resources);
 
-                contextHashBuilder.AddIllusionClass(illusionClassCodeGenerator.ImplementTypeSymbol, illusionClassCodeGenerator.InheritTypeSymbol);
+                if (Context.IllusionInstanceClasses.ContainsKey(descriptor))
+                {
+                    Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleIllusionClassDefine, null, descriptor.TargetType, descriptor.InheritType));
+                    continue;
+                }
+
+                Context.IllusionInstanceClasses.Add(descriptor, resources);
+
+                contextHashBuilder.AddIllusionClass(descriptor.TargetType, descriptor.InheritType, descriptor.TypeFullName);
+
+                var illusionClassCodeGenerator = new IllusionClassCodeGenerator(Context, descriptor, resources);
 
                 foreach (var sourceInfo in illusionClassCodeGenerator.GetSources())
                 {
+                    resources.AddSourceCode(sourceInfo);
                     yield return sourceInfo;
                 }
 
-                var realObjectInvokerCodeGenerator = new RealObjectInvokerCodeGenerator(Context, illusionClassCodeGenerator.ImplementTypeSymbol, illusionClassCodeGenerator.InheritTypeSymbol, illusionClassCodeGenerator.Namespace, illusionClassCodeGenerator.TypeName);
+                var realObjectInvokerCodeGenerator = new RealObjectInvokerCodeGenerator(Context, descriptor, resources);
                 foreach (var sourceInfo in realObjectInvokerCodeGenerator.GetSources())
                 {
+                    resources.AddSourceCode(sourceInfo);
                     yield return sourceInfo;
                 }
             }
 
             foreach (var illusionStaticAttributeDefine in IllusionStaticAttributeDefines)
             {
-                var illusionStaticClassCodeGenerator = new IllusionStaticClassCodeGenerator(Context, illusionStaticAttributeDefine, ContextTypeSymbol);
+                var descriptor = new IllusionStaticClassDescriptor(illusionStaticAttributeDefine, ContextTypeSymbol);
+                var resources = new SubResourceCollection(Context.Resources);
 
-                contextHashBuilder.AddStaticClass(illusionStaticClassCodeGenerator.StaticClassType);
+                if (Context.IllusionStaticClasses.ContainsKey(descriptor))
+                {
+                    Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleIllusionStaticClassDefine, null, descriptor.TargetType));
+                    continue;
+                }
+
+                Context.IllusionStaticClasses.Add(descriptor, resources);
+
+                var illusionStaticClassCodeGenerator = new IllusionStaticClassCodeGenerator(Context, descriptor, resources);
+
+                contextHashBuilder.AddStaticClass(descriptor.TargetType, descriptor.TypeFullName);
 
                 foreach (var sourceInfo in illusionStaticClassCodeGenerator.GetSources())
                 {
@@ -246,11 +273,13 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
             #region Public 方法
 
-            public void AddIllusionClass(INamedTypeSymbol targetTypeSymbol, INamedTypeSymbol? inheritTypeSymbol)
+            public void AddIllusionClass(INamedTypeSymbol targetTypeSymbol, INamedTypeSymbol? inheritTypeSymbol, string generatedTypeName)
             {
+                _builder.Append(generatedTypeName);
+                _builder.Append('@');
                 if (inheritTypeSymbol is not null)
                 {
-                    foreach (var item in inheritTypeSymbol.GetProxyableMembers())
+                    foreach (var item in inheritTypeSymbol.GetProxyableMembers(true))
                     {
                         _builder.Append(item.ToDisplayString());
                         _builder.Append('&');
@@ -264,9 +293,11 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                 }
             }
 
-            public void AddStaticClass(INamedTypeSymbol staticTypeSymbol)
+            public void AddStaticClass(INamedTypeSymbol staticTypeSymbol, string typeFullName)
             {
-                foreach (var item in staticTypeSymbol.GetProxyableMembers())
+                _builder.Append(typeFullName);
+                _builder.Append('@');
+                foreach (var item in staticTypeSymbol.GetProxyableMembers(false))
                 {
                     _builder.Append(item.ToDisplayString());
                     _builder.Append('&');

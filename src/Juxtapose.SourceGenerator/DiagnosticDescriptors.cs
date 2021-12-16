@@ -13,10 +13,18 @@ namespace Juxtapose.SourceGenerator
 
     internal static class DiagnosticDescriptors
     {
+        public static DiagnosticDescriptor UnknownExceptionHasThrew { get; } = new("JSG000X", "已引发意料之外的异常。", "已引发意料之外的异常【{0}】，生成中止。\\n ---------------- \\n{1} 。", DiagnosticDescriptorCategories.ExecutorGenerate, DiagnosticSeverity.Error, true);
+
         public static DiagnosticDescriptor ExecutorGenerateCanNotFoundGeneratedRealObjectInvoker { get; } = new("JSG0001", "未找到生成类型。", "未找到类型 {0} 对应继承类型 {1} 的 RealObjectInvoker 生成源码。", DiagnosticDescriptorCategories.ExecutorGenerate, DiagnosticSeverity.Error, true);
 
         public static DiagnosticDescriptor CanNotFoundGeneratedParameterPack { get; } = new("JSG0002", "未找到生成的参数包类型。", "未找到方法 {0} 的参数包类型源码，相关代码可能没有正确生成。", DiagnosticDescriptorCategories.SourceGenerate, DiagnosticSeverity.Error, true);
 
+        public static DiagnosticDescriptor CanNotFoundGeneratedConstructorParameterPack { get; } = new("JSG0002", "未找到生成的构造函数包类型。", "未找到构造函数 {0} for {1} 的参数包类型源码，相关代码可能没有正确生成。", DiagnosticDescriptorCategories.SourceGenerate, DiagnosticSeverity.Error, true);
+
         public static DiagnosticDescriptor MultipleIllusionClassDefine { get; } = new("JSG0003", "存在对类型的重复生成定义。", "已定义类型 {0} 继承类型 {1} 的生成。暂不支持重复生成。", DiagnosticDescriptorCategories.SourceGenerate, DiagnosticSeverity.Error, true);
+
+        public static DiagnosticDescriptor MultipleIllusionStaticClassDefine { get; } = new("JSG0004", "存在对类型的重复生成定义。", "已定义静态类型 {0} 的生成。暂不支持重复生成。", DiagnosticDescriptorCategories.SourceGenerate, DiagnosticSeverity.Error, true);
+
+        public static DiagnosticDescriptor SaveCodeAsFileFail { get; } = new("JSG0005", "保存代码文件失败。", "保存代码文件【{0}】失败，请尝试重新生成。\\n ---------------- \\n{1} 。", DiagnosticDescriptorCategories.SourceGenerate, DiagnosticSeverity.Warning, true);
     }
 }

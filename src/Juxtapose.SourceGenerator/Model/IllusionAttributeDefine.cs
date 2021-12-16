@@ -71,15 +71,36 @@ namespace Juxtapose.SourceGenerator.Model
                 throw new ArgumentException($"{TypeFullNames.Juxtapose.SourceGenerator.IllusionAttribute_NoGlobal}.targetType 不能为抽象类型");
             }
 
-            if (InheritType is null
-                || InheritType.TypeKind != TypeKind.Interface)
+            if (InheritType is not null)
             {
-                throw new ArgumentException($"{TypeFullNames.Juxtapose.SourceGenerator.IllusionAttribute_NoGlobal}.inheritType 当前必须为有效接口类型");
-            }
+                if (InheritType.IsStatic)
+                {
+                    throw new ArgumentException($"静态类型 {InheritType.ToDisplayString()} 不能被继承。");
+                }
 
-            if (!TargetType.AllInterfaces.Contains(InheritType))
-            {
-                throw new ArgumentException($"{TargetType.ToDisplayString()} 没有实现接口 {InheritType.ToDisplayString()}");
+                if (InheritType.IsSealed)
+                {
+                    throw new ArgumentException($"封闭类型 {InheritType.ToDisplayString()} 不能被继承。");
+                }
+
+                if (InheritType.TypeKind == TypeKind.Interface)
+                {
+                    if (!TargetType.AllInterfaces.Contains(InheritType))
+                    {
+                        throw new ArgumentException($"{TargetType.ToDisplayString()} 没有继承接口或类 {InheritType.ToDisplayString()}");
+                    }
+                }
+                else if (InheritType.TypeKind == TypeKind.Class)
+                {
+                    if (!TargetType.IsDerivedFrom(InheritType))
+                    {
+                        throw new ArgumentException($"{TargetType.ToDisplayString()} 没有继承接口或类 {InheritType.ToDisplayString()}");
+                    }
+                }
+                else
+                {
+                    throw new ArgumentException($"{TargetType.ToDisplayString()} 的继承类型 {InheritType.ToDisplayString()} 必须为接口或实例类型。");
+                }
             }
         }
 

@@ -103,7 +103,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         public override void GenerateMemberProxyCode()
         {
-            var typeMembers = TypeSymbol.GetProxyableMembers().Where(m => m.DeclaredAccessibility == Accessibility.Public).ToArray();
+            var typeMembers = TypeSymbol.GetProxyableMembers(false).Where(m => m.DeclaredAccessibility == Accessibility.Public).ToArray();
 
             foreach (var typeMember in typeMembers)
             {

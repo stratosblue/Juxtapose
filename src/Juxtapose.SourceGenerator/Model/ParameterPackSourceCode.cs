@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 
@@ -30,9 +31,30 @@ namespace Juxtapose.SourceGenerator.Model
         {
             #region Public 方法
 
-            public bool Equals(ParameterPackSourceCode x, ParameterPackSourceCode y) => SymbolEqualityComparer.Default.Equals(x.MethodSymbol, y.MethodSymbol);
+            public bool Equals(ParameterPackSourceCode x, ParameterPackSourceCode y)
+            {
+                if (x is ConstructorParameterPackSourceCode
+                    || y is ConstructorParameterPackSourceCode)
+                {
+                    var cx = x as ConstructorParameterPackSourceCode;
+                    var cy = y as ConstructorParameterPackSourceCode;
+                    return cx is not null
+                           && cy is not null
+                           && SymbolEqualityComparer.Default.Equals(cx.MethodSymbol, cy.MethodSymbol)
+                           && string.Equals(cx.GeneratedTypeName, cy.GeneratedTypeName, StringComparison.Ordinal);
+                }
+                return SymbolEqualityComparer.Default.Equals(x.MethodSymbol, y.MethodSymbol);
+            }
 
-            public int GetHashCode(ParameterPackSourceCode obj) => SymbolEqualityComparer.Default.GetHashCode(obj.MethodSymbol);
+            public int GetHashCode(ParameterPackSourceCode obj)
+            {
+                if (obj is ConstructorParameterPackSourceCode constructorSourceCode)
+                {
+                    return SymbolEqualityComparer.Default.GetHashCode(constructorSourceCode.MethodSymbol)
+                           & constructorSourceCode.GetHashCode();
+                }
+                return SymbolEqualityComparer.Default.GetHashCode(obj.MethodSymbol);
+            }
 
             #endregion Public 方法
         }
