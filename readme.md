@@ -52,3 +52,13 @@ await JuxtaposeEntryPoint.TryAsEndpointAsync(args, GreeterJuxtaposeContext.Share
 `SourceGenerator`在编译时生成代理类型，封装通信消息。默认使用命名管道进行进程间通信，使用`System.Text.Json`进行消息的序列化与反序列化。
 
 ## 参见示例，未完待续......
+
+----
+
+### 示例列表
+
+|       项目        |       内容        |
+| ---------------- | ---------------- |
+|SampleLibrary|基于库的使用示例，可由其它程序直接使用|
+|SampleConsoleApp|基于控制台的使用示例，可使用当前程序集生成的类，或使用其他库生成的类|
+|ResourceBasedObjectPool|基于系统资源的动态对象池示例|
