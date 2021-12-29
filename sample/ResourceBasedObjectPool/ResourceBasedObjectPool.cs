@@ -38,7 +38,7 @@ namespace ResourceBasedDynamicObjectPool
         #region Protected 方法
 
         /// <inheritdoc/>
-        protected override void Destroy(T instance)
+        protected override void DoDestroy(T instance)
         {
             try
             {
@@ -93,8 +93,6 @@ namespace ResourceBasedDynamicObjectPool
                 if (shouldDestroy)
                 {
                     Destroy(instance);
-                    Interlocked.Decrement(ref InternalTotalCount);
-                    Scheduler.OnDestroyed(instance);
                     targetDestroyCount--;
                 }
                 else

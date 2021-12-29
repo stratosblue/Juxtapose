@@ -33,7 +33,7 @@ namespace Juxtapose.ObjectPool
 
         protected override Task<T> CreateAsync(CancellationToken cancellation = default) => _createDelegate(cancellation);
 
-        protected override void Destroy(T instance) => _destroyDelegate(instance);
+        protected override void DoDestroy(T instance) => _destroyDelegate(instance);
 
         protected override void OnSchedulerResourcePressure(ResourcePressureLevel level) => _resourcePressureDelegate(level);
 

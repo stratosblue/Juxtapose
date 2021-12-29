@@ -118,10 +118,21 @@ namespace Juxtapose.ObjectPool
         protected abstract Task<T> CreateAsync(CancellationToken cancellation = default);
 
         /// <summary>
-        /// 销毁对象
+        /// 销毁对象实例，并触发相关事件
         /// </summary>
         /// <param name="instance"></param>
-        protected abstract void Destroy(T instance);
+        protected virtual void Destroy(T instance)
+        {
+            DoDestroy(instance);
+            Interlocked.Decrement(ref InternalTotalCount);
+            Scheduler.OnDestroyed(instance);
+        }
+
+        /// <summary>
+        /// 执行销毁对象实例
+        /// </summary>
+        /// <param name="instance"></param>
+        protected abstract void DoDestroy(T instance);
 
         /// <summary>
         /// 规划器触发资源压力事件时
@@ -149,10 +160,6 @@ namespace Juxtapose.ObjectPool
                 if (!Scheduler.OnRent(item))
                 {
                     Destroy(item);
-
-                    Interlocked.Decrement(ref InternalTotalCount);
-
-                    Scheduler.OnDestroyed(item);
                     continue;
                 }
                 return item;
@@ -204,10 +211,6 @@ namespace Juxtapose.ObjectPool
             else
             {
                 Destroy(item);
-
-                Interlocked.Decrement(ref InternalTotalCount);
-
-                Scheduler.OnDestroyed(item);
             }
         }
 
@@ -237,7 +240,6 @@ namespace Juxtapose.ObjectPool
                 while (ObjectQueue.TryDequeue(out var item))
                 {
                     Destroy(item);
-                    Scheduler.OnDestroyed(item);
                 }
 
                 return true;
