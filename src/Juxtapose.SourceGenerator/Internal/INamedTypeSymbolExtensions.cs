@@ -50,7 +50,13 @@ namespace Microsoft.CodeAnalysis
 
         public static bool IsBaseOnJuxtaposeContext(this INamedTypeSymbol namedTypeSymbol)
         {
-            return namedTypeSymbol.BaseType?.ToDisplayString() == TypeFullNames.Juxtapose.JuxtaposeContext_NoGlobal;
+            if (namedTypeSymbol.BaseType is null)
+            {
+                return false;
+            }
+            return namedTypeSymbol.BaseType.ToDisplayString() == TypeFullNames.Juxtapose.JuxtaposeContext_NoGlobal
+                   || (namedTypeSymbol.BaseType.BaseType is not null
+                       && namedTypeSymbol.BaseType.BaseType.IsBaseOnJuxtaposeContext());
         }
 
         /// <summary>
