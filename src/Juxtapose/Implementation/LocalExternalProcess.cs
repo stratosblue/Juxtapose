@@ -123,10 +123,10 @@ namespace Juxtapose
         }
 
         /// <inheritdoc/>
-        public StreamReader? GetStandardError() => Process?.StandardError;
+        public StreamReader? GetStandardError() => _processStartInfo.RedirectStandardError ? Process?.StandardError : null;
 
         /// <inheritdoc/>
-        public StreamReader? GetStandardOutput() => Process?.StandardOutput;
+        public StreamReader? GetStandardOutput() => _processStartInfo.RedirectStandardOutput ? Process?.StandardOutput : null;
 
         /// <inheritdoc/>
         public Task InitializationAsync(CancellationToken initializationToken)
