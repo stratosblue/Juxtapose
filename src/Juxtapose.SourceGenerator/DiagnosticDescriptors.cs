@@ -26,5 +26,7 @@ namespace Juxtapose.SourceGenerator
         public static DiagnosticDescriptor MultipleIllusionStaticClassDefine { get; } = new("JSG0004", "存在对类型的重复生成定义。", "已定义静态类型 {0} 的生成。暂不支持重复生成。", DiagnosticDescriptorCategories.SourceGenerate, DiagnosticSeverity.Error, true);
 
         public static DiagnosticDescriptor SaveCodeAsFileFail { get; } = new("JSG0005", "保存代码文件失败。", "保存代码文件【{0}】失败，请尝试重新生成。\\n ---------------- \\n{1} 。", DiagnosticDescriptorCategories.SourceGenerate, DiagnosticSeverity.Warning, true);
+
+        public static DiagnosticDescriptor NoPartialKeywordForContext { get; } = new("JSG0006", "JuxtaposeContext 未标记为 partial。", "JuxtaposeContext:【{0}】未标记为 partial。请标记为 partial 后尝试重新生成。", DiagnosticDescriptorCategories.SourceGenerate, DiagnosticSeverity.Error, true);
     }
 }

@@ -31,7 +31,13 @@ namespace Juxtapose.SourceGenerator
                 {
                     throw new NullReferenceException($"not found {nameof(contextReceiver)}");
                 }
-                else if (contextReceiver.ShouldGenerateTypes.Count == 0)
+
+                foreach (var item in contextReceiver.NoPartialKeywordContextTypes)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NoPartialKeywordForContext, null, item.ToDisplayString()));
+                }
+
+                if (contextReceiver.ShouldGenerateTypes.Count == 0)
                 {
                     return;
                 }
