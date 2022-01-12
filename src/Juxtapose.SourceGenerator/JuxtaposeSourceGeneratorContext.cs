@@ -18,7 +18,7 @@ namespace Juxtapose.SourceGenerator
 
         public Dictionary<IllusionStaticClassDescriptor, SubResourceCollection> IllusionStaticClasses { get; private set; } = new();
 
-        public ContextResourceCollection Resources { get; } = new();
+        public ContextResourceCollection Resources { get; private set; } = new();
 
         #endregion Public 属性
 
@@ -35,7 +35,9 @@ namespace Juxtapose.SourceGenerator
 
         public void Clear()
         {
-            //TODO Clear
+            IllusionInstanceClasses = new();
+            IllusionStaticClasses = new();
+            Resources = new();
         }
 
         #endregion Public 方法

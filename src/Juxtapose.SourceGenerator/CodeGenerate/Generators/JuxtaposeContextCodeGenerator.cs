@@ -191,6 +191,15 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
         {
             Context.Clear();
 
+            ContextTypeSymbol.GetAttributes()
+                             .Where(m => m.IsProvideByServiceProviderAttribute())
+                             .SelectMany(m => m.ConstructorArguments)
+                             .SelectMany(m => m.Values)
+                             .Select(m => m.Value)
+                             .OfType<INamedTypeSymbol>()
+                             .ToList()
+                             .ForEach(m => Context.Resources.AddServiceProviderProvideType(m));
+
             var contextHashBuilder = new ContextHashBuilder();
 
             foreach (var illusionAttributeDefine in IllusionAttributeDefines)

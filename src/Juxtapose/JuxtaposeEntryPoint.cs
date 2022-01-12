@@ -225,17 +225,29 @@ namespace Juxtapose
                 JuxtaposeEnvironment.IsSubProcess = true;
 
                 var context = contextLoader.Get(startupOptions.ContextIdentifier);
-
-                var executorCreationContext = new ExecutorCreationContext(typeof(JuxtaposeEntryPoint), nameof(TryRunAsync), true, false, startupOptions);
-                using var executorOwner = await context.GetExecutorOwnerAsync(executorCreationContext, default);
-
                 try
                 {
-                    //HACK 调整结束逻辑
-                    await Task.Delay(Timeout.Infinite, executorOwner.Executor.RunningToken);
-                }
-                catch { }
+                    var executorCreationContext = new ExecutorCreationContext(typeof(JuxtaposeEntryPoint), nameof(TryRunAsync), true, false, startupOptions);
+                    using var executorOwner = await context.GetExecutorOwnerAsync(executorCreationContext, default);
 
+                    try
+                    {
+                        //HACK 调整结束逻辑
+                        await Task.Delay(Timeout.Infinite, executorOwner.Executor.RunningToken);
+                    }
+                    catch { }
+                }
+                finally
+                {
+                    if (context is IAsyncDisposable asyncDisposableContext)
+                    {
+                        await asyncDisposableContext.DisposeAsync();
+                    }
+                    else if (context is IDisposable disposableContext)
+                    {
+                        disposableContext.Dispose();
+                    }
+                }
                 return true;
             }
 

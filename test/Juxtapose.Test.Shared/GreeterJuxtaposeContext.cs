@@ -15,6 +15,7 @@ namespace Juxtapose.Test
     [Illusion(typeof(Greeter), typeof(IGreeter), "Juxtapose.Test.GreeterAsIGreeterIllusion")]
     [Illusion(typeof(StaticGreeter), generatedTypeName: "Juxtapose.Test.StaticGreeterIllusion")]
     [Illusion(typeof(JuxtaposeEnvironmentProxy), generatedTypeName: "Juxtapose.Test.ExternalJuxtaposeEnvironment")]
+    [ProvideByServiceProvider(typeof(Greeter))]
     public partial class GreeterJuxtaposeContext : JuxtaposeContext
     {
         #region Public 构造函数
