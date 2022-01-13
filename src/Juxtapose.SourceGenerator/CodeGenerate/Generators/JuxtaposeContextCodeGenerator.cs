@@ -159,6 +159,13 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                         }
                     });
                     _sourceBuilder.AppendIndentLine(".AsReadOnly();");
+
+                    if (!Context.Resources.GetAllServiceProviderProvideTypes().Any())
+                    {
+                        _sourceBuilder.AppendLine();
+
+                        _sourceBuilder.AppendIndentLine("protected override ValueTask<IIoCContainerHolder> GetIoCContainerAsync() => new ValueTask<IIoCContainerHolder>(EmptyIoCContainerHolder.Instance);");
+                    }
                 });
             }, Namespace);
 

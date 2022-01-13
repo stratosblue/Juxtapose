@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading.Tasks;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -86,6 +88,12 @@ namespace Juxtapose
         /// </summary>
         /// <returns></returns>
         protected virtual ILoggerFactory CreateLoggerFactory() => NullLoggerFactory.Instance;
+
+        /// <summary>
+        /// 获取用于构建对象的Ioc容器 - <see cref="IServiceProvider"/>
+        /// </summary>
+        /// <returns>返回的 <see cref="IIoCContainerHolder"/> 将在 <see cref="JuxtaposeExecutor"/> 释放时释放</returns>
+        protected abstract ValueTask<IIoCContainerHolder> GetIoCContainerAsync();
 
         #endregion Protected 方法
 
