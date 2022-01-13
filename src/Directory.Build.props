@@ -21,6 +21,8 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
 
+    <PackageTags>subprocess multiprocess externalprocess outproc sub-process multi-process external-process dotnet6 source-generator</PackageTags>
+    
     <PackageReadmeFile>readme.md</PackageReadmeFile>
   </PropertyGroup>
 
