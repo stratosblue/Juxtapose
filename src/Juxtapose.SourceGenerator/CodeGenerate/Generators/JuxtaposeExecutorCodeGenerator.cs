@@ -85,7 +85,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                     _sourceBuilder.AppendIndentLine($"protected class InternalJuxtaposeExecutor : {TypeFullNames.Juxtapose.JuxtaposeExecutor}");
                     _sourceBuilder.Scope(() =>
                     {
-                        _sourceBuilder.AppendIndentLine($"public InternalJuxtaposeExecutor({TypeFullNames.Juxtapose.IMessageExchanger} messageExchanger, global::Microsoft.Extensions.Logging.ILogger logger) : base(messageExchanger, logger) {{ }}", true);
+                        _sourceBuilder.AppendIndentLine($"public InternalJuxtaposeExecutor({TypeFullNames.Juxtapose.IMessageExchanger} messageExchanger, global::Microsoft.Extensions.Logging.ILogger logger, global::System.Func<ValueTask<IIoCContainerHolder>>? iocContainerHolderGetter = null) : base(messageExchanger, logger, iocContainerHolderGetter) {{ }}", true);
 
                         _sourceBuilder.AppendIndentLine($"protected override async {TypeFullNames.System.Threading.Tasks.Task}<{TypeFullNames.Juxtapose.Messages.JuxtaposeMessage}?> OnMessageAsync({TypeFullNames.Juxtapose.Messages.JuxtaposeMessage} message, {TypeFullNames.System.Threading.CancellationToken} __cancellation__)");
                         _sourceBuilder.Scope(() =>

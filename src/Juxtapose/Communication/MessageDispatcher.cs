@@ -169,7 +169,7 @@ namespace Juxtapose
         #region Public 方法
 
         /// <inheritdoc/>
-        public async Task InitializationAsync(CancellationToken initializationToken)
+        public virtual async Task InitializationAsync(CancellationToken initializationToken)
         {
             await MessageExchanger.InitializationAsync(initializationToken);
 

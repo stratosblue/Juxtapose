@@ -16,6 +16,14 @@ namespace Juxtapose
     /// </summary>
     public abstract class JuxtaposeExecutor : MessageDispatcher
     {
+        #region Private 字段
+
+        private IIoCContainerHolder _iocContainerHolder = EmptyIoCContainerHolder.Instance;
+
+        private Func<ValueTask<IIoCContainerHolder>>? _iocContainerHolderGetter;
+
+        #endregion Private 字段
+
         #region Protected 字段
 
         /// <summary>
@@ -24,6 +32,15 @@ namespace Juxtapose
         protected internal readonly ConcurrentDictionary<int, object> ObjectInstances = new();
 
         #endregion Protected 字段
+
+        #region Protected 属性
+
+        /// <summary>
+        /// 当前执行器用于创建对象的<see cref="IServiceProvider"/>
+        /// </summary>
+        protected IServiceProvider ServiceProvider => _iocContainerHolder.ServiceProvider;
+
+        #endregion Protected 属性
 
         #region Public 属性
 
@@ -37,16 +54,46 @@ namespace Juxtapose
         #region Public 构造函数
 
         /// <inheritdoc cref="JuxtaposeExecutor"/>
-        public JuxtaposeExecutor(IMessageExchanger messageExchanger, ILogger logger) : base(messageExchanger, logger)
+        public JuxtaposeExecutor(IMessageExchanger messageExchanger, ILogger logger, Func<ValueTask<IIoCContainerHolder>>? iocContainerHolderGetter = null) : base(messageExchanger, logger)
         {
             messageExchanger.OnInvalid += OnMessageExchangerInvalid;
 
             InstanceIdGenerator = new CheckedIdGenerator(ObjectInstances.ContainsKey);
+
+            _iocContainerHolderGetter = iocContainerHolderGetter;
         }
 
         #endregion Public 构造函数
 
         #region Protected 方法
+
+        /// <inheritdoc/>
+        protected override bool Dispose(bool disposing)
+        {
+            if (base.Dispose(disposing))
+            {
+                //目前不进行同步等待
+                _ = Task.Run(async () => await _iocContainerHolder.DisposeAsync());
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 从IoC容器获取服务实例
+        /// </summary>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        protected TService GetRequiredService<TService>()
+        {
+            var rawService = ServiceProvider.GetService(typeof(TService));
+            if (rawService is not TService service)
+            {
+                throw new InvalidOperationException($"object from service provider {rawService} can not cast to {typeof(TService)}.");
+            }
+            return service;
+        }
 
         /// <summary>
         /// 在消息交换器失效时的回调
@@ -114,6 +161,24 @@ namespace Juxtapose
             }
             ThrowIfDisposed();
             throw new InstanceNotFoundException(instanceId);
+        }
+
+        /// <inheritdoc/>
+        public override async Task InitializationAsync(CancellationToken initializationToken)
+        {
+            await base.InitializationAsync(initializationToken);
+
+            if (_iocContainerHolderGetter is not null)
+            {
+                _iocContainerHolder = await _iocContainerHolderGetter();
+
+                _iocContainerHolderGetter = null;
+
+                if (_iocContainerHolder?.ServiceProvider is null)
+                {
+                    throw new InvalidOperationException("there is not IoC Container can work.");
+                }
+            }
         }
 
         /// <summary>
