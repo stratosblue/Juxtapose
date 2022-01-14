@@ -198,14 +198,25 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
         {
             Context.Clear();
 
-            ContextTypeSymbol.GetAttributes()
-                             .Where(m => m.IsProvideByServiceProviderAttribute())
-                             .SelectMany(m => m.ConstructorArguments)
-                             .SelectMany(m => m.Values)
-                             .Select(m => m.Value)
-                             .OfType<INamedTypeSymbol>()
-                             .ToList()
-                             .ForEach(m => Context.Resources.AddServiceProviderProvideType(m));
+            var serviceProviderProvideTypes = ContextTypeSymbol.GetAttributes()
+                                                               .Where(m => m.IsProvideByServiceProviderAttribute())
+                                                               .SelectMany(m => m.ConstructorArguments)
+                                                               .SelectMany(m => m.Values)
+                                                               .Select(m => m.Value)
+                                                               .OfType<INamedTypeSymbol>()
+                                                               .ToArray();
+
+            foreach (var type in serviceProviderProvideTypes)
+            {
+                if (type.IsStatic)
+                {
+                    Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.StaticTypeCanNotProvidedByServiceProvider, null, type.ToDisplayString()));
+                }
+                else
+                {
+                    Context.Resources.AddServiceProviderProvideType(type);
+                }
+            }
 
             var contextHashBuilder = new ContextHashBuilder();
 

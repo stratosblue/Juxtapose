@@ -27,6 +27,8 @@ namespace Juxtapose.SourceGenerator
 
         public static DiagnosticDescriptor SaveCodeAsFileFail { get; } = new("JSG0005", "保存代码文件失败。", "保存代码文件【{0}】失败，请尝试重新生成。\\n ---------------- \\n{1} 。", DiagnosticDescriptorCategories.SourceGenerate, DiagnosticSeverity.Warning, true);
 
-        public static DiagnosticDescriptor NoPartialKeywordForContext { get; } = new("JSG0006", "JuxtaposeContext 未标记为 partial。", "JuxtaposeContext:【{0}】未标记为 partial。请标记为 partial 后尝试重新生成。", DiagnosticDescriptorCategories.SourceGenerate, DiagnosticSeverity.Error, true);
+        public static DiagnosticDescriptor NoPartialKeywordForContext { get; } = new("JSG0006", "JuxtaposeContext 未标记为 partial。", "上下文 {0} 未标记为 partial。请标记为 partial 后尝试重新生成。", DiagnosticDescriptorCategories.SourceGenerate, DiagnosticSeverity.Error, true);
+
+        public static DiagnosticDescriptor StaticTypeCanNotProvidedByServiceProvider { get; } = new("JSG0007", "静态类型不能声明为由 ServiceProvider 提供。", "静态类型 {0} 不能声明为由 ServiceProvider 提供。请移除后尝试重新生成。", DiagnosticDescriptorCategories.SourceGenerate, DiagnosticSeverity.Error, true);
     }
 }
