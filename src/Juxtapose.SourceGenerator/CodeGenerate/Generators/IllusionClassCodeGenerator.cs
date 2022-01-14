@@ -51,7 +51,67 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         #region Private 方法
 
+        #region Constructor
+
+        private void GenerateConstructorCommonProxyCode()
+        {
+            _sourceBuilder.AppendLine($@"public {Descriptor.TypeName}({TypeFullNames.Juxtapose.IJuxtaposeExecutorOwner} executorOwner, int instanceId)
+{{
+    _executorOwner = executorOwner;
+    _instanceId = instanceId;
+
+    _executor = _executorOwner.Executor;
+
+    _runningTokenRegistration = _executorOwner.Executor.RunningToken.Register(Dispose);
+    _runningTokenSource = new CancellationTokenSource();
+    _runningToken = _runningTokenSource.Token;
+}}");
+
+            _sourceBuilder.AppendLine();
+
+            _sourceBuilder.AppendLine($"private static async {TypeFullNames.System.Threading.Tasks.Task}<({TypeFullNames.Juxtapose.IJuxtaposeExecutorOwner} executorOwner, int instanceId)> CreateObjectAsync<TParameterPack>(TParameterPack parameterPack, bool noContext = true, {TypeFullNames.System.Threading.CancellationToken} cancellation = default) where TParameterPack : class");
+            _sourceBuilder.Scope(() =>
+            {
+                _sourceBuilder.AppendLine($@"if (noContext)
+{{
+    await global::Juxtapose.SynchronizationContextRemover.Awaiter;
+}}
+
+var executorOwner = await {Descriptor.ContextType.ToFullyQualifiedDisplayString()}.SharedInstance.GetExecutorOwnerAsync(s__creationContext, cancellation);
+var executor = executorOwner.Executor;
+
+var instanceId = executor.InstanceIdGenerator.Next();
+var message = new global::Juxtapose.Messages.CreateObjectInstanceMessage<TParameterPack>(instanceId) {{ ParameterPack = parameterPack }};
+
+try
+{{
+    await executorOwner.Executor.InvokeMessageAsync(message, cancellation);
+}}
+catch
+{{
+    executorOwner.Dispose();
+    throw;
+}}
+
+return (executorOwner, instanceId);");
+            });
+        }
+
         private void GenerateConstructorProxyCode()
+        {
+            if (Context.Resources.IsProvideByServiceProvider(Descriptor.TargetType))
+            {
+                GenerateServiceProviderConstructorProxyCode();
+            }
+            else
+            {
+                GenerateNormalConstructorProxyCode();
+            }
+
+            GenerateConstructorCommonProxyCode();
+        }
+
+        private void GenerateNormalConstructorProxyCode()
         {
             var targetTypeName = Descriptor.TargetType.Name;
             var generatedTypeName = Descriptor.TypeFullName;
@@ -102,48 +162,27 @@ return new {Descriptor.TypeName}(executorOwner, instanceId);");
                 });
                 _sourceBuilder.AppendLine();
             }
+        }
 
-            _sourceBuilder.AppendLine($@"public {Descriptor.TypeName}({TypeFullNames.Juxtapose.IJuxtaposeExecutorOwner} executorOwner, int instanceId)
-{{
-    _executorOwner = executorOwner;
-    _instanceId = instanceId;
+        private void GenerateServiceProviderConstructorProxyCode()
+        {
+            _sourceBuilder.AppendLine(@"/// <summary>
+/// Create a object through <see cref=""IServiceProvider""/> in child process.
+/// </summary>");
 
-    _executor = _executorOwner.Executor;
-
-    _runningTokenRegistration = _executorOwner.Executor.RunningToken.Register(Dispose);
-    _runningTokenSource = new CancellationTokenSource();
-    _runningToken = _runningTokenSource.Token;
-}}");
-
-            _sourceBuilder.AppendLine();
-
-            _sourceBuilder.AppendLine($"private static async {TypeFullNames.System.Threading.Tasks.Task}<({TypeFullNames.Juxtapose.IJuxtaposeExecutorOwner} executorOwner, int instanceId)> CreateObjectAsync<TParameterPack>(TParameterPack parameterPack, bool noContext = true, {TypeFullNames.System.Threading.CancellationToken} cancellation = default) where TParameterPack : class");
+            _sourceBuilder.AppendIndentLine($"public static async Task<{Descriptor.TypeName}> NewAsync(CancellationToken cancellation = default)");
             _sourceBuilder.Scope(() =>
             {
-                _sourceBuilder.AppendLine($@"if (noContext)
-{{
-    await global::Juxtapose.SynchronizationContextRemover.Awaiter;
-}}
-
-var executorOwner = await {Descriptor.ContextType.ToFullyQualifiedDisplayString()}.SharedInstance.GetExecutorOwnerAsync(s__creationContext, cancellation);
-var executor = executorOwner.Executor;
-
-var instanceId = executor.InstanceIdGenerator.Next();
-var message = new global::Juxtapose.Messages.CreateObjectInstanceMessage<TParameterPack>(instanceId) {{ ParameterPack = parameterPack }};
-
-try
-{{
-    await executorOwner.Executor.InvokeMessageAsync(message, cancellation);
-}}
-catch
-{{
-    executorOwner.Dispose();
-    throw;
-}}
-
-return (executorOwner, instanceId);");
+                _sourceBuilder.AppendLine($@"
+var parameterPack = new global::Juxtapose.Messages.ParameterPacks.ServiceProviderGetInstanceParameterPack(""{Descriptor.TypeFullName}"");
+var (executorOwner, instanceId) = await CreateObjectAsync(parameterPack, false, cancellation);
+return new {Descriptor.TypeName}(executorOwner, instanceId);");
             });
+
+            _sourceBuilder.AppendLine();
         }
+
+        #endregion Constructor
 
         private void GenerateProxyClassSource()
         {

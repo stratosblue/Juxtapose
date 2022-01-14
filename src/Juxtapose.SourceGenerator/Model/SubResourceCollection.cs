@@ -24,6 +24,12 @@ namespace Juxtapose.SourceGenerator.Model
 
         #region Public 方法
 
+        public override bool AddServiceProviderProvideType(INamedTypeSymbol typeSymbol)
+        {
+            _contextResourceCollection.AddServiceProviderProvideType(typeSymbol);
+            return base.AddServiceProviderProvideType(typeSymbol);
+        }
+
         public override bool TryAddConstructorParameterPackSourceCode(ConstructorParameterPackSourceCode item)
         {
             _contextResourceCollection.TryAddConstructorParameterPackSourceCode(item);
@@ -46,6 +52,12 @@ namespace Juxtapose.SourceGenerator.Model
         {
             _contextResourceCollection.TryAddMethodArgumentPackSourceCode(items);
             return base.TryAddMethodArgumentPackSourceCode(items);
+        }
+
+        public override bool TryAddRealObjectInvokerSourceCode(INamedTypeSymbol targetTypeSymbol, INamedTypeSymbol? inheritTypeSymbol, RealObjectInvokerSourceCode invokerSourceCode)
+        {
+            _contextResourceCollection.TryAddRealObjectInvokerSourceCode(targetTypeSymbol, inheritTypeSymbol, invokerSourceCode);
+            return base.TryAddRealObjectInvokerSourceCode(targetTypeSymbol, inheritTypeSymbol, invokerSourceCode);
         }
 
         #endregion Public 方法

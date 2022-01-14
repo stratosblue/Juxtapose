@@ -22,7 +22,7 @@
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"【MethodInvokeMessage】Id: {Id}";
+            return $"【{nameof(MethodInvokeMessage<TParameterPack>)}】Id: {Id}";
         }
 
         #endregion Public 方法
