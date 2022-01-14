@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.CodeAnalysis;
 
@@ -40,24 +39,11 @@ namespace Juxtapose.SourceGenerator.Model
         /// </summary>
         protected Dictionary<INamedTypeSymbol, Dictionary<INamedTypeSymbol, RealObjectInvokerSourceCode>> RealObjectInvokers { get; private set; } = new(SymbolEqualityComparer.Default);
 
-        /// <summary>
-        /// 由 <see cref="IServiceProvider"/> 提供的类型集合
-        /// </summary>
-        protected HashSet<INamedTypeSymbol> ServiceProviderProvideTypes { get; } = new(SymbolEqualityComparer.Default);
-
         protected List<SourceCode> SourceCodes { get; } = new();
 
         #endregion Protected 属性
 
         #region Public 方法
-
-        /// <summary>
-        /// 添加由 <see cref="IServiceProvider"/> 提供的类型
-        /// </summary>
-        /// <param name="typeSymbol"></param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public virtual bool AddServiceProviderProvideType(INamedTypeSymbol typeSymbol) => ServiceProviderProvideTypes.Add(typeSymbol);
 
         public void AddSourceCode(SourceCode sourceCode)
         {
@@ -120,19 +106,6 @@ namespace Juxtapose.SourceGenerator.Model
                 yield return item;
             }
         }
-
-        /// <summary>
-        /// 获取所有由 <see cref="IServiceProvider"/> 提供的类型
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<INamedTypeSymbol> GetAllServiceProviderProvideTypes() => ServiceProviderProvideTypes.AsEnumerable();
-
-        /// <summary>
-        /// 判断类型是否由 <see cref="IServiceProvider"/> 提供
-        /// </summary>
-        /// <param name="typeSymbol"></param>
-        /// <returns></returns>
-        public bool IsProvideByServiceProvider(INamedTypeSymbol typeSymbol) => ServiceProviderProvideTypes.Contains(typeSymbol);
 
         public virtual bool TryAddConstructorParameterPackSourceCode(ConstructorParameterPackSourceCode item)
         {

@@ -99,7 +99,7 @@ return (executorOwner, instanceId);");
 
         private void GenerateConstructorProxyCode()
         {
-            if (Context.Resources.IsProvideByServiceProvider(Descriptor.TargetType))
+            if (Context.ServiceProviderProvideTypes.Contains(Descriptor.TargetType))
             {
                 GenerateServiceProviderConstructorProxyCode();
             }

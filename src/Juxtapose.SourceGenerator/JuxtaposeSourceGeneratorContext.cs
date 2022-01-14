@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using Juxtapose.SourceGenerator.Model;
 
@@ -20,6 +21,11 @@ namespace Juxtapose.SourceGenerator
 
         public ContextResourceCollection Resources { get; private set; } = new();
 
+        /// <summary>
+        /// 由 <see cref="IServiceProvider"/> 提供的类型集合
+        /// </summary>
+        public HashSet<INamedTypeSymbol> ServiceProviderProvideTypes { get; private set; } = new(SymbolEqualityComparer.Default);
+
         #endregion Public 属性
 
         #region Public 构造函数
@@ -38,6 +44,7 @@ namespace Juxtapose.SourceGenerator
             IllusionInstanceClasses = new();
             IllusionStaticClasses = new();
             Resources = new();
+            ServiceProviderProvideTypes = new(SymbolEqualityComparer.Default);
         }
 
         #endregion Public 方法

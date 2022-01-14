@@ -24,12 +24,6 @@ namespace Juxtapose.SourceGenerator.Model
 
         #region Public 方法
 
-        public override bool AddServiceProviderProvideType(INamedTypeSymbol typeSymbol)
-        {
-            _contextResourceCollection.AddServiceProviderProvideType(typeSymbol);
-            return base.AddServiceProviderProvideType(typeSymbol);
-        }
-
         public override bool TryAddConstructorParameterPackSourceCode(ConstructorParameterPackSourceCode item)
         {
             _contextResourceCollection.TryAddConstructorParameterPackSourceCode(item);

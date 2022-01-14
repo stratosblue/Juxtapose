@@ -160,7 +160,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                     });
                     _sourceBuilder.AppendIndentLine(".AsReadOnly();");
 
-                    if (!Context.Resources.GetAllServiceProviderProvideTypes().Any())
+                    if (Context.ServiceProviderProvideTypes.Count == 0)
                     {
                         _sourceBuilder.AppendLine();
 
@@ -214,7 +214,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                 }
                 else
                 {
-                    Context.Resources.AddServiceProviderProvideType(type);
+                    Context.ServiceProviderProvideTypes.Add(type);
                 }
             }
 

@@ -93,6 +93,8 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                             _sourceBuilder.AppendIndentLine("switch (message)");
                             _sourceBuilder.Scope(() =>
                             {
+                                GenerateAllServiceProviderObjectConstructorProcessCode();
+
                                 GenerateAllObjectConstructorProcessCode();
 
                                 GenerateAllStaticMethodProcessCode();
@@ -126,6 +128,14 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
             foreach (var item in Context.IllusionInstanceClasses)
             {
                 GenerateConstructorProcessCode(item.Key, item.Value);
+            }
+        }
+
+        private void GenerateAllServiceProviderObjectConstructorProcessCode()
+        {
+            foreach (var item in Context.ServiceProviderProvideTypes)
+            {
+                //TODO 代码生成
             }
         }
 
