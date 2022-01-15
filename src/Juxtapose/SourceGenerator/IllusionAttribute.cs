@@ -21,7 +21,7 @@ namespace Juxtapose.SourceGenerator
         /// <param name="accessibility">可访问性</param>
         /// <param name="fromIoCContainer">从IoC容器中创建对象</param>
         public IllusionAttribute(Type targetType,
-                                 Type? inheritType = null,
+                                 Type? inheritType = null,  //TODO 支持继承类
                                  string? generatedTypeName = null,
                                  GeneratedAccessibility accessibility = GeneratedAccessibility.Default,
                                  bool fromIoCContainer = false)

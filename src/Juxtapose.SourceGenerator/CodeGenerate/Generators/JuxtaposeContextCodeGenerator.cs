@@ -87,9 +87,11 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
             _sourceBuilder.AppendLine(Constants.JuxtaposeGenerateCodeHeader);
             _sourceBuilder.AppendLine();
 
+            var anyTypeFromIoCContainer = Context.IllusionInstanceClasses.Keys.Any(m => m.FromIoCContainer);
+
             _sourceBuilder.Namespace(() =>
             {
-                _sourceBuilder.AppendIndentLine($"partial class {ContextTypeSymbol.Name} : {TypeFullNames.Juxtapose.JuxtaposeContext}");
+                _sourceBuilder.AppendIndentLine($"partial class {ContextTypeSymbol.Name} : {TypeFullNames.Juxtapose.JuxtaposeContext}{(anyTypeFromIoCContainer ? ", global::Juxtapose.IIoCContainerProvider" : string.Empty)}");
                 _sourceBuilder.Scope(() =>
                 {
                     //TODO 框架调整时，如果有默认消息添加，则在此添加默认的消息
@@ -159,13 +161,6 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                         }
                     });
                     _sourceBuilder.AppendIndentLine(".AsReadOnly();");
-
-                    if (!Context.IllusionInstanceClasses.Any(m => m.Key.FromIoCContainer))
-                    {
-                        _sourceBuilder.AppendLine();
-
-                        _sourceBuilder.AppendIndentLine("protected override ValueTask<IIoCContainerHolder> GetIoCContainerAsync() => new ValueTask<IIoCContainerHolder>(EmptyIoCContainerHolder.Instance);");
-                    }
                 });
             }, Namespace);
 

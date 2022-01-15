@@ -200,6 +200,10 @@ namespace Juxtapose.SourceGenerator.Model
             inheritTypeSymbol ??= BuildEnvironment.VoidSymbol;
             if (RealObjectInvokers.TryGetValue(targetTypeSymbol, out var invokerSourceCodes))
             {
+                if (invokerSourceCodes.ContainsKey(inheritTypeSymbol))
+                {
+                    return false;
+                }
                 invokerSourceCodes.Add(inheritTypeSymbol, invokerSourceCode);
             }
             else
