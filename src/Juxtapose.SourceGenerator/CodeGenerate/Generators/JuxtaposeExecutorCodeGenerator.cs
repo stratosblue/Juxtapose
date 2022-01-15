@@ -133,10 +133,46 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
         private void GenerateAllServiceProviderObjectConstructorProcessCode()
         {
-            foreach (var item in Context.ServiceProviderProvideTypes)
+            var fromServiceProviderDescriptorMaps = Context.IllusionInstanceClasses.Where(m => m.Key.FromIoCContainer).ToArray();
+
+            if (fromServiceProviderDescriptorMaps.Length == 0)
             {
-                //TODO 代码生成
+                return;
             }
+
+            _sourceBuilder.AppendIndentLine("case global::Juxtapose.Messages.CreateObjectInstanceMessage<ServiceProviderGetInstanceParameterPack> createObjectByServiceProviderMessage:");
+            _sourceBuilder.Indent();
+            _sourceBuilder.AppendIndentLine("{");
+            _sourceBuilder.Indent();
+
+            _sourceBuilder.AppendIndentLine("var instanceId = createObjectByServiceProviderMessage.InstanceId;");
+            _sourceBuilder.AppendIndentLine("IMessageExecutor realObjectInvoker = createObjectByServiceProviderMessage?.ParameterPack?.TypeFullName switch");
+            _sourceBuilder.AppendIndentLine("{");
+            _sourceBuilder.Indent();
+
+            foreach (var descriptorMap in fromServiceProviderDescriptorMaps)
+            {
+                var descriptor = descriptorMap.Key;
+                if (!descriptorMap.Value.TryGetRealObjectInvokerSourceCode(descriptor.TargetType, descriptor.InheritType, out var invokerSourceCode)
+                    || invokerSourceCode is null)
+                {
+                    Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ExecutorGenerateCanNotFoundGeneratedRealObjectInvoker, null, descriptor.TargetType, descriptor.InheritType));
+                    continue;
+                }
+                _sourceBuilder.AppendIndentLine($"\"{descriptor.TypeFullName}\" => new global::{invokerSourceCode.TypeFullName}(GetRequiredService<{descriptor.TargetType.ToFullyQualifiedDisplayString()}>(), instanceId),");
+            }
+
+            _sourceBuilder.AppendIndentLine("_ => throw new InvalidOperationException($\"Can not get instance of type {createObjectByServiceProviderMessage?.ParameterPack?.TypeFullName} by service provider. There is no code map for it.\"),");
+
+            _sourceBuilder.Dedent();
+            _sourceBuilder.AppendIndentLine("};");
+
+            _sourceBuilder.AppendLine(@"AddObjectInstance(instanceId, realObjectInvoker);
+return null;");
+
+            _sourceBuilder.Dedent();
+            _sourceBuilder.AppendIndentLine("}");
+            _sourceBuilder.Dedent();
         }
 
         private void GenerateConstructorProcessCode(IllusionInstanceClassDescriptor descriptor, ResourceCollection resources)

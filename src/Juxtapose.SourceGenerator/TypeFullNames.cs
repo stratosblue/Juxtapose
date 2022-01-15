@@ -53,8 +53,6 @@
 
                 public const string IllusionAttribute_NoGlobal = "Juxtapose.SourceGenerator.IllusionAttribute";
 
-                public const string ProvideByServiceProviderAttribute_NoGlobal = "Juxtapose.SourceGenerator.ProvideByServiceProviderAttribute";
-
                 #endregion Public 字段
             }
 

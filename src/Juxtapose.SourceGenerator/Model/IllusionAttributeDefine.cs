@@ -12,6 +12,11 @@ namespace Juxtapose.SourceGenerator.Model
 
         public AttributeData AttributeData { get; }
 
+        /// <summary>
+        /// 从IoC容器中创建对象
+        /// </summary>
+        public bool FromIoCContainer { get; set; }
+
         public string? GeneratedTypeName { get; }
 
         public INamedTypeSymbol? InheritType { get; }
@@ -40,6 +45,7 @@ namespace Juxtapose.SourceGenerator.Model
             InheritType = attributeData.ConstructorArguments[1].Value as INamedTypeSymbol;
             GeneratedTypeName = attributeData.ConstructorArguments[2].Value as string;
             Accessibility = (GeneratedAccessibility)attributeData.ConstructorArguments[3].Value!;
+            FromIoCContainer = (bool)attributeData.ConstructorArguments[4].Value!;
 
             AttributeData = attributeData;
 

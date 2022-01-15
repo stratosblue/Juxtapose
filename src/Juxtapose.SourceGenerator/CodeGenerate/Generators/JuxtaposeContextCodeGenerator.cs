@@ -160,7 +160,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                     });
                     _sourceBuilder.AppendIndentLine(".AsReadOnly();");
 
-                    if (Context.ServiceProviderProvideTypes.Count == 0)
+                    if (!Context.IllusionInstanceClasses.Any(m => m.Key.FromIoCContainer))
                     {
                         _sourceBuilder.AppendLine();
 
@@ -198,26 +198,6 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
         {
             Context.Clear();
 
-            var serviceProviderProvideTypes = ContextTypeSymbol.GetAttributes()
-                                                               .Where(m => m.IsProvideByServiceProviderAttribute())
-                                                               .SelectMany(m => m.ConstructorArguments)
-                                                               .SelectMany(m => m.Values)
-                                                               .Select(m => m.Value)
-                                                               .OfType<INamedTypeSymbol>()
-                                                               .ToArray();
-
-            foreach (var type in serviceProviderProvideTypes)
-            {
-                if (type.IsStatic)
-                {
-                    Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.StaticTypeCanNotProvidedByServiceProvider, null, type.ToDisplayString()));
-                }
-                else
-                {
-                    Context.ServiceProviderProvideTypes.Add(type);
-                }
-            }
-
             var contextHashBuilder = new ContextHashBuilder();
 
             foreach (var illusionAttributeDefine in IllusionAttributeDefines)
@@ -253,6 +233,11 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
             foreach (var illusionStaticAttributeDefine in IllusionStaticAttributeDefines)
             {
+                if (illusionStaticAttributeDefine.FromIoCContainer)
+                {
+                    Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.StaticTypeCanNotProvidedByServiceProvider, null, illusionStaticAttributeDefine.TargetType.ToDisplayString()));
+                }
+
                 var descriptor = new IllusionStaticClassDescriptor(illusionStaticAttributeDefine, ContextTypeSymbol);
                 var resources = new SubResourceCollection(Context.Resources);
 

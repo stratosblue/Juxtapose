@@ -9,6 +9,11 @@ namespace Juxtapose.SourceGenerator.Model
         #region Public 属性
 
         /// <summary>
+        /// 从IoC容器中创建对象
+        /// </summary>
+        public bool FromIoCContainer { get; set; }
+
+        /// <summary>
         /// 生成的代理需要继承的类型
         /// </summary>
         public INamedTypeSymbol? InheritType { get; }
@@ -23,6 +28,8 @@ namespace Juxtapose.SourceGenerator.Model
             {
                 throw new ArgumentException($"{TargetType} not a instance type");
             }
+
+            FromIoCContainer = attributeDefine.FromIoCContainer;
 
             InheritType = attributeDefine.InheritType;
         }

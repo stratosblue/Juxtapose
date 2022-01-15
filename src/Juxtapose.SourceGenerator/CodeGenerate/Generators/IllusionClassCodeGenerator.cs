@@ -99,7 +99,7 @@ return (executorOwner, instanceId);");
 
         private void GenerateConstructorProxyCode()
         {
-            if (Context.ServiceProviderProvideTypes.Contains(Descriptor.TargetType))
+            if (Descriptor.FromIoCContainer)
             {
                 GenerateServiceProviderConstructorProxyCode();
             }
@@ -333,15 +333,18 @@ public void Dispose()
 
             #region 构造函数
 
-            var constructors = Descriptor.TargetType.GetProxyableMembers(true)
-                                                    .Where(m => m is IMethodSymbol methodSymbol && methodSymbol.MethodKind is MethodKind.Constructor)
-                                                    .OfType<IMethodSymbol>()
-                                                    .ToArray();
-
-            foreach (var item in MethodParameterPackCodeGenerateUtil.GenerateConstructorPack(constructors, $"{targetTypeSymbol.ToDisplayString()}.ParameterPack.g.cs", Descriptor.TypeFullName))
+            if (!Descriptor.FromIoCContainer)
             {
-                Resources.TryAddConstructorParameterPackSourceCode(item);
-                yield return item;
+                var constructors = Descriptor.TargetType.GetProxyableMembers(true)
+                                                        .Where(m => m is IMethodSymbol methodSymbol && methodSymbol.MethodKind is MethodKind.Constructor)
+                                                        .OfType<IMethodSymbol>()
+                                                        .ToArray();
+
+                foreach (var item in MethodParameterPackCodeGenerateUtil.GenerateConstructorPack(constructors, $"{targetTypeSymbol.ToDisplayString()}.ParameterPack.g.cs", Descriptor.TypeFullName))
+                {
+                    Resources.TryAddConstructorParameterPackSourceCode(item);
+                    yield return item;
+                }
             }
 
             #endregion 构造函数

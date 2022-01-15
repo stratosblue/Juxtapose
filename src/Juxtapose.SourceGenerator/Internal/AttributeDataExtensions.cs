@@ -11,11 +11,6 @@ namespace Microsoft.CodeAnalysis
             return attributeData.AttributeClass?.ToDisplayString() == TypeFullNames.Juxtapose.SourceGenerator.IllusionAttribute_NoGlobal;
         }
 
-        public static bool IsProvideByServiceProviderAttribute(this AttributeData attributeData)
-        {
-            return attributeData.AttributeClass?.ToDisplayString() == TypeFullNames.Juxtapose.SourceGenerator.ProvideByServiceProviderAttribute_NoGlobal;
-        }
-
         #endregion Public 方法
     }
 }
