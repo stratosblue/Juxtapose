@@ -100,6 +100,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                         TypeFullNames.Juxtapose.Messages.ExceptionMessage,
                         $"{TypeFullNames.Juxtapose.Messages.InstanceMethodInvokeMessage}<global::Juxtapose.Messages.ParameterPacks.CancellationTokenSourceCancelParameterPack>",
                         TypeFullNames.Juxtapose.Messages.DisposeObjectInstanceMessage,
+                        $"{TypeFullNames.Juxtapose.Messages.CreateObjectInstanceMessage}<global::Juxtapose.Messages.ParameterPacks.ServiceProviderGetInstanceParameterPack>",
                     };
 
                     var allConstructorMessageTypes = Context.Resources.GetAllConstructorParameterPacks().Select(GetParameterPackMessageTypeName).OrderBy(m => m).ToArray();
@@ -146,7 +147,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                     _sourceBuilder.Scope(() =>
                     {
                         _sourceBuilder.AppendIndentLine("ThrowIfDisposed();");
-                        _sourceBuilder.AppendIndentLine($"return new {ContextTypeSymbol.Name}.InternalJuxtaposeExecutor(messageExchanger, LoggerFactory.CreateLogger(\"{ContextTypeSymbol.ToDisplayString()}.InternalJuxtaposeExecutor\"));");
+                        _sourceBuilder.AppendIndentLine($"return new {ContextTypeSymbol.Name}.InternalJuxtaposeExecutor(messageExchanger, LoggerFactory.CreateLogger(\"{ContextTypeSymbol.ToDisplayString()}.InternalJuxtaposeExecutor\"){(anyTypeFromIoCContainer ? ", GetIoCContainerAsync" : string.Empty)});");
                     });
 
                     _sourceBuilder.AppendLine();

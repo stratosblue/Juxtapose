@@ -14,7 +14,7 @@ namespace Juxtapose.Test
 {
     [Illusion(typeof(Greeter), null, "Juxtapose.Test.GreeterIllusion")]
     [Illusion(typeof(Greeter), typeof(IGreeter), "Juxtapose.Test.GreeterAsIGreeterIllusion")]
-    //[Illusion(typeof(Greeter), null, "Juxtapose.Test.GreeterIllusionFromIoCContainer", fromIoCContainer: true)]
+    [Illusion(typeof(GreeterFromServiceProvider), null, "Juxtapose.Test.GreeterIllusionFromIoCContainer", fromIoCContainer: true)]
     [Illusion(typeof(StaticGreeter), generatedTypeName: "Juxtapose.Test.StaticGreeterIllusion")]
     [Illusion(typeof(JuxtaposeEnvironmentProxy), generatedTypeName: "Juxtapose.Test.ExternalJuxtaposeEnvironment")]
     public partial class GreeterJuxtaposeContext : JuxtaposeContext
@@ -66,5 +66,14 @@ namespace Juxtapose.Test
         }
 
         #endregion Public 方法
+
+        #region IIoCContainerProvider
+
+        public ValueTask<IIoCContainerHolder> GetIoCContainerAsync()
+        {
+            return ValueTask.FromResult<IIoCContainerHolder>(new DefaultIoCContainerHolder(TestServiceProvider.Create(), true));
+        }
+
+        #endregion IIoCContainerProvider
     }
 }
