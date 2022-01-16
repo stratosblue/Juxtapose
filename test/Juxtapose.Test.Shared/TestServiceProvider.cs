@@ -18,6 +18,7 @@ namespace Juxtapose.Test
 
             services.AddScoped<IGreeter, Greeter>();
             services.AddScoped<GreeterFromServiceProvider>();
+            services.AddScoped<IGreeterFromServiceProvider, GreeterFromServiceProvider>();
 
             return services.BuildServiceProvider();
         }

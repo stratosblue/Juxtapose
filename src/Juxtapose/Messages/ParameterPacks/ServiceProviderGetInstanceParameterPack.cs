@@ -30,5 +30,15 @@ namespace Juxtapose.Messages.ParameterPacks
         }
 
         #endregion Public 构造函数
+
+        #region Public 方法
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return $"Create {TypeFullName} with ServiceProvider";
+        }
+
+        #endregion Public 方法
     }
 }

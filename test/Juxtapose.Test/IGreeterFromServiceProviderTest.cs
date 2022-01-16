@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using GreeterOrigin = global::Juxtapose.Test.IGreeter;
-using GreeterIllusionGen = global::Juxtapose.Test.GreeterIllusionFromIoCContainer;
+using GreeterOrigin = global::Juxtapose.Test.IGreeterFromServiceProvider;
+using GreeterIllusionGen = global::Juxtapose.Test.IGreeterIllusionFromIoCContainer;
 
-//COPY from GreeterTest
+//COPY from GreeterFromServiceProviderTest
 
 namespace Juxtapose.Test
 {
     [TestClass]
-    public class GreeterFromServiceProviderTest
+    public class IGreeterFromServiceProviderTest
     {
         #region Public 字段
 

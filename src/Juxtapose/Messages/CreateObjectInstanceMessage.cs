@@ -31,7 +31,7 @@
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"【CreateObjectInstanceMessage】Id: {Id} ,InstanceId: {InstanceId}";
+            return $"【CreateObjectInstanceMessage】Id: {Id} ,InstanceId: {InstanceId} ,ParameterPack: {ParameterPack}";
         }
 
         #endregion Public 方法

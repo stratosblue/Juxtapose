@@ -60,7 +60,11 @@ namespace Juxtapose.SourceGenerator.Model
         {
             if (TargetType.TypeKind != TypeKind.Class)
             {
-                throw new ArgumentException($"{TypeFullNames.Juxtapose.SourceGenerator.IllusionAttribute_NoGlobal}.targetType 必须为有效类型");
+                if (!FromIoCContainer
+                    || TargetType.TypeKind != TypeKind.Interface)
+                {
+                    throw new ArgumentException($"{TypeFullNames.Juxtapose.SourceGenerator.IllusionAttribute_NoGlobal}.targetType 必须为有效类型");
+                }
             }
 
             if (TargetType.IsStatic)
@@ -72,7 +76,8 @@ namespace Juxtapose.SourceGenerator.Model
                 return;
             }
 
-            if (TargetType.IsAbstract)
+            if (TargetType.IsAbstract
+                && !FromIoCContainer)
             {
                 throw new ArgumentException($"{TypeFullNames.Juxtapose.SourceGenerator.IllusionAttribute_NoGlobal}.targetType 不能为抽象类型");
             }
