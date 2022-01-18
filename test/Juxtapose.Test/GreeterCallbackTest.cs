@@ -30,10 +30,10 @@ namespace Juxtapose.Test
         }
 
         [TestInitialize]
-        public void Init()
+        public async Task Init()
         {
             _origin = new GreeterOrigin("CSharp");
-            _illusion = new GreeterIllusion("CSharp");
+            _illusion = await GreeterIllusion.NewAsync("CSharp");
         }
 
         [TestMethod]

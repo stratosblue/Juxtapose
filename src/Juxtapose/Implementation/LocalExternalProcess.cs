@@ -9,7 +9,7 @@ namespace Juxtapose
     /// <summary>
     /// 本地<inheritdoc cref="IExternalProcess"/>
     /// </summary>
-    public class LocalExternalProcess : IExternalProcess
+    public class LocalExternalProcess : KeepRunningObject, IExternalProcess
     {
         #region Public 事件
 
@@ -21,7 +21,6 @@ namespace Juxtapose
         #region Private 字段
 
         private readonly ProcessStartInfo _processStartInfo;
-        private bool _isDisposed;
         private volatile bool _isInitialized;
         private int _isInvalid;
 
@@ -30,50 +29,22 @@ namespace Juxtapose
         #region Public 属性
 
         /// <inheritdoc/>
-        public int ExitCode
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return Process?.ExitCode ?? throw new NotInitializedException(nameof(LocalExternalProcess));
-            }
-        }
+        public int ExitCode => GetRequiredProcess().ExitCode;
 
         /// <inheritdoc/>
-        public bool HasExited
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return Process?.HasExited ?? throw new NotInitializedException(nameof(LocalExternalProcess));
-            }
-        }
+        public bool HasExited => GetRequiredProcess().HasExited;
 
         /// <inheritdoc/>
-        public int Id
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return Process?.Id ?? throw new NotInitializedException(nameof(LocalExternalProcess));
-            }
-        }
+        public int Id => GetRequiredProcess().Id;
 
         /// <inheritdoc/>
-        public bool IsAlive => _isInitialized && _isInvalid == 0;
+        public bool IsAlive => _isInitialized && _isInvalid == 0 && Process?.HasExited == false;
 
         /// <inheritdoc cref="LocalExternalProcess"/>
         public Process? Process { get; private set; }
 
         /// <inheritdoc/>
-        public DateTime StartTime
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return Process?.StartTime ?? throw new NotInitializedException(nameof(LocalExternalProcess));
-            }
-        }
+        public DateTime StartTime => GetRequiredProcess().StartTime;
 
         #endregion Public 属性
 
@@ -89,20 +60,21 @@ namespace Juxtapose
 
         #region Private 方法
 
+        private Process GetRequiredProcess()
+        {
+            if (Process is Process process)
+            {
+                return process;
+            }
+            throw new ObjectDisposedException(nameof(LocalExternalProcess));
+        }
+
         private void SetInvalid()
         {
             if (Interlocked.Increment(ref _isInvalid) == 1
                 && OnProcessInvalid is Action<IExternalProcess> onProcessInvalid)
             {
                 Task.Run(() => onProcessInvalid.Invoke(this));
-            }
-        }
-
-        private void ThrowIfDisposed()
-        {
-            if (_isDisposed)
-            {
-                throw new ObjectDisposedException(nameof(LocalExternalProcess));
             }
         }
 
@@ -148,11 +120,8 @@ namespace Juxtapose
             {
                 process.Start();
 
-                _ = process.WaitForExitAsync(CancellationToken.None).ContinueWith(_ =>
-                {
-                    Dispose();
-                    process.Dispose();
-                }, CancellationToken.None);
+                _ = process.WaitForExitAsync(RunningToken)
+                           .ContinueWith(_ => Dispose(), CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current);
             }
             catch
             {
@@ -172,18 +141,10 @@ namespace Juxtapose
         /// <summary>
         ///
         /// </summary>
-        ~LocalExternalProcess()
-        {
-            Dispose(disposing: false);
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
         /// <param name="disposing"></param>
-        protected virtual void Dispose(bool disposing)
+        protected override bool Dispose(bool disposing)
         {
-            if (!_isDisposed)
+            if (base.Dispose(disposing))
             {
                 SetInvalid();
 
@@ -194,16 +155,17 @@ namespace Juxtapose
                         process.Kill(true);
                     }
                     catch { }
+                    finally
+                    {
+                        process.Dispose();
+                    }
                 }
-                _isDisposed = true;
-            }
-        }
 
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+                OnProcessInvalid = null;
+
+                return true;
+            }
+            return false;
         }
 
         #endregion Dispose
