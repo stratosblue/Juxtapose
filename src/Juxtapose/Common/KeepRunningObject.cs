@@ -13,6 +13,8 @@ namespace Juxtapose
 
         private readonly CancellationTokenSource _runningCancellationTokenSource;
 
+        private volatile bool _isDisposed;
+
         #endregion Private 字段
 
         #region Public 属性
@@ -20,7 +22,7 @@ namespace Juxtapose
         /// <summary>
         /// 是否已释放
         /// </summary>
-        public bool IsDisposed { [DebuggerStepThrough]get; [DebuggerStepThrough]private set; }
+        public bool IsDisposed { [DebuggerStepThrough]get => _isDisposed; [DebuggerStepThrough]private set => _isDisposed = value; }
 
         /// <summary>
         /// 运行的Token
@@ -49,7 +51,7 @@ namespace Juxtapose
         /// <exception cref="ObjectDisposedException"></exception>
         protected void ThrowIfDisposed()
         {
-            if (IsDisposed)
+            if (_isDisposed)
             {
                 throw new ObjectDisposedException(this.ToString());
             }
@@ -73,11 +75,18 @@ namespace Juxtapose
         /// <param name="disposing"></param>
         protected virtual bool Dispose(bool disposing)
         {
-            if (!IsDisposed)
+            if (!_isDisposed)
             {
-                IsDisposed = true;
-                _runningCancellationTokenSource.Cancel();
-                _runningCancellationTokenSource.Dispose();
+                _isDisposed = true;
+                try
+                {
+                    _runningCancellationTokenSource.Cancel();
+                }
+                catch { }
+                finally
+                {
+                    _runningCancellationTokenSource.Dispose();
+                }
                 return true;
             }
             return false;
@@ -86,10 +95,8 @@ namespace Juxtapose
         /// <inheritdoc/>
         public void Dispose()
         {
-            if (Dispose(disposing: true))
-            {
-                GC.SuppressFinalize(this);
-            }
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
 
         #endregion Dispose

@@ -13,6 +13,37 @@ namespace Juxtapose
     {
         #region Public 方法
 
+        private static void ThrowIfDispatcherIsExecutorAndProcessNotAlive(MessageDispatcher dispatcher, Exception threwException)
+        {
+            if (dispatcher is not JuxtaposeExecutor executor)
+            {
+                return;
+            }
+            int? processId = null;
+            int? exitCode = null;
+            try
+            {
+                if (executor.TryGetExternalProcess(out var externalProcess)
+                    && !externalProcess.IsAlive)
+                {
+                    processId = externalProcess.Id;
+                    exitCode = externalProcess.ExitCode;
+                }
+            }
+            catch (Exception ex)
+            {
+                var exception = new JuxtaposeException("Juxtapose fail to pretty exception. RawException is in the exception Data.", ex);
+                exception.Data.Add("RawException", threwException);
+                throw exception;
+            }
+
+            if (processId.HasValue
+                && exitCode.HasValue)
+            {
+                throw new ExternalProcessExitedException(processId.Value, exitCode.Value, $"Exception threw at remote call. And the external process 【{processId.Value}】 exited with code:【{exitCode.Value}】.", threwException);
+            }
+        }
+
         #region Async
 
         /// <summary>
@@ -24,14 +55,23 @@ namespace Juxtapose
         /// <param name="instanceId"></param>
         /// <param name="cancellation"></param>
         /// <returns></returns>
-        public static Task<JuxtaposeAckMessage> InvokeInstanceMethodMessageAsync<TParameterPack>(this MessageDispatcher dispatcher,
-                                                                                                 TParameterPack parameterPack,
-                                                                                                 int instanceId,
-                                                                                                 CancellationToken cancellation = default)
+        public static async Task<JuxtaposeAckMessage> InvokeInstanceMethodMessageAsync<TParameterPack>(this MessageDispatcher dispatcher,
+                                                                                                       TParameterPack parameterPack,
+                                                                                                       int instanceId,
+                                                                                                       CancellationToken cancellation = default)
             where TParameterPack : class
         {
             var message = new InstanceMethodInvokeMessage<TParameterPack>(instanceId) { ParameterPack = parameterPack };
-            return dispatcher.InvokeMessageAsync(message, cancellation);
+            try
+            {
+                return await dispatcher.InvokeMessageAsync(message, cancellation);
+            }
+            catch (JuxtaposeException) { throw; }
+            catch (Exception ex)
+            {
+                ThrowIfDispatcherIsExecutorAndProcessNotAlive(dispatcher, ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -52,7 +92,18 @@ namespace Juxtapose
             where TResultPack : class
         {
             var message = new InstanceMethodInvokeMessage<TParameterPack>(instanceId) { ParameterPack = parameterPack };
-            var ackMessage = await dispatcher.InvokeMessageAsync(message, cancellation);
+            JuxtaposeAckMessage ackMessage;
+
+            try
+            {
+                ackMessage = await dispatcher.InvokeMessageAsync(message, cancellation);
+            }
+            catch (JuxtaposeException) { throw; }
+            catch (Exception ex)
+            {
+                ThrowIfDispatcherIsExecutorAndProcessNotAlive(dispatcher, ex);
+                throw;
+            }
 
             return ((InstanceMethodInvokeResultMessage<TResultPack>)ackMessage).Result!;
         }
@@ -65,13 +116,22 @@ namespace Juxtapose
         /// <param name="parameterPack"></param>
         /// <param name="cancellation"></param>
         /// <returns></returns>
-        public static Task<JuxtaposeAckMessage> InvokeStaticMethodMessageAsync<TParameterPack>(this MessageDispatcher dispatcher,
-                                                                                               TParameterPack parameterPack,
-                                                                                               CancellationToken cancellation = default)
+        public static async Task<JuxtaposeAckMessage> InvokeStaticMethodMessageAsync<TParameterPack>(this MessageDispatcher dispatcher,
+                                                                                                     TParameterPack parameterPack,
+                                                                                                     CancellationToken cancellation = default)
             where TParameterPack : class
         {
             var message = new StaticMethodInvokeMessage<TParameterPack>() { ParameterPack = parameterPack };
-            return dispatcher.InvokeMessageAsync(message, cancellation);
+            try
+            {
+                return await dispatcher.InvokeMessageAsync(message, cancellation);
+            }
+            catch (JuxtaposeException) { throw; }
+            catch (Exception ex)
+            {
+                ThrowIfDispatcherIsExecutorAndProcessNotAlive(dispatcher, ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -90,8 +150,17 @@ namespace Juxtapose
             where TResultPack : class
         {
             var message = new StaticMethodInvokeMessage<TParameterPack>() { ParameterPack = parameterPack };
-            var ackMessage = await dispatcher.InvokeMessageAsync(message, cancellation);
-
+            JuxtaposeAckMessage ackMessage;
+            try
+            {
+                ackMessage = await dispatcher.InvokeMessageAsync(message, cancellation);
+            }
+            catch (JuxtaposeException) { throw; }
+            catch (Exception ex)
+            {
+                ThrowIfDispatcherIsExecutorAndProcessNotAlive(dispatcher, ex);
+                throw;
+            }
             return ((StaticMethodInvokeResultMessage<TResultPack>)ackMessage).Result!;
         }
 
