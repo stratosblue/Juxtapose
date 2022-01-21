@@ -13,6 +13,11 @@
         string ContextIdentifier { get; set; }
 
         /// <summary>
+        /// 启用Debugger
+        /// </summary>
+        bool EnableDebugger { get; set; }
+
+        /// <summary>
         /// 父进程ID
         /// </summary>
         int? ParentProcessId { get; set; }

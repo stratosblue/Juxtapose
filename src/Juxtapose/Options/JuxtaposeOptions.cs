@@ -24,6 +24,9 @@ namespace Juxtapose
         public string ContextIdentifier { get => Get(); set => Set(value); }
 
         /// <inheritdoc/>
+        public bool EnableDebugger { get => GetUInt32() > 0; set => Set(value ? 1 : 0); }
+
+        /// <inheritdoc/>
         public int? ParentProcessId { get => GetInt32(); set => Set(value); }
 
         /// <inheritdoc/>

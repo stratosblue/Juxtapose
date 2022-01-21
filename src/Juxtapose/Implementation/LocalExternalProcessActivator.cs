@@ -42,6 +42,8 @@ namespace Juxtapose
 
             options.SessionId = Guid.NewGuid().ToString("N");
 
+            options.EnableDebugger = Debugger.IsAttached;
+
             ExternalProcessArgumentUtil.SetAsJuxtaposeProcessStartInfo(processStartInfo, options);
 
             return processStartInfo;
