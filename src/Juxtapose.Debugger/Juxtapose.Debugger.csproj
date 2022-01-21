@@ -8,9 +8,4 @@
     <PackageReference Include="EnvDTE" Version="16.7.30328.74" />
     <PackageReference Include="EnvDTE80" Version="16.7.30328.74" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Juxtapose\Juxtapose.csproj" />
-  </ItemGroup>
-
 </Project>

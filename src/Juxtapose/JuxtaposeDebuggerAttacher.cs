@@ -22,18 +22,17 @@ namespace Juxtapose
         [Conditional("DEBUG")]
         public static void TryAttachToParent(params string[] args)
         {
+            if (Debugger.IsAttached)
+            {
+                return;
+            }
+
             if (!File.Exists("Juxtapose.Debugger.dll")
                 || !ExternalProcessArgumentUtil.TryGetJuxtaposeOptions(args, out var options)
                 || !options.EnableDebugger
                 || !options.ParentProcessId.HasValue)
             {
                 Console.WriteLine("Can not attach debugger.");
-                return;
-            }
-
-            if (Debugger.IsAttached)
-            {
-                Console.WriteLine("Debugger is attached for current process \"{0}\".", Environment.ProcessId);
                 return;
             }
 
