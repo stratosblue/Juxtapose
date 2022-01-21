@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Juxtapose.Debugger\Juxtapose.Debugger.csproj" />
     <ProjectReference Include="..\SampleLibrary\SampleLibrary.csproj" />
   </ItemGroup>
 

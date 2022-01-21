@@ -113,16 +113,6 @@ namespace Juxtapose
                 WorkingDirectory = Environment.CurrentDirectory,
             };
 
-            //https://docs.microsoft.com/zh-cn/dotnet/core/run-time-config/debugging-profiling
-
-            //HACK 默认关闭子进程所有诊断信息
-            //HACK 在不支持.net6之前的版本时，修改环境变量 COMPlus_ 为 DOTNET_
-            processStartInfo.EnvironmentVariables["DOTNET_USE_POLLING_FILE_WATCHER"] = "0";
-            processStartInfo.EnvironmentVariables["COMPlus_EnableDiagnostics"] = "0";
-            processStartInfo.EnvironmentVariables["CORECLR_ENABLE_PROFILING"] = "0";
-            processStartInfo.EnvironmentVariables["COMPlus_PerfMapEnabled"] = "0";
-            processStartInfo.EnvironmentVariables["COMPlus_PerfMapIgnoreSignal"] = "0";
-
             foreach (var item in commandLineArgs)
             {
                 processStartInfo.ArgumentList.Add(item);

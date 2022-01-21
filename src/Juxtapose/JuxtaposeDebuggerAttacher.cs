@@ -32,7 +32,6 @@ namespace Juxtapose
                 || !options.EnableDebugger
                 || !options.ParentProcessId.HasValue)
             {
-                Console.WriteLine("Can not attach debugger.");
                 return;
             }
 
