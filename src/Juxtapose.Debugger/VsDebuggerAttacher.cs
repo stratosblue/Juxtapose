@@ -55,6 +55,54 @@ namespace System
                 return;
             }
 
+            if (Threading.Thread.CurrentThread.GetApartmentState() == Threading.ApartmentState.STA)
+            {
+                InternalAttachToTargetProcessDebugger(pid, targetPid);
+            }
+            else
+            {
+                var thread = new Threading.Thread(() =>
+                {
+                    InternalAttachToTargetProcessDebugger(pid, targetPid);
+                });
+                thread.SetApartmentState(Threading.ApartmentState.STA);
+                thread.Name = $"VsDebuggerAttacher {pid} -> {targetPid}'s debugger";
+                thread.Start();
+                thread.Join();
+            }
+        }
+
+        /// <summary>
+        /// 将进程ID为 <paramref name="pid"/> 的进程，附加到当前进程已附加的Debugger <para/>
+        /// 仅在Windows下调试有效，其它平台调用此函数无事发生。。。
+        /// </summary>
+        /// <param name="pid"></param>
+        /// <returns></returns>
+        [SupportedOSPlatform("windows")]
+        public static void TryAttachToCurrentDebugger(int pid)
+        {
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+            {
+                Console.Error.WriteLine($"{nameof(VsDebuggerAttacher)}.{nameof(AttachToTargetProcessDebugger)} can not run run except windows. Nothing will happen for process {pid}.");
+                return;
+            }
+
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                AttachToTargetProcessDebugger(pid, Environment.ProcessId);
+            }
+            else
+            {
+                Console.Error.WriteLine($"Current process {Environment.ProcessId} not attached debugger. Nothing will happen for process {pid}.");
+            }
+        }
+
+        #endregion Public 方法
+
+        #region Private 方法
+
+        private static void InternalAttachToTargetProcessDebugger(int pid, int targetPid)
+        {
             if (pid < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(pid));
@@ -108,26 +156,7 @@ namespace System
             }
         }
 
-        /// <summary>
-        /// 将进程ID为 <paramref name="pid"/> 的进程，附加到当前进程已附加的Debugger <para/>
-        /// 仅在Windows下调试有效，其它平台调用此函数无事发生。。。
-        /// </summary>
-        /// <param name="pid"></param>
-        /// <returns></returns>
-        [SupportedOSPlatform("windows")]
-        public static void TryAttachToCurrentDebugger(int pid)
-        {
-            if (System.Diagnostics.Debugger.IsAttached)
-            {
-                AttachToTargetProcessDebugger(pid, Environment.ProcessId);
-            }
-            else
-            {
-                Console.Error.WriteLine($"Current process {Environment.ProcessId} not attached debugger. Nothing will happen for process {pid}.");
-            }
-        }
-
-        #endregion Public 方法
+        #endregion Private 方法
 
         #region Functions
 
