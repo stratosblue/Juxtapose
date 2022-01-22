@@ -50,7 +50,7 @@ namespace Juxtapose
 
             try
             {
-                Console.WriteLine($"JuxtaposeDebuggerAttacher: Try attach current process {Environment.ProcessId} to process {targetProcessId}'s debugger dynamically.");
+                ConsoleWriteLineWithColor($"JuxtaposeDebuggerAttacher: Try attach current process {Environment.ProcessId} to process {targetProcessId}'s debugger dynamically.", ConsoleColor.Green);
 
                 using var dllStream = File.OpenRead(VsDebuggerLibraryFileName);
                 var assembly = assemblyLoadContext.LoadFromStream(dllStream);
@@ -59,13 +59,13 @@ namespace Juxtapose
                                            ?.GetMethod("AttachTo", BindingFlags.Public | BindingFlags.Static);
                 if (attachMethod is null)
                 {
-                    Console.WriteLine($"JuxtaposeDebuggerAttacher: Can not get Attach method in {VsDebuggerLibraryFileName}.");
+                    ConsoleWriteLineWithColor($"JuxtaposeDebuggerAttacher: Can not get Attach method in {VsDebuggerLibraryFileName}.", ConsoleColor.Red);
                     return;
                 }
                 else
                 {
                     attachMethod.Invoke(null, new object[] { targetProcessId });
-                    Console.WriteLine($"JuxtaposeDebuggerAttacher: dynamic attach process {Environment.ProcessId} to process {targetProcessId}'s debugger done.");
+                    ConsoleWriteLineWithColor($"JuxtaposeDebuggerAttacher: dynamic attach process {Environment.ProcessId} to process {targetProcessId}'s debugger done.", ConsoleColor.Green);
                 }
             }
             finally
@@ -75,5 +75,17 @@ namespace Juxtapose
         }
 
         #endregion Public 方法
+
+        #region util
+
+        private static void ConsoleWriteLineWithColor(string message, ConsoleColor color)
+        {
+            var colorBak = Console.ForegroundColor;
+            Console.ForegroundColor = color;
+            Console.WriteLine(message);
+            Console.ForegroundColor = colorBak;
+        }
+
+        #endregion util
     }
 }
