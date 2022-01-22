@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>Juxtapose</RootNamespace>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

@@ -20,6 +20,8 @@ jobs:
       run: dotnet build -c Release ./src/Juxtapose/Juxtapose.csproj
     - name: build - source-generator
       run: dotnet build -c Release ./src/Juxtapose.SourceGenerator/Juxtapose.SourceGenerator.csproj
+    - name: build - vsdebugger
+      run: dotnet build -c Release ./src/Juxtapose.VsDebugger/Juxtapose.VsDebugger.csproj
     - name: pack
       run: dotnet pack -c Release -o ./output
     - name: push package
