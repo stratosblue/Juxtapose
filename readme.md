@@ -3,10 +3,14 @@
 基于 `SourceGenerator` 的硬编码 `.Net` 多`进程`运行库。
 
 ## 2. Features
- - 可以为`接口`和`静态类`生成代理，无需手动编写RPC相关代码，即可进行`多进程`开发；
+ - 可以为`类型`、`接口`、`静态类`生成代理，无需手动编写RPC相关代码，即可进行`多进程`开发；
  - 编译时生成所有代码，运行时无显式的反射调用和动态构造；
  - 支持`委托`和`CancellationToken`类型的方法参数（其余类型未特殊处理，将会进行序列化，目前回调`委托`不支持嵌套和`CancellationToken`）；
  - 支持`Linux`、`Windows`（其它未测试）；
+
+### 注意事项
+ - 目前参数不支持定义为父类型，实际传递子类型，序列化时将会按照定义的类型进行序列化和反序列化，会导致具体类型丢失；
+ - 目前所有的参数都不应该在方法完成后进行保留，`CancellationToken`等在方法完成后会被释放；
 
 ## 3. Requirement
  - .Net5.0+(其它版本没有尝试过)
@@ -48,7 +52,29 @@ await JuxtaposeEntryPoint.TryAsEndpointAsync(args, GreeterJuxtaposeContext.Share
 
 #### 到此已完成开发，创建类型`Juxtapose.Test.GreeterAsIGreeterIllusion`的对象，并调用其方法，其实际逻辑将在子进程中运行；
 
-## 5. 工作逻辑
+
+## 5. 调试子进程（`Windows`&&`VisualStudio` Only）
+
+### 5.1 引用调试包
+在Host项目文件中添加包引用
+```XML
+<ItemGroup Condition="'$(Configuration)' == 'Debug'">
+  <PackageReference Include="Juxtapose.VsDebugger" Version="1.0.*-*" />
+</ItemGroup>
+```
+#### 建议和示例代码一样，添加条件引用，只在`Debug`环境下引用调试包
+
+### 5.2 添加入口点
+在`Main`方法中添加调试入口点代码
+```C#
+JuxtaposeDebuggerAttacher.TryAttachToParent(args);
+```
+
+------
+
+#### 在代码中打上断点，运行时将会正确命中断点（只在 `VisualStudio2022 17.0.5` && `Win11 21TH2` 中进行了测试，理论上是通用）
+
+## 6. 工作逻辑
 `SourceGenerator`在编译时生成代理类型，封装通信消息。默认使用命名管道进行进程间通信，使用`System.Text.Json`进行消息的序列化与反序列化。
 
 ## 参见示例，未完待续......
