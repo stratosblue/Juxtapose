@@ -13,6 +13,15 @@ namespace Juxtapose
     /// </summary>
     public static class JuxtaposeDebuggerAttacher
     {
+        #region Public 字段
+
+        /// <summary>
+        /// VsDebugger库名称
+        /// </summary>
+        public const string VsDebuggerLibraryFileName = "Juxtapose.VsDebugger.dll";
+
+        #endregion Public 字段
+
         #region Public 方法
 
         /// <summary>
@@ -27,7 +36,7 @@ namespace Juxtapose
                 return;
             }
 
-            if (!File.Exists("Juxtapose.Debugger.dll")
+            if (!File.Exists(VsDebuggerLibraryFileName)
                 || !ExternalProcessArgumentUtil.TryGetJuxtaposeOptions(args, out var options)
                 || !options.EnableDebugger
                 || !options.ParentProcessId.HasValue)
@@ -35,18 +44,29 @@ namespace Juxtapose
                 return;
             }
 
+            var targetProcessId = options.ParentProcessId.Value;
+
             var assemblyLoadContext = new AssemblyLoadContext("JuxtaposeDebuggerAttacher", true);
 
             try
             {
-                Console.WriteLine("Try attach to debugger dynamic.");
+                Console.WriteLine($"JuxtaposeDebuggerAttacher: Try attach current process {Environment.ProcessId} to process {targetProcessId}'s debugger dynamically.");
 
-                using var dllStream = File.OpenRead("Juxtapose.Debugger.dll");
+                using var dllStream = File.OpenRead(VsDebuggerLibraryFileName);
                 var assembly = assemblyLoadContext.LoadFromStream(dllStream);
 
-                assembly.GetType("System.DebuggerAttachHelper", false, true)
-                        ?.GetMethod("AttachTo", BindingFlags.Public | BindingFlags.Static)
-                        ?.Invoke(null, new object[] { options.ParentProcessId.Value });
+                var attachMethod = assembly.GetType("System.DebuggerAttachHelper", false, true)
+                                           ?.GetMethod("AttachTo", BindingFlags.Public | BindingFlags.Static);
+                if (attachMethod is null)
+                {
+                    Console.WriteLine($"JuxtaposeDebuggerAttacher: Can not get Attach method in {VsDebuggerLibraryFileName}.");
+                    return;
+                }
+                else
+                {
+                    attachMethod.Invoke(null, new object[] { targetProcessId });
+                    Console.WriteLine($"JuxtaposeDebuggerAttacher: dynamic attach process {Environment.ProcessId} to process {targetProcessId}'s debugger done.");
+                }
             }
             finally
             {
