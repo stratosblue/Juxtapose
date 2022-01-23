@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -65,7 +66,7 @@ namespace Juxtapose
 
         private static T GetCachedValue<T>(Func<T> getFunc, ref T? cacheValue) where T : struct
         {
-            return cacheValue 
+            return cacheValue
                    ?? (cacheValue = new T?(getFunc())).Value;
         }
 
@@ -166,6 +167,7 @@ namespace Juxtapose
                     catch { }
                     finally
                     {
+                        AccessCacheInfo(Id, ExitCode);
                         process.Dispose();
                     }
                 }
@@ -175,6 +177,13 @@ namespace Juxtapose
                 return true;
             }
             return false;
+
+            [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
+#pragma warning disable IDE0060 // 删除未使用的参数
+            static void AccessCacheInfo(int id, int exitCode)
+#pragma warning restore IDE0060 // 删除未使用的参数
+            {
+            }
         }
 
         #endregion Dispose
