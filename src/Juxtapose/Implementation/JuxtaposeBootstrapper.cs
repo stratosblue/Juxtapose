@@ -57,24 +57,36 @@ namespace Juxtapose
         /// <returns></returns>
         protected virtual async Task<IExternalWorker> CreateExternalWorkerAsync(IJuxtaposeOptions options, CancellationToken cancellation)
         {
-            var externalProcess = _externalProcessActivator.CreateProcess(options);
+            IExternalProcess? externalProcess = null;
+            IMessageExchanger? messageExchanger = null;
+            ExternalWorker? externalWorker = null;
+            try
+            {
+                externalProcess = _externalProcessActivator.CreateProcess(options);
 
 #if DEBUG
-            externalProcess.OnProcessInvalid += process =>
-            {
-                Console.WriteLine($"Process: {process.Id} Exited. HasExited: {process.HasExited}");
-                if (process.HasExited)
+                externalProcess.OnProcessInvalid += process =>
                 {
-                    Console.WriteLine($"ExitCode: {process.ExitCode}");
-                }
-                Console.WriteLine(process.GetStandardOutput()?.ReadToEnd());
-                Console.WriteLine(process.GetStandardError()?.ReadToEnd());
-            };
+                    Console.WriteLine($"Process: {process.Id} Exited. HasExited: {process.HasExited}");
+                    if (process.HasExited)
+                    {
+                        Console.WriteLine($"ExitCode: {process.ExitCode}");
+                    }
+                    Console.WriteLine(process.GetStandardOutput()?.ReadToEnd());
+                    Console.WriteLine(process.GetStandardError()?.ReadToEnd());
+                };
 #endif
-            var messageExchanger = await _messageExchangerFactory.CreateHostAsync(options, cancellation);
+                messageExchanger = await _messageExchangerFactory.CreateHostAsync(options, cancellation);
 
-            var externalWorker = new ExternalWorker(externalProcess, messageExchanger);
-
+                externalWorker = new ExternalWorker(externalProcess, messageExchanger);
+            }
+            catch
+            {
+                externalProcess?.Dispose();
+                messageExchanger?.Dispose();
+                externalWorker?.Dispose();
+                throw;
+            }
             return externalWorker;
         }
 

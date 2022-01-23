@@ -21,21 +21,24 @@ namespace Juxtapose
         #region Private 字段
 
         private readonly ProcessStartInfo _processStartInfo;
+        private int? _exitCode;
         private volatile bool _isInitialized;
         private int _isInvalid;
+        private int? _processId;
+        private DateTime? _startTime;
 
         #endregion Private 字段
 
         #region Public 属性
 
         /// <inheritdoc/>
-        public int ExitCode => GetRequiredProcess().ExitCode;
+        public int ExitCode => GetCachedValue(() => GetRequiredProcess().ExitCode, ref _exitCode);
 
         /// <inheritdoc/>
         public bool HasExited => GetRequiredProcess().HasExited;
 
         /// <inheritdoc/>
-        public int Id => GetRequiredProcess().Id;
+        public int Id => GetCachedValue(() => GetRequiredProcess().Id, ref _processId);
 
         /// <inheritdoc/>
         public bool IsAlive => _isInitialized && _isInvalid == 0 && Process?.HasExited == false;
@@ -44,7 +47,7 @@ namespace Juxtapose
         public Process? Process { get; private set; }
 
         /// <inheritdoc/>
-        public DateTime StartTime => GetRequiredProcess().StartTime;
+        public DateTime StartTime => GetCachedValue(() => GetRequiredProcess().StartTime, ref _startTime);
 
         #endregion Public 属性
 
@@ -59,6 +62,12 @@ namespace Juxtapose
         #endregion Public 构造函数
 
         #region Private 方法
+
+        private static T GetCachedValue<T>(Func<T> getFunc, ref T? cacheValue) where T : struct
+        {
+            return cacheValue 
+                   ?? (cacheValue = new T?(getFunc())).Value;
+        }
 
         private Process GetRequiredProcess()
         {

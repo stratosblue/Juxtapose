@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Juxtapose.Utils;
+
 namespace Juxtapose
 {
     /// <inheritdoc cref="IExternalWorker"/>
@@ -80,11 +82,24 @@ namespace Juxtapose
         /// <inheritdoc/>
         public virtual async Task InitializationAsync(CancellationToken initializationToken)
         {
-            var messageExchangerInitTask = MessageExchanger.InitializationAsync(initializationToken);
+            try
+            {
+                var messageExchangerInitTask = MessageExchanger.InitializationAsync(initializationToken);
 
-            var externalProcessInitTask = ExternalProcess.InitializationAsync(initializationToken);
+                var externalProcessInitTask = ExternalProcess.InitializationAsync(initializationToken);
 
-            await Task.WhenAll(messageExchangerInitTask, externalProcessInitTask);
+                await Task.WhenAll(messageExchangerInitTask, externalProcessInitTask);
+            }
+            catch (Exception ex)
+            {
+                if (!ExternalProcess.IsAlive)
+                {
+                    var exitCode = ExternalProcess.ExitCode;
+                    var exitDescription = ExternalProcessExitCodeUtil.GetExitCodeDescription(exitCode);
+                    throw new ExternalProcessExitedException(ExternalProcess.Id, exitCode, $"ExternalWorker Initialization Fail: {exitDescription}", ex);
+                }
+                throw;
+            }
         }
 
         /// <inheritdoc/>
