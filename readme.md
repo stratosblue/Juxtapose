@@ -28,6 +28,9 @@
 ------
 
 ### 4.2 建立上下文
+
+#### 4.2.1 创建上下文类型，并使用 `[Illusion]` 特性指定要生成的类型
+
 ```C#
 [Illusion(typeof(Greeter), typeof(IGreeter), "Juxtapose.Test.GreeterAsIGreeterIllusion")]
 public partial class GreeterJuxtaposeContext : JuxtaposeContext
@@ -35,10 +38,34 @@ public partial class GreeterJuxtaposeContext : JuxtaposeContext
 }
 ```
 示例代码将为`Greeter`生成`IGreeter`接口的代理类型`Juxtapose.Test.GreeterAsIGreeterIllusion`；
-
+  
 Note!!!
  - 必须继承`JuxtaposeContext`；
  - 必须标记`partial`关键字；
+
+------
+
+#### 4.2.2 `[Illusion]` 的多种用法
+
+ - 直接为类型生成代理，如下示例生成 `Juxtapose.Test.GreeterIllusion` 类型，且不继承接口（静态类型相同用法）
+  ```C#
+  [Illusion(typeof(Greeter))]
+  ```
+
+ - 为类型生成代理，并继承指定接口，如下示例生成 `Juxtapose.Test.GreeterAsIGreeterIllusion` 类型且继承`IGreeter`接口
+  ```C#
+  [Illusion(typeof(Greeter), typeof(IGreeter))]
+  ```
+
+ - 生成类型，并指定类型名称，如下示例生成 `Juxtapose.Test.HelloGreeter` 类型
+  ```C#
+  [Illusion(typeof(Greeter), generatedTypeName: "Juxtapose.Test.HelloGreeter")]
+  ```
+
+ - 生成从IoC容器获取的接口代理类型，如下示例生成 `Juxtapose.Test.IGreeterIllusionFromIoCContainer` 类型（此时Context类需要实现`IIoCContainerProvider`接口，并提供有效的`IServiceProvider`）
+  ```C#
+  [Illusion(typeof(IGreeterFromServiceProvider), generatedTypeName: "Juxtapose.Test.IGreeterIllusionFromIoCContainer", fromIoCContainer: true)]
+  ```
 
 ------
 
@@ -77,7 +104,16 @@ JuxtaposeDebuggerAttacher.TryAttachToParent(args);
 ## 6. 工作逻辑
 `SourceGenerator`在编译时生成代理类型，封装通信消息。默认使用命名管道进行进程间通信，使用`System.Text.Json`进行消息的序列化与反序列化。
 
-## 参见示例，未完待续......
+### 6.1 关键词列表
+|关键字|名称|来源|作用|
+|----|----|----|----|
+|Context|上下文|手动定义|用于承载所有子进程运行的相关信息|
+|Executor|执行器|自动生成|用于运行时消息解析收发，创建对象，执行静态方法等|
+|ParameterPack|参数包|自动生成|将方法参数封装到一个类型中，以便序列化|
+|Illusion|幻象|自动生成|实际使用的类|
+|RealObjectInvoker|真实对象执行器|自动生成|在子进程中接收消息，并进行实际的对象方法调用|
+
+## 更多功能细节参见示例代码
 
 ----
 
