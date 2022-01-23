@@ -209,7 +209,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
                 Context.IllusionInstanceClasses.Add(descriptor, resources);
 
-                contextHashBuilder.AddIllusionClass(descriptor.TargetType, descriptor.InheritType, descriptor.TypeFullName);
+                contextHashBuilder.AddIllusionInstanceClassDescriptor(descriptor);
 
                 var illusionClassCodeGenerator = new IllusionClassCodeGenerator(Context, descriptor, resources);
 
@@ -247,7 +247,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
                 var illusionStaticClassCodeGenerator = new IllusionStaticClassCodeGenerator(Context, descriptor, resources);
 
-                contextHashBuilder.AddStaticClass(descriptor.TargetType, descriptor.TypeFullName);
+                contextHashBuilder.AddIllusionStaticClassCodeGenerator(descriptor);
 
                 foreach (var sourceInfo in illusionStaticClassCodeGenerator.GetSources())
                 {
@@ -279,37 +279,46 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
 
             #endregion Private 字段
 
-            #region Public 方法
+            #region Private 方法
 
-            public void AddIllusionClass(INamedTypeSymbol targetTypeSymbol, INamedTypeSymbol? inheritTypeSymbol, string generatedTypeName)
+            private void AppendProxyableMembers(INamedTypeSymbol typeSymbol, bool withConstructor)
             {
-                _builder.Append(generatedTypeName);
-                _builder.Append('@');
-                if (inheritTypeSymbol is not null)
+                foreach (var item in typeSymbol.GetProxyableMembers(withConstructor))
                 {
-                    foreach (var item in inheritTypeSymbol.GetProxyableMembers(true))
-                    {
-                        _builder.Append(item.ToDisplayString());
-                        _builder.Append('&');
-                    }
-                }
-
-                foreach (var item in targetTypeSymbol.Constructors.Where(m => m.NotStatic()))
-                {
-                    _builder.Append(item.ToDisplayString());
+                    _builder.Append(item.ToFullyQualifiedDisplayString());
                     _builder.Append('&');
                 }
             }
 
-            public void AddStaticClass(INamedTypeSymbol staticTypeSymbol, string typeFullName)
+            #endregion Private 方法
+
+            #region Public 方法
+
+            public void AddIllusionInstanceClassDescriptor(IllusionInstanceClassDescriptor descriptor)
             {
-                _builder.Append(typeFullName);
+                _builder.Append(descriptor.TypeFullName);
                 _builder.Append('@');
-                foreach (var item in staticTypeSymbol.GetProxyableMembers(false))
+                _builder.Append(descriptor.Accessibility);
+                _builder.Append('@');
+                _builder.Append(descriptor.FromIoCContainer);
+                _builder.Append('@');
+
+                if (descriptor.InheritType is not null)
                 {
-                    _builder.Append(item.ToDisplayString());
-                    _builder.Append('&');
+                    AppendProxyableMembers(descriptor.InheritType, false);
                 }
+
+                AppendProxyableMembers(descriptor.TargetType, true);
+            }
+
+            public void AddIllusionStaticClassCodeGenerator(IllusionStaticClassDescriptor descriptor)
+            {
+                _builder.Append(descriptor.TypeFullName);
+                _builder.Append('@');
+                _builder.Append(descriptor.Accessibility);
+                _builder.Append('@');
+
+                AppendProxyableMembers(descriptor.TargetType, false);
             }
 
             public string GetHash()
