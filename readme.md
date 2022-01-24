@@ -3,14 +3,15 @@
 基于 `SourceGenerator` 的硬编码 `.Net` 多`进程`运行库。
 
 ## 2. Features
- - 可以为`类型`、`接口`、`静态类`生成代理，无需手动编写RPC相关代码，即可进行`多进程`开发；
+ - 可以为`类型`、`接口`、`静态类`生成代理，无需手动编写RPC相关代码，即可`多进程`运行；
  - 编译时生成所有代码，运行时无显式的反射调用和动态构造；
  - 支持`委托`和`CancellationToken`类型的方法参数（其余类型未特殊处理，将会进行序列化，目前回调`委托`不支持嵌套和`CancellationToken`）；
  - 支持`Linux`、`Windows`（其它未测试）；
+ - 支持调试子进程（`Windows`&&`VisualStudio` Only）；
 
 ### 注意事项
  - 目前参数不支持定义为父类型，实际传递子类型，序列化时将会按照定义的类型进行序列化和反序列化，会导致具体类型丢失；
- - 目前所有的参数都不应该在方法完成后进行保留，`CancellationToken`等在方法完成后会被释放；
+ - 目前所有的参数都不应该在方法完成后进行保留，`CancellationToken`、`委托`等在方法完成后会被释放；
 
 ## 3. Requirement
  - .Net5.0+(其它版本没有尝试过)
@@ -20,8 +21,8 @@
 ### 4.1 引用包
 ```XML
 <ItemGroup>
-  <PackageReference Include="Juxtapose" Version="1.0.*-*" />
-  <PackageReference Include="Juxtapose.SourceGenerator" Version="1.0.*-*" />
+  <PackageReference Include="Juxtapose" Version="1.0.0" />
+  <PackageReference Include="Juxtapose.SourceGenerator" Version="1.0.0" />
 </ItemGroup>
 ```
 
@@ -70,7 +71,7 @@ Note!!!
 ------
 
 ### 4.3 添加入口点
-在`Main`方法中添加入口点代码，并使用指定上下文
+在`Main`方法开始处添加入口点代码，并使用指定上下文
 ```C#
 await JuxtaposeEntryPoint.TryAsEndpointAsync(args, GreeterJuxtaposeContext.SharedInstance);
 ```
@@ -86,13 +87,13 @@ await JuxtaposeEntryPoint.TryAsEndpointAsync(args, GreeterJuxtaposeContext.Share
 在Host项目文件中添加包引用
 ```XML
 <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-  <PackageReference Include="Juxtapose.VsDebugger" Version="1.0.*-*" />
+  <PackageReference Include="Juxtapose.VsDebugger" Version="1.0.0" />
 </ItemGroup>
 ```
 #### 建议和示例代码一样，添加条件引用，只在`Debug`环境下引用调试包
 
 ### 5.2 添加入口点
-在`Main`方法中添加调试入口点代码
+在`Main`方法开始处添加调试入口点代码
 ```C#
 JuxtaposeDebuggerAttacher.TryAttachToParent(args);
 ```
@@ -102,7 +103,7 @@ JuxtaposeDebuggerAttacher.TryAttachToParent(args);
 #### 在代码中打上断点，运行时将会正确命中断点（只在 `VisualStudio2022 17.0.5` && `Win11 21TH2` 中进行了测试，理论上是通用）
 
 ## 6. 工作逻辑
-`SourceGenerator`在编译时生成代理类型，封装通信消息。默认使用命名管道进行进程间通信，使用`System.Text.Json`进行消息的序列化与反序列化。
+`SourceGenerator`在编译时生成代理类型，封装通信消息。在创建代理类型对象时，会自动创建子进程，并在子进程中创建目标类型的对象，使用命名管道进行进程间通信，使用`System.Text.Json`进行消息的序列化与反序列化。
 
 ### 6.1 关键词列表
 |关键字|名称|来源|作用|
