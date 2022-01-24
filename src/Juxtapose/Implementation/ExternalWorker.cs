@@ -94,9 +94,18 @@ namespace Juxtapose
             {
                 if (!ExternalProcess.IsAlive)
                 {
-                    var exitCode = ExternalProcess.ExitCode;
-                    var exitDescription = ExternalProcessExitCodeUtil.GetExitCodeDescription(exitCode);
-                    throw new ExternalProcessExitedException(ExternalProcess.Id, exitCode, $"ExternalWorker Initialization Fail: {exitDescription}", ex);
+                    try
+                    {
+                        var exitCode = ExternalProcess.ExitCode;
+                        var exitDescription = ExternalProcessExitCodeUtil.GetExitCodeDescription(exitCode);
+                        throw new ExternalProcessExitedException(ExternalProcess.Id, exitCode, $"ExternalWorker Initialization Fail: {exitDescription}", ex);
+                    }
+                    catch (Exception iex)
+                    {
+                        var newException = new ExternalProcessExitedException(ExternalProcess.Id, -1, $"ExternalWorker Initialization Fail And Get ExitCode Fail.", iex);
+                        newException.Data.Add("RawException", ex);
+                        throw newException;
+                    }
                 }
                 throw;
             }

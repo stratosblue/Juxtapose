@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -128,10 +127,17 @@ namespace Juxtapose
 
             try
             {
-                process.Start();
+                if (process.Start())
+                {
+                    GetCachedValue(() => process.Id, ref _processId);
 
-                _ = process.WaitForExitAsync(RunningToken)
-                           .ContinueWith(_ => Dispose(), CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current);
+                    _ = process.WaitForExitAsync(RunningToken)
+                               .ContinueWith(_ => Dispose(), CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current);
+                }
+                else
+                {
+                    throw new JuxtaposeException("Start process fail.");
+                }
             }
             catch
             {
@@ -163,11 +169,24 @@ namespace Juxtapose
                     try
                     {
                         process.Kill(true);
+                        if (disposing)
+                        {
+                            //只在手动释放时等待退出，5s是否过长或过短？
+                            process.WaitForExit(5_000);
+                        }
                     }
                     catch { }
                     finally
                     {
-                        AccessCacheInfo(Id, ExitCode);
+                        if (disposing)
+                        {
+                            //释放进程后可能会无法访问相关信息，尝试提前进行缓存，并忽略可能的异常
+                            try
+                            {
+                                GetCachedValue(() => process.ExitCode, ref _exitCode);
+                            }
+                            catch { }
+                        }
                         process.Dispose();
                     }
                 }
@@ -177,13 +196,6 @@ namespace Juxtapose
                 return true;
             }
             return false;
-
-            [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
-#pragma warning disable IDE0060 // 删除未使用的参数
-            static void AccessCacheInfo(int id, int exitCode)
-#pragma warning restore IDE0060 // 删除未使用的参数
-            {
-            }
         }
 
         #endregion Dispose
