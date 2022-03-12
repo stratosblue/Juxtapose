@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 namespace System
@@ -12,75 +13,26 @@ namespace System
         /// </summary>
         public static class MemoryInfo
         {
-            #region Private 字段
+            private static IMemoryInfo? s_memoryInfo;
 
-            /// <summary>
-            /// 无效的内存大小
-            /// </summary>
-            private const long InvalidMemorySize = 9223372036854771712;
-
-            #endregion Private 字段
+            private static IMemoryInfo InternalMemoryInfo => s_memoryInfo ??= GetMemoryInfo();
 
             #region Public 属性
 
             /// <summary>
             /// 可用内存大小
             /// </summary>
-            public static StorageSize Available
-            {
-                get
-                {
-                    switch (Platform)
-                    {
-                        case PlatformType.Windows:
-                            return MatchStorageSizeFromWmicQuery("OS get FreePhysicalMemory /Value", "FreePhysicalMemory=(\\d+)", value => value * 1024);
-
-                        case PlatformType.Linux:
-                            if (IsContainer)
-                            {
-                                return Total - Usage;
-                            }
-
-                            return MatchByteSizeFromFile("/proc/meminfo",
-                                                         $"MemAvailable:.+?(\\d+).+?kB",
-                                                         value => value * 1024);
-                    }
-                    throw new PlatformNotSupportedException();
-                }
-            }
+            public static StorageSize Available => InternalMemoryInfo.Available;
 
             /// <summary>
             /// 总内存大小
             /// </summary>
-            public static StorageSize Total { get; } = GetTotalMemory();
+            public static StorageSize Total => InternalMemoryInfo.Total;
 
             /// <summary>
             /// 已使用内存大小
             /// </summary>
-            public static StorageSize Usage
-            {
-                get
-                {
-                    switch (Platform)
-                    {
-                        case PlatformType.Windows:
-                            return Total - Available;
-
-                        case PlatformType.Linux:
-                            if (IsContainer)
-                            {
-                                if (ReadByteSizeFromFile("/sys/fs/cgroup/memory/memory.usage_in_bytes") is StorageSize storageSize)
-                                {
-                                    return storageSize;
-                                }
-                                throw new PlatformNotSupportedException();
-                            }
-
-                            return Total - Available;
-                    }
-                    throw new PlatformNotSupportedException();
-                }
-            }
+            public static StorageSize Usage => InternalMemoryInfo.Usage;
 
             #endregion Public 属性
 
@@ -100,93 +52,221 @@ namespace System
 
             #region Private
 
-            /// <summary>
-            /// 获取系统内存总量
-            /// </summary>
-            /// <returns></returns>
-            private static StorageSize GetTotalMemory()
+            private static IMemoryInfo GetMemoryInfo()
             {
-                switch (Platform)
+                return Platform switch
                 {
-                    case PlatformType.Windows:
-                        return MatchStorageSizeFromWmicQuery("OS get TotalVisibleMemorySize /Value", "TotalVisibleMemorySize=(\\d+)", value => value * 1024);
-
-                    case PlatformType.Linux:
-                        if (IsContainer)
-                        {
-                            if (ReadByteSizeFromFile("/sys/fs/cgroup/memory/memory.limit_in_bytes") is StorageSize storageSize)
-                            {
-                                return storageSize;
-                            }
-                        }
-                        return MatchByteSizeFromFile("/proc/meminfo",
-                                                     $"MemTotal:.+?(\\d+).+?kB",
-                                                     value => value * 1024);
-                }
-                throw new PlatformNotSupportedException();
-            }
-
-            /// <summary>
-            /// 从 文件 中匹配大小
-            /// </summary>
-            /// <param name="filePath"></param>
-            /// <param name="regex"></param>
-            /// <param name="calculateFunc"></param>
-            /// <returns></returns>
-            private static StorageSize MatchByteSizeFromFile(string filePath, string regex, Func<long, long> calculateFunc)
-            {
-                var meminfoText = File.ReadAllText(filePath);
-                return MatchByteSizeFromText(meminfoText, regex, calculateFunc);
-            }
-
-            /// <summary>
-            /// 从 文本 中匹配大小
-            /// </summary>
-            /// <param name="text"></param>
-            /// <param name="regex"></param>
-            /// <param name="calculateFunc"></param>
-            /// <returns></returns>
-            private static StorageSize MatchByteSizeFromText(string text, string regex, Func<long, long> calculateFunc)
-            {
-                var memTotalText = Regex.Match(text, regex, RegexOptions.IgnoreCase).Groups[1].Value;
-                var value = calculateFunc(long.Parse(memTotalText));
-
-                return new StorageSize(value);
-            }
-
-            /// <summary>
-            /// 从 WMIC 查询结果中匹配大小
-            /// </summary>
-            /// <param name="query"></param>
-            /// <param name="regex"></param>
-            /// <param name="calculateFunc"></param>
-            /// <returns></returns>
-            private static StorageSize MatchStorageSizeFromWmicQuery(string query, string regex, Func<long, long> calculateFunc)
-            {
-                var output = GetWmicOutput(query);
-                return MatchByteSizeFromText(output, regex, calculateFunc);
-            }
-
-            /// <summary>
-            /// 从文件读取大小
-            /// </summary>
-            /// <param name="filePath"></param>
-            /// <returns></returns>
-            private static StorageSize? ReadByteSizeFromFile(string filePath)
-            {
-                var size = File.ReadAllText(filePath);
-                var sizeValue = long.Parse(size);
-                if (InvalidMemorySize != sizeValue)
-                {
-                    return new StorageSize(sizeValue);
-                }
-
-                return null;
+                    PlatformType.Windows => new WindowsMemoryInfo(),
+                    PlatformType.Linux => new LinuxMemoryInfo(),
+                    _ => throw new PlatformNotSupportedException(),
+                };
             }
 
             #endregion Private
+
+            #region MemoryInfoImpl
+
+            private interface IMemoryInfo
+            {
+                StorageSize Available { get; }
+
+                StorageSize Total { get; }
+
+                StorageSize Usage { get; }
+            }
+
+            private sealed class LinuxMemoryInfo : IMemoryInfo
+            {
+                /// <summary>
+                /// 无效的内存大小
+                /// </summary>
+                private const long InvalidMemorySize = 9223372036854771712;
+
+                private static readonly Regex s_availableMemoryRegex = new("MemAvailable:.+?(\\d+).+?kB", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+                private static readonly Regex s_totalMemoryRegex = new("MemTotal:.+?(\\d+).+?kB", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+
+                public StorageSize Available
+                {
+                    get
+                    {
+                        if (IsContainer)
+                        {
+                            return Total - Usage;
+                        }
+
+                        return MatchKiloByteSizeFromFile("/proc/meminfo", s_availableMemoryRegex);
+                    }
+                }
+
+                public StorageSize Total { get; } = GetTotalMemory();
+
+                public StorageSize Usage
+                {
+                    get
+                    {
+                        if (IsContainer)
+                        {
+                            if (ReadByteSizeFromFile("/sys/fs/cgroup/memory/memory.usage_in_bytes") is StorageSize storageSize)
+                            {
+                                return storageSize;
+                            }
+                            throw new PlatformNotSupportedException();
+                        }
+
+                        return Total - Available;
+                    }
+                }
+
+                private static StorageSize GetTotalMemory()
+                {
+                    if (IsContainer)
+                    {
+                        if (ReadByteSizeFromFile("/sys/fs/cgroup/memory/memory.limit_in_bytes") is StorageSize storageSize)
+                        {
+                            return storageSize;
+                        }
+                    }
+                    return MatchKiloByteSizeFromFile("/proc/meminfo", s_totalMemoryRegex);
+                }
+
+                private static StorageSize MatchKiloByteSizeFromFile(string filePath, Regex regex)
+                {
+                    return MatchKiloByteSizeFromText(File.ReadAllText(filePath), regex);
+                }
+
+                private static StorageSize MatchKiloByteSizeFromText(string text, Regex regex)
+                {
+                    var KiloByteText = regex.Match(text).Groups[1].Value;
+                    return new StorageSize(long.Parse(KiloByteText) * 1024);
+                }
+
+                /// <summary>
+                /// 从文件读取大小
+                /// </summary>
+                /// <param name="filePath"></param>
+                /// <returns></returns>
+                private static StorageSize? ReadByteSizeFromFile(string filePath)
+                {
+                    var size = File.ReadAllText(filePath);
+                    var sizeValue = long.Parse(size);
+                    if (InvalidMemorySize != sizeValue)
+                    {
+                        return new StorageSize(sizeValue);
+                    }
+
+                    return null;
+                }
+            }
+
+            private sealed class WindowsMemoryInfo : IMemoryInfo
+            {
+                public StorageSize Available => WindowsMemoryInfoHelper.GetMemoryInfo().AvailablePhysical;
+
+                public StorageSize Total { get; } = WindowsMemoryInfoHelper.GetMemoryInfo().TotalPhysical;
+
+                public StorageSize Usage
+                {
+                    get
+                    {
+                        var memoryInfo = WindowsMemoryInfoHelper.GetMemoryInfo();
+                        return memoryInfo.TotalPhysical - memoryInfo.AvailablePhysical;
+                    }
+                }
+            }
+
+            #endregion MemoryInfoImpl
         }
 
         #endregion Public 类
     }
+
+    #region Platform
+
+    #region Windows
+
+    /// <summary>
+    /// Windows原生内存信息<para/>
+    /// See https://docs.microsoft.com/en-us/windows/win32/api/sysinfoapi/ns-sysinfoapi-memorystatusex
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public readonly struct WindowsNativeMemoryInfo
+    {
+        private readonly uint _dwLength = sizeof(uint) * 2 + sizeof(ulong) * 7;
+
+        /// <summary>
+        /// 内存使用百分比
+        /// </summary>
+        public readonly uint MemoryLoad = default;
+
+        /// <summary>
+        /// 总物理内存
+        /// </summary>
+        public readonly StorageSize TotalPhysical = default;
+
+        /// <summary>
+        /// 可用物理内存
+        /// </summary>
+        public readonly StorageSize AvailablePhysical = default;
+
+        /// <summary>
+        /// 总页面文件
+        /// </summary>
+        public readonly StorageSize TotalPageFile = default;
+
+        /// <summary>
+        /// 可用页面文件
+        /// </summary>
+        public readonly StorageSize AvailablePageFile = default;
+
+        /// <summary>
+        /// 总虚拟内存
+        /// </summary>
+        public readonly StorageSize TotalVirtual = default;
+
+        /// <summary>
+        /// 可用虚拟内存
+        /// </summary>
+        public readonly StorageSize AvailableVirtual = default;
+
+        private readonly ulong _ullAvailExtendedVirtual = default;
+
+        /// <inheritdoc cref="WindowsNativeMemoryInfo"/>
+        public WindowsNativeMemoryInfo()
+        {
+        }
+    }
+
+    /// <summary>
+    /// Windows内存信息帮助类
+    /// </summary>
+    public static class WindowsMemoryInfoHelper
+    {
+        /// <summary>
+        /// 获取内存信息
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static WindowsNativeMemoryInfo GetMemoryInfo()
+        {
+            var buffer = new WindowsNativeMemoryInfo();
+
+            if (!GlobalMemoryStatusEx(ref buffer))
+            {
+                throw new InvalidOperationException("Call GlobalMemoryStatusEx failed.");
+            }
+            return buffer;
+        }
+
+        /// <summary>
+        /// See https://docs.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-globalmemorystatusex
+        /// </summary>
+        /// <param name="lpBuffer"></param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll", EntryPoint = "GlobalMemoryStatusEx")]
+        private static extern bool GlobalMemoryStatusEx(ref WindowsNativeMemoryInfo lpBuffer);
+    }
+
+    #endregion Windows
+
+    #endregion Platform
 }
