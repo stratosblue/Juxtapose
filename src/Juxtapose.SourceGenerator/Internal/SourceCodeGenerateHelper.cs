@@ -60,7 +60,7 @@ namespace Juxtapose.SourceGenerator.Internal
 if ({parameter.Name} is not null)
 {{
     {parameter.Name}_RID = {vars.Executor}.InstanceIdGenerator.Next();
-    {vars.Executor}.AddObjectInstance({parameter.Name}_RID.Value, new {(isAwaitable ? "Async" : "Sync")}DelegateMessageExecutor({(isAwaitable ? "async " : string.Empty)}(exector, message) =>
+    {vars.Executor}.AddObjectInstance({parameter.Name}_RID.Value, new {(isAwaitable ? "Async" : "Sync")}DelegateMessageExecutor({(isAwaitable ? "async " : string.Empty)}(exector, {vars.Message}) =>
     {{
 {callbackBodyBuilder.ToString().Trim('\r', '\n')}
     }}));
@@ -250,7 +250,7 @@ finally
                 builder.AppendLine($@"if ({parameter.Name} is not null)
 {{
     {parameter.Name}_RID = {vars.Executor}.InstanceIdGenerator.Next();
-    {vars.Executor}.AddObjectInstance({parameter.Name}_RID.Value, new {(isAwaitable ? "Async" : "Sync")}DelegateMessageExecutor({(isAwaitable ? "async " : string.Empty)}(exector, message) =>
+    {vars.Executor}.AddObjectInstance({parameter.Name}_RID.Value, new {(isAwaitable ? "Async" : "Sync")}DelegateMessageExecutor({(isAwaitable ? "async " : string.Empty)}(exector, {vars.Message}) =>
     {{
 {callbackBodyBuilder.ToString().Trim('\r', '\n')}
     }}));
@@ -383,7 +383,7 @@ finally
             var methodInvokeMessageTypeName = GetInvokeMessageFullTypeName(method, parameterPackSourceCode);
             var methodInvokeResultMessageTypeName = GetInvokeResultMessageFullTypeName(method, resultPackSourceCode);
 
-            sourceBuilder.AppendIndentLine($"var typedMessage = ({methodInvokeMessageTypeName})message;");
+            sourceBuilder.AppendIndentLine($"var ___typedMessage = ({methodInvokeMessageTypeName}){vars.Message};");
 
             paramPackContext.GenParamUnPackCode(context, sourceBuilder, () =>
             {
@@ -392,11 +392,11 @@ finally
                     var propName = method.Name.Replace("get_", string.Empty).Replace("set_", string.Empty);
                     if (method.IsStatic)
                     {
-                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}(message.Id) {{ Result = new({method.ContainingType.ToFullyQualifiedDisplayString()}.{propName}) }};");
+                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}({vars.Message}.Id) {{ Result = new({method.ContainingType.ToFullyQualifiedDisplayString()}.{propName}) }};");
                     }
                     else
                     {
-                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}(message.Id, {vars.InstanceId}) {{ Result = new({vars.Instance}.{propName}) }};");
+                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}({vars.Message}.Id, {vars.InstanceId}) {{ Result = new({vars.Instance}.{propName}) }};");
                     }
                     return;
                 }
@@ -446,16 +446,16 @@ finally
                 {
                     if (method.IsStatic)
                     {
-                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}(message.Id) {{ Result = new(result) }};");
+                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}({vars.Message}.Id) {{ Result = new(result) }};");
                     }
                     else
                     {
-                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}(message.Id, {vars.InstanceId}) {{ Result = new(result) }};");
+                        sourceBuilder.AppendIndentLine($"return new {methodInvokeResultMessageTypeName}({vars.Message}.Id, {vars.InstanceId}) {{ Result = new(result) }};");
                     }
                 }
             }, new VariableName(vars)
             {
-                ParameterPack = "typedMessage.ParameterPack!",
+                ParameterPack = "___typedMessage.ParameterPack!",
             });
         }
 

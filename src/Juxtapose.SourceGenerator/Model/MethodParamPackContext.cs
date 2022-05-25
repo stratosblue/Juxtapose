@@ -197,19 +197,19 @@ namespace Juxtapose.SourceGenerator.Model
                 builder.AppendLine();
                 return;
             }
-
-            builder.AppendIndentLine($"var paramPack = {vars.ParameterPack};");
+            const string LocalParamPackVariableName = "___paramPack__";
+            builder.AppendIndentLine($"var {LocalParamPackVariableName} = {vars.ParameterPack};");
 
             foreach (var parameter in CancellationTokenParams)
             {
-                builder.AppendIndentLine($"global::Juxtapose.Utils.CancellationTokenInvokeUtil.TryRebuildCancellationTokenSource(paramPack.{parameter.Name}_RID, {vars.Executor}, out var {parameter.Name}_CTS, out var {parameter.Name});", true);
+                builder.AppendIndentLine($"global::Juxtapose.Utils.CancellationTokenInvokeUtil.TryRebuildCancellationTokenSource({LocalParamPackVariableName}.{parameter.Name}_RID, {vars.Executor}, out var {parameter.Name}_CTS, out var {parameter.Name});", true);
             }
 
             foreach (var parameter in DelegateParams)
             {
                 var delegateVars = new VariableName(vars)
                 {
-                    InstanceId = $"paramPack.{parameter.Name}_RID.Value",
+                    InstanceId = $"{LocalParamPackVariableName}.{parameter.Name}_RID.Value",
                 };
 
                 var callbackMethod = ((INamedTypeSymbol)parameter.Type).DelegateInvokeMethod!;
@@ -221,7 +221,7 @@ namespace Juxtapose.SourceGenerator.Model
                 SourceCodeGenerateHelper.GenerateInstanceMethodProxyBodyCode(callbackBodyBuilder, context, callbackMethod, delegateVars);
 
                 builder.AppendLine($@"{parameter.Type.ToFullyQualifiedDisplayString()} {parameter.Name} = null!;
-if (paramPack.{parameter.Name}_RID.HasValue)
+if ({LocalParamPackVariableName}.{parameter.Name}_RID.HasValue)
 {{
     {parameter.Name} = {(callbackMethod.ReturnType.IsAwaitable() ? "async " : string.Empty)}({callbackMethod.GenerateMethodArgumentStringWithoutType()}) =>
     {{
@@ -232,7 +232,7 @@ if (paramPack.{parameter.Name}_RID.HasValue)
 
             foreach (var item in NormalParams)
             {
-                builder.AppendLine($"var {item.Name} = paramPack.{item.Name};");
+                builder.AppendLine($"var {item.Name} = {LocalParamPackVariableName}.{item.Name};");
             }
 
             if (CancellationTokenParams.Length > 0)
@@ -253,9 +253,9 @@ if (paramPack.{parameter.Name}_RID.HasValue)
                 {
                     foreach (var parameter in CancellationTokenParams)
                     {
-                        builder.AppendLine($@"if (paramPack.{parameter.Name}_RID.HasValue)
+                        builder.AppendLine($@"if ({LocalParamPackVariableName}.{parameter.Name}_RID.HasValue)
 {{
-    {vars.Executor}.RemoveObjectInstance(paramPack.{parameter.Name}_RID.Value);
+    {vars.Executor}.RemoveObjectInstance({LocalParamPackVariableName}.{parameter.Name}_RID.Value);
     {parameter.Name}_CTS!.Dispose();
 }}");
                     }

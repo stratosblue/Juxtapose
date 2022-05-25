@@ -85,12 +85,12 @@ private readonly CancellationToken _runningToken;");
 
                     _sourceBuilder.AppendLine();
 
-                    _sourceBuilder.AppendIndentLine($"async global::System.Threading.Tasks.Task<{TypeFullNames.Juxtapose.Messages.JuxtaposeMessage}?> {TypeFullNames.Juxtapose.IMessageExecutor}.ExecuteAsync({TypeFullNames.Juxtapose.JuxtaposeExecutor} executor, {TypeFullNames.Juxtapose.Messages.JuxtaposeMessage} message)");
+                    _sourceBuilder.AppendIndentLine($"async global::System.Threading.Tasks.Task<{TypeFullNames.Juxtapose.Messages.JuxtaposeMessage}?> {TypeFullNames.Juxtapose.IMessageExecutor}.ExecuteAsync({TypeFullNames.Juxtapose.JuxtaposeExecutor} {_vars.Executor}, {TypeFullNames.Juxtapose.Messages.JuxtaposeMessage} {_vars.Message})");
 
                     _sourceBuilder.Scope(() =>
                     {
                         _sourceBuilder.AppendIndentLine("ThrowIfDisposed();", true);
-                        _sourceBuilder.AppendIndentLine("switch (message)");
+                        _sourceBuilder.AppendIndentLine($"switch ({_vars.Message})");
                         _sourceBuilder.Scope(() =>
                         {
                             foreach (var method in Resources.GetAllMethods())
@@ -98,7 +98,7 @@ private readonly CancellationToken _runningToken;");
                                 SourceCodeGenerateHelper.GenerateMethodInvokeThroughMessageCaseScopeCode(Context, _sourceBuilder, method, _vars);
                             }
 
-                            _sourceBuilder.AppendIndentLine($"default: throw new global::System.InvalidOperationException($\"can not process with {{ message }}\");");
+                            _sourceBuilder.AppendIndentLine($"default: throw new global::System.InvalidOperationException($\"can not process with {{ {_vars.Message} }}\");");
                         });
                     });
 

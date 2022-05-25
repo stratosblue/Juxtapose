@@ -87,10 +87,10 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                     {
                         _sourceBuilder.AppendIndentLine($"public InternalJuxtaposeExecutor({TypeFullNames.Juxtapose.IMessageExchanger} messageExchanger, global::Microsoft.Extensions.Logging.ILogger logger, global::System.Func<ValueTask<IIoCContainerHolder>>? iocContainerHolderGetter = null) : base(messageExchanger, logger, iocContainerHolderGetter) {{ }}", true);
 
-                        _sourceBuilder.AppendIndentLine($"protected override async {TypeFullNames.System.Threading.Tasks.Task}<{TypeFullNames.Juxtapose.Messages.JuxtaposeMessage}?> OnMessageAsync({TypeFullNames.Juxtapose.Messages.JuxtaposeMessage} message, {TypeFullNames.System.Threading.CancellationToken} __cancellation__)");
+                        _sourceBuilder.AppendIndentLine($"protected override async {TypeFullNames.System.Threading.Tasks.Task}<{TypeFullNames.Juxtapose.Messages.JuxtaposeMessage}?> OnMessageAsync({TypeFullNames.Juxtapose.Messages.JuxtaposeMessage} {_vars.Message}, {TypeFullNames.System.Threading.CancellationToken} __cancellation__)");
                         _sourceBuilder.Scope(() =>
                         {
-                            _sourceBuilder.AppendIndentLine("switch (message)");
+                            _sourceBuilder.AppendIndentLine($"switch ({_vars.Message})");
                             _sourceBuilder.Scope(() =>
                             {
                                 GenerateAllServiceProviderObjectConstructorProcessCode();
@@ -105,7 +105,7 @@ namespace Juxtapose.SourceGenerator.CodeGenerate
                                 _sourceBuilder.Indent();
                                 _sourceBuilder.Scope(() =>
                                 {
-                                    _sourceBuilder.AppendIndentLine("return await base.OnMessageAsync(message, __cancellation__);");
+                                    _sourceBuilder.AppendIndentLine($"return await base.OnMessageAsync({_vars.Message}, __cancellation__);");
                                 });
                                 _sourceBuilder.Dedent();
                             });
@@ -202,7 +202,7 @@ return null;");
                 _sourceBuilder.Indent();
                 _sourceBuilder.Scope(() =>
                 {
-                    _sourceBuilder.AppendIndentLine($"var typedMessage = ({methodInvokeMessageTypeName})message;");
+                    _sourceBuilder.AppendIndentLine($"var typedMessage = ({methodInvokeMessageTypeName}){_vars.Message};");
                     _sourceBuilder.AppendIndentLine($"var instanceId = typedMessage.InstanceId;");
 
                     paramPackContext.GenParamUnPackCode(Context, _sourceBuilder, () =>

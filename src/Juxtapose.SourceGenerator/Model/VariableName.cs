@@ -38,6 +38,11 @@ namespace Juxtapose.SourceGenerator.Model
         public string? InstanceId { get => GetName(); set => SetName(value); }
 
         /// <summary>
+        /// 进行交互的 Message 变量名称
+        /// </summary>
+        public string? Message { get => GetName(); set => SetName(value); }
+
+        /// <summary>
         /// 方法体前缀代码片段
         /// </summary>
         public string? MethodBodyPrefixSnippet { get => GetName(); set => SetName(value); }
@@ -60,6 +65,7 @@ namespace Juxtapose.SourceGenerator.Model
             RunningToken = "_runningToken";
             ExecutorOwner = "_executorOwner";
             Instance = "_instance";
+            Message = "___message__";
         }
 
         public VariableName(IDictionary<string, string?> storedNames)
