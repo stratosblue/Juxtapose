@@ -21,8 +21,8 @@
 ### 4.1 引用包
 ```XML
 <ItemGroup>
-  <PackageReference Include="Juxtapose" Version="1.0.0" />
-  <PackageReference Include="Juxtapose.SourceGenerator" Version="1.0.0" />
+  <PackageReference Include="Juxtapose" Version="1.0.2" />
+  <!--<PackageReference Include="Juxtapose.SourceGenerator" Version="1.0.0" /> 1.0.2 以后不再需要单独引用 SourceGenerator 包-->
 </ItemGroup>
 ```
 
