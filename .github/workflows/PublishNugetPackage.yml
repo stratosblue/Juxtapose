@@ -16,10 +16,8 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.x
-    - name: build - main
+    - name: build
       run: dotnet build -c Release ./src/Juxtapose/Juxtapose.csproj
-    - name: build - vsdebugger
-      run: dotnet build -c Release ./src/Juxtapose.VsDebugger/Juxtapose.VsDebugger.csproj
     - name: pack
       run: dotnet pack -c Release -o ./output
     - name: push package

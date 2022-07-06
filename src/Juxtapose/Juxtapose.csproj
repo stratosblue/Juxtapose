@@ -12,7 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Juxtapose.SourceGenerator\Juxtapose.SourceGenerator.csproj" PrivateAssets="all"/>
+    <ProjectReference Include="..\Juxtapose.SourceGenerator\Juxtapose.SourceGenerator.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\Juxtapose.VsDebugger\Juxtapose.VsDebugger.csproj" PrivateAssets="All" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -20,6 +21,12 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Juxtapose.targets" PackagePath="build/$(PackageId).targets" />
+
+    <Content Include="..\Juxtapose.VsDebugger\bin\$(Configuration)\$(TargetFramework)\**\*" Link="tools/vsdebugger/$(TargetFramework)/%(RecursiveDir)%(FileName)%(Extension)" PackagePath="tools/any/vsdebugger/%(RecursiveDir)%(FileName)%(Extension)" />
+  </ItemGroup>
 
   <Target Name="_IncludeSourceGenerator" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
