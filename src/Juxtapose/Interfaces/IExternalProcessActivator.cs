@@ -1,21 +1,20 @@
 ﻿using System;
 
-namespace Juxtapose
+namespace Juxtapose;
+
+/// <summary>
+/// 外部进程激活器
+/// </summary>
+public interface IExternalProcessActivator : IDisposable
 {
+    #region Public 方法
+
     /// <summary>
-    /// 外部进程激活器
+    /// 创建<inheritdoc cref="IExternalProcess"/>
     /// </summary>
-    public interface IExternalProcessActivator : IDisposable
-    {
-        #region Public 方法
+    /// <param name="options"></param>
+    /// <returns></returns>
+    IExternalProcess CreateProcess(IJuxtaposeOptions options);
 
-        /// <summary>
-        /// 创建<inheritdoc cref="IExternalProcess"/>
-        /// </summary>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        IExternalProcess CreateProcess(IJuxtaposeOptions options);
-
-        #endregion Public 方法
-    }
+    #endregion Public 方法
 }

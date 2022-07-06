@@ -1,21 +1,20 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace Juxtapose
+namespace Juxtapose;
+
+/// <summary>
+/// 可初始化的
+/// </summary>
+public interface IInitializationable
 {
+    #region Public 方法
+
     /// <summary>
-    /// 可初始化的
+    /// 初始化
     /// </summary>
-    public interface IInitializationable
-    {
-        #region Public 方法
+    /// <returns></returns>
+    Task InitializationAsync(CancellationToken initializationToken);
 
-        /// <summary>
-        /// 初始化
-        /// </summary>
-        /// <returns></returns>
-        Task InitializationAsync(CancellationToken initializationToken);
-
-        #endregion Public 方法
-    }
+    #endregion Public 方法
 }

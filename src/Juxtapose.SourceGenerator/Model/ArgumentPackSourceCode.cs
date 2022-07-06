@@ -2,30 +2,29 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace Juxtapose.SourceGenerator.Model
+namespace Juxtapose.SourceGenerator.Model;
+
+/// <summary>
+/// 参数包源代码
+/// </summary>
+public abstract class ArgumentPackSourceCode : PartialSourceCode
 {
+    #region Public 属性
+
     /// <summary>
-    /// 参数包源代码
+    /// 当前源代码对应的方法符号
     /// </summary>
-    public abstract class ArgumentPackSourceCode : PartialSourceCode
+    public IMethodSymbol MethodSymbol { get; }
+
+    #endregion Public 属性
+
+    #region Public 构造函数
+
+    public ArgumentPackSourceCode(IMethodSymbol methodSymbol, string hintName, string source, string @namespace, string typeName, string typeFullName)
+        : base(hintName, source, @namespace, typeName, typeFullName)
     {
-        #region Public 属性
-
-        /// <summary>
-        /// 当前源代码对应的方法符号
-        /// </summary>
-        public IMethodSymbol MethodSymbol { get; }
-
-        #endregion Public 属性
-
-        #region Public 构造函数
-
-        public ArgumentPackSourceCode(IMethodSymbol methodSymbol, string hintName, string source, string @namespace, string typeName, string typeFullName)
-            : base(hintName, source, @namespace, typeName, typeFullName)
-        {
-            MethodSymbol = methodSymbol ?? throw new ArgumentNullException(nameof(methodSymbol));
-        }
-
-        #endregion Public 构造函数
+        MethodSymbol = methodSymbol ?? throw new ArgumentNullException(nameof(methodSymbol));
     }
+
+    #endregion Public 构造函数
 }

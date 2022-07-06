@@ -1,17 +1,16 @@
-﻿namespace Juxtapose.Messages
+﻿namespace Juxtapose.Messages;
+
+/// <summary>
+/// Juxtapose 实例消息
+/// </summary>
+public interface IInstanceMessage
 {
+    #region Public 属性
+
     /// <summary>
-    /// Juxtapose 实例消息
+    /// 实例ID
     /// </summary>
-    public interface IInstanceMessage
-    {
-        #region Public 属性
+    int InstanceId { get; }
 
-        /// <summary>
-        /// 实例ID
-        /// </summary>
-        int InstanceId { get; }
-
-        #endregion Public 属性
-    }
+    #endregion Public 属性
 }

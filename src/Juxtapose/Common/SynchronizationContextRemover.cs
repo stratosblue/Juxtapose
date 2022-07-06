@@ -5,52 +5,51 @@ using System.Threading;
 #pragma warning disable CA1822 // 将成员标记为 static
 #pragma warning disable CS1591 // 缺少对公共可见类型或成员的 XML 注释
 
-namespace Juxtapose
+namespace Juxtapose;
+
+/// <summary>
+/// <see cref="SynchronizationContext"/> 移除器
+/// https://docs.microsoft.com/zh-cn/archive/blogs/benwilli/an-alternative-to-configureawaitfalse-everywhere
+/// </summary>
+public sealed class SynchronizationContextRemover : INotifyCompletion
 {
     /// <summary>
-    /// <see cref="SynchronizationContext"/> 移除器
-    /// https://docs.microsoft.com/zh-cn/archive/blogs/benwilli/an-alternative-to-configureawaitfalse-everywhere
+    /// Awaiter
     /// </summary>
-    public sealed class SynchronizationContextRemover : INotifyCompletion
+    public static SynchronizationContextRemover Awaiter { get; } = new();
+
+    public bool IsCompleted
     {
-        /// <summary>
-        /// Awaiter
-        /// </summary>
-        public static SynchronizationContextRemover Awaiter { get; } = new();
+        get { return SynchronizationContext.Current == null; }
+    }
 
-        public bool IsCompleted
+    public SynchronizationContextRemover GetAwaiter()
+    {
+        return this;
+    }
+
+    public void OnCompleted(Action continuation)
+    {
+        var prevContext = SynchronizationContext.Current;
+        if (prevContext is null)
         {
-            get { return SynchronizationContext.Current == null; }
+            continuation();
         }
-
-        public SynchronizationContextRemover GetAwaiter()
+        else
         {
-            return this;
-        }
-
-        public void OnCompleted(Action continuation)
-        {
-            var prevContext = SynchronizationContext.Current;
-            if (prevContext is null)
+            try
             {
+                SynchronizationContext.SetSynchronizationContext(null);
                 continuation();
             }
-            else
+            finally
             {
-                try
-                {
-                    SynchronizationContext.SetSynchronizationContext(null);
-                    continuation();
-                }
-                finally
-                {
-                    SynchronizationContext.SetSynchronizationContext(prevContext);
-                }
+                SynchronizationContext.SetSynchronizationContext(prevContext);
             }
         }
+    }
 
-        public void GetResult()
-        {
-        }
+    public void GetResult()
+    {
     }
 }

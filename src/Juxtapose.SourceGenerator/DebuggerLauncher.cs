@@ -1,24 +1,23 @@
 ﻿using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 
-namespace Juxtapose.SourceGenerator
+namespace Juxtapose.SourceGenerator;
+
+internal static class DebuggerLauncher
 {
-    internal static class DebuggerLauncher
+    #region Public 方法
+
+    [Conditional("DEBUG")]
+    public static void TryLaunch(GeneratorExecutionContext context)
     {
-        #region Public 方法
-
-        [Conditional("DEBUG")]
-        public static void TryLaunch(GeneratorExecutionContext context)
-        {
 #if DEBUG
-            if (!Debugger.IsAttached
-                && context.IsMSBuildSwitchOn("LunchDebuggerInSourceGenerator"))
-            {
-                Debugger.Launch();
-            }
-#endif
+        if (!Debugger.IsAttached
+            && context.IsMSBuildSwitchOn("LunchDebuggerInSourceGenerator"))
+        {
+            Debugger.Launch();
         }
-
-        #endregion Public 方法
+#endif
     }
+
+    #endregion Public 方法
 }

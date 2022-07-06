@@ -3,9 +3,8 @@ using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 
-namespace Juxtapose.SourceGenerator.Model
+namespace Juxtapose.SourceGenerator.Model;
+
+public class ContextResourceCollection : ResourceCollection
 {
-    public class ContextResourceCollection : ResourceCollection
-    {
-    }
 }

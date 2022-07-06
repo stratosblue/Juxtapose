@@ -3,35 +3,34 @@ using System.Threading;
 
 using Juxtapose.Communication.Codec;
 
-namespace Juxtapose
+namespace Juxtapose;
+
+/// <summary>
+///
+/// </summary>
+public class LengthBasedFrameCodecFactory : ICommunicationFrameCodecFactory
 {
+    #region static shared
+
+    private static readonly Lazy<LengthBasedFrameCodecFactory> s_shared = new(() => new(), LazyThreadSafetyMode.ExecutionAndPublication);
+
     /// <summary>
-    ///
+    /// 共享的 <see cref="LengthBasedFrameCodecFactory"/> 实例
     /// </summary>
-    public class LengthBasedFrameCodecFactory : ICommunicationFrameCodecFactory
-    {
-        #region static shared
+    public static LengthBasedFrameCodecFactory Shared => s_shared.Value;
 
-        private static readonly Lazy<LengthBasedFrameCodecFactory> s_shared = new(() => new(), LazyThreadSafetyMode.ExecutionAndPublication);
+    #endregion static shared
 
-        /// <summary>
-        /// 共享的 <see cref="LengthBasedFrameCodecFactory"/> 实例
-        /// </summary>
-        public static LengthBasedFrameCodecFactory Shared => s_shared.Value;
+    #region Private 字段
 
-        #endregion static shared
+    private readonly LengthBasedFrameCodec _lengthBasedFrameCodec = new();
 
-        #region Private 字段
+    #endregion Private 字段
 
-        private readonly LengthBasedFrameCodec _lengthBasedFrameCodec = new();
+    #region Public 方法
 
-        #endregion Private 字段
+    /// <inheritdoc/>
+    public ICommunicationFrameCodec Create(IJuxtaposeOptions options) => _lengthBasedFrameCodec;
 
-        #region Public 方法
-
-        /// <inheritdoc/>
-        public ICommunicationFrameCodec Create(IJuxtaposeOptions options) => _lengthBasedFrameCodec;
-
-        #endregion Public 方法
-    }
+    #endregion Public 方法
 }

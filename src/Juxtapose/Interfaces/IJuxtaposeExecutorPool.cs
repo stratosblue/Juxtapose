@@ -2,23 +2,22 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Juxtapose
+namespace Juxtapose;
+
+/// <summary>
+/// <see cref="JuxtaposeExecutor"/>池
+/// </summary>
+public interface IJuxtaposeExecutorPool : IDisposable
 {
+    #region Public 方法
+
     /// <summary>
-    /// <see cref="JuxtaposeExecutor"/>池
+    /// 获取执行器
     /// </summary>
-    public interface IJuxtaposeExecutorPool : IDisposable
-    {
-        #region Public 方法
+    /// <param name="creationContext"></param>
+    /// <param name="cancellation">取消Token</param>
+    /// <returns></returns>
+    Task<IJuxtaposeExecutorOwner> GetAsync(ExecutorCreationContext creationContext, CancellationToken cancellation);
 
-        /// <summary>
-        /// 获取执行器
-        /// </summary>
-        /// <param name="creationContext"></param>
-        /// <param name="cancellation">取消Token</param>
-        /// <returns></returns>
-        Task<IJuxtaposeExecutorOwner> GetAsync(ExecutorCreationContext creationContext, CancellationToken cancellation);
-
-        #endregion Public 方法
-    }
+    #endregion Public 方法
 }

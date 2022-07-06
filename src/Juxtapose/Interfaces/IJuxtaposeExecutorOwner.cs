@@ -1,17 +1,16 @@
 ﻿using System;
 
-namespace Juxtapose
+namespace Juxtapose;
+
+/// <summary>
+/// <see cref="JuxtaposeExecutor"/> 所有者
+/// </summary>
+public interface IJuxtaposeExecutorOwner : IDisposable
 {
-    /// <summary>
-    /// <see cref="JuxtaposeExecutor"/> 所有者
-    /// </summary>
-    public interface IJuxtaposeExecutorOwner : IDisposable
-    {
-        #region Public 属性
+    #region Public 属性
 
-        /// <inheritdoc cref="JuxtaposeExecutor"/>
-        JuxtaposeExecutor Executor { get; }
+    /// <inheritdoc cref="JuxtaposeExecutor"/>
+    JuxtaposeExecutor Executor { get; }
 
-        #endregion Public 属性
-    }
+    #endregion Public 属性
 }

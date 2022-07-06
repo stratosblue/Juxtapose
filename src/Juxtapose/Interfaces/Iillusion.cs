@@ -1,24 +1,23 @@
 ﻿using System;
 
-namespace Juxtapose
+namespace Juxtapose;
+
+/// <summary>
+/// 幻象类接口
+/// </summary>
+public interface IIllusion : IDisposable
 {
+    #region Public 属性
+
     /// <summary>
-    /// 幻象类接口
+    /// 绑定的执行器
     /// </summary>
-    public interface IIllusion : IDisposable
-    {
-        #region Public 属性
+    JuxtaposeExecutor Executor { get; }
 
-        /// <summary>
-        /// 绑定的执行器
-        /// </summary>
-        JuxtaposeExecutor Executor { get; }
+    /// <summary>
+    /// 是否可用
+    /// </summary>
+    bool IsAvailable { get; }
 
-        /// <summary>
-        /// 是否可用
-        /// </summary>
-        bool IsAvailable { get; }
-
-        #endregion Public 属性
-    }
+    #endregion Public 属性
 }

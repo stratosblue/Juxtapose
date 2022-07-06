@@ -1,19 +1,18 @@
-﻿namespace Juxtapose
+﻿namespace Juxtapose;
+
+/// <summary>
+/// 帧编码器工厂
+/// </summary>
+public interface ICommunicationFrameCodecFactory
 {
+    #region Public 方法
+
     /// <summary>
-    /// 帧编码器工厂
+    /// 创建 <see cref="ICommunicationFrameCodec"/>
     /// </summary>
-    public interface ICommunicationFrameCodecFactory
-    {
-        #region Public 方法
+    /// <param name="options"></param>
+    /// <returns></returns>
+    ICommunicationFrameCodec Create(IJuxtaposeOptions options);
 
-        /// <summary>
-        /// 创建 <see cref="ICommunicationFrameCodec"/>
-        /// </summary>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        ICommunicationFrameCodec Create(IJuxtaposeOptions options);
-
-        #endregion Public 方法
-    }
+    #endregion Public 方法
 }
