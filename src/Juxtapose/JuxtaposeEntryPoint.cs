@@ -192,6 +192,8 @@ public static class JuxtaposeEntryPoint
 
         if (ExternalProcessArgumentUtil.TryGetJuxtaposeOptions(args, out var startupOptions))
         {
+            JuxtaposeDebuggerAttacher.TryAttachToParent(startupOptions);
+
             if (startupOptions.Version < Constants.Version)
             {
                 Console.Error.WriteLine($"Juxtapose Version Not Match. Input value is 【{startupOptions.Version}】, Context value is {Constants.Version}.");

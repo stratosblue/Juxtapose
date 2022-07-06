@@ -4,8 +4,6 @@ using SampleConsoleApp;
 
 using SampleLibrary;
 
-JuxtaposeDebuggerAttacher.TryAttachToParent(args);
-
 await JuxtaposeEntryPoint.TryAsEndpointAsync(args, () => new IInitializationContext[] { HelloJuxtaposeContext.SharedInstance, AnotherHelloJuxtaposeContext.SharedInstance });
 
 Console.WriteLine($"Current Process Id: {Environment.ProcessId}.");

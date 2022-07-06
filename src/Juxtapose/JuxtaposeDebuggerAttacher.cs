@@ -37,7 +37,22 @@ public static class JuxtaposeDebuggerAttacher
         }
 
         if (!File.Exists(VsDebuggerLibraryFileName)
-            || !ExternalProcessArgumentUtil.TryGetJuxtaposeOptions(args, out var options)
+            || !ExternalProcessArgumentUtil.TryGetJuxtaposeOptions(args, out var options))
+        {
+            return;
+        }
+        TryAttachToParent(options);
+    }
+
+    #endregion Public 方法
+
+    #region Internal 方法
+
+    internal static void TryAttachToParent(IJuxtaposeOptions? options)
+    {
+        if (Debugger.IsAttached
+            || !OperatingSystem.IsWindows()
+            || options is null
             || !options.EnableDebugger
             || !options.ParentProcessId.HasValue)
         {
@@ -74,7 +89,7 @@ public static class JuxtaposeDebuggerAttacher
         }
     }
 
-    #endregion Public 方法
+    #endregion Internal 方法
 
     #region util
 
