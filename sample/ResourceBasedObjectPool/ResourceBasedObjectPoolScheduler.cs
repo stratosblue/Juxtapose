@@ -35,7 +35,7 @@ namespace ResourceBasedDynamicObjectPool
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            _logger.LogInformation("Total Memory: {0} , Available: {1} , Threshold: {2} , CountBaseLine: {3}.", SystemInfo.MemoryInfo.Total, SystemInfo.MemoryInfo.Available, _processDisposeMemoryThreshold, _options.ProcessCountBaseLine);
+            _logger.LogInformation("Total Memory: {TotalMemory} , Available: {AvailableMemory} , Threshold: {MemoryThreshold} , CountBaseLine: {BaseLine}.", SystemInfo.MemoryInfo.Total, SystemInfo.MemoryInfo.Available, _processDisposeMemoryThreshold, _options.ProcessCountBaseLine);
 
             _ = AutoContractionAsync(RunningToken);
         }
@@ -104,18 +104,18 @@ namespace ResourceBasedDynamicObjectPool
         {
             if (!instance.TryGetExternalProcess(out var externalProcess))
             {
-                _logger.LogInformation("Illusion object {0} should destory because of can not get Process.", instance);
+                _logger.LogInformation("Illusion object {Instance} should destory because of can not get Process.", instance);
                 return false;
             }
             if (!externalProcess.IsAlive)
             {
-                _logger.LogInformation("Illusion object {0} should destory because of Process is not alive.", instance);
+                _logger.LogInformation("Illusion object {Instance} should destory because of Process is not alive.", instance);
                 return false;
             }
             if (externalProcess.GetMemoryUsage() is not long memoryUsage
                 || memoryUsage < 1)
             {
-                _logger.LogInformation("Illusion object {0} should destory because of can not get MemoryUsage.", instance);
+                _logger.LogInformation("Illusion object {Instance} should destory because of can not get MemoryUsage.", instance);
                 return false;
             }
 
@@ -124,7 +124,7 @@ namespace ResourceBasedDynamicObjectPool
             if (memorySize > _processDisposeMemoryThreshold
                 || SystemInfo.MemoryInfo.Available < _processDisposeMemoryThreshold)
             {
-                _logger.LogInformation("Illusion object {0} should destory because of memory usage. Used: {1} , Threshold: {2}", instance, memorySize, _processDisposeMemoryThreshold);
+                _logger.LogInformation("Illusion object {Instance} should destory because of memory usage. Used: {MemorySize} , Threshold: {Threshold}", instance, memorySize, _processDisposeMemoryThreshold);
                 return false;
             }
 
@@ -132,7 +132,7 @@ namespace ResourceBasedDynamicObjectPool
 
             if (totalCount > _options.ProcessCountBaseLine)
             {
-                _logger.LogInformation("Illusion object {0} should destory because of process count larger than BaseLine. Current: {1} , BaseLine: {2}", instance, totalCount, _options.ProcessCountBaseLine);
+                _logger.LogInformation("Illusion object {Instance} should destory because of process count larger than BaseLine. Current: {TotalCount} , BaseLine: {BaseLine}", instance, totalCount, _options.ProcessCountBaseLine);
                 return false;
             }
 

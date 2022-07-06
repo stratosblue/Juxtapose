@@ -91,9 +91,24 @@ public class LocalExternalProcessActivator : IExternalProcessActivator
         return new LocalExternalProcess(processStartInfo);
     }
 
+    #endregion Public 方法
+
+    #region IDisposable
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="disposing"></param>
+    protected virtual void Dispose(bool disposing)
+    {
+    }
+
     /// <inheritdoc/>
     public void Dispose()
-    { }
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
 
-    #endregion Public 方法
+    #endregion IDisposable
 }

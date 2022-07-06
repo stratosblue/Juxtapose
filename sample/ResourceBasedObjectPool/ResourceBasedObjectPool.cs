@@ -42,19 +42,19 @@ namespace ResourceBasedDynamicObjectPool
         {
             try
             {
-                _logger.LogInformation("Illusion object - {0} Destroying.", instance);
+                _logger.LogInformation("Illusion object - {Instance} Destroying.", instance);
                 instance.Dispose();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Destroy Illusion object - {0} Fail.", instance);
+                _logger.LogError(ex, "Destroy Illusion object - {Instance} Fail.", instance);
             }
         }
 
         /// <inheritdoc/>
         protected override void OnSchedulerResourcePressure(ResourcePressureLevel level)
         {
-            _logger.LogDebug("Resource Pressure Triggered. Start Contraction Pool Size Check. Level: {0}", level);
+            _logger.LogDebug("Resource Pressure Triggered. Start Contraction Pool Size Check. Level: {Level}", level);
 
             var count = ObjectQueue.Count;
 

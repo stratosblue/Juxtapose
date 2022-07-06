@@ -83,20 +83,7 @@ await JuxtaposeEntryPoint.TryAsEndpointAsync(args, GreeterJuxtaposeContext.Share
 
 ## 5. 调试子进程（`Windows`&&`VisualStudio` Only）
 
-### 5.1 引用调试包
-在Host项目文件中添加包引用
-```XML
-<ItemGroup Condition="'$(Configuration)' == 'Debug'">
-  <PackageReference Include="Juxtapose.VsDebugger" Version="1.0.0" />
-</ItemGroup>
-```
-#### 建议和示例代码一样，添加条件引用，只在`Debug`环境下引用调试包
-
-### 5.2 添加入口点
-在`Main`方法开始处添加调试入口点代码
-```C#
-JuxtaposeDebuggerAttacher.TryAttachToParent(args);
-```
+现在会自动附加调试器
 
 ------
 

@@ -2,7 +2,6 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
-#pragma warning disable CA1822 // 将成员标记为 static
 #pragma warning disable CS1591 // 缺少对公共可见类型或成员的 XML 注释
 
 namespace Juxtapose;

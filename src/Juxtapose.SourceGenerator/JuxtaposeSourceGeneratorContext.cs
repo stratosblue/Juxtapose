@@ -4,8 +4,6 @@ using Juxtapose.SourceGenerator.Model;
 
 using Microsoft.CodeAnalysis;
 
-#pragma warning disable RS1024 // 正确比较符号
-
 namespace Juxtapose.SourceGenerator;
 
 public class JuxtaposeSourceGeneratorContext

@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Juxtapose.ObjectPool;
@@ -47,11 +48,6 @@ public class NullDynamicObjectPoolScheduler<T>
     }
 
     /// <inheritdoc/>
-    public void Dispose()
-    {
-    }
-
-    /// <inheritdoc/>
     public Task LockAsync(CancellationToken cancellation)
     {
         return Task.CompletedTask;
@@ -79,4 +75,23 @@ public class NullDynamicObjectPoolScheduler<T>
     }
 
     #endregion Public 方法
+
+    #region IDisposable
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="disposing"></param>
+    protected virtual void Dispose(bool disposing)
+    {
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    #endregion IDisposable
 }
