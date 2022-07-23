@@ -70,17 +70,17 @@ public class RealObjectInvokerCodeGenerator : ISourceCodeProvider<SourceCode>
             _sourceBuilder.AppendIndentLine($"internal partial class {TypeName} : {TypeFullNames.Juxtapose.IMessageExecutor}, {TypeFullNames.System.IDisposable}");
             _sourceBuilder.Scope(() =>
             {
-                _sourceBuilder.AppendLine(@"private readonly int _instanceId;
+                _sourceBuilder.AppendLine(@$"private readonly int {_vars.InstanceId};
 private CancellationTokenSource _runningTokenSource;
-private readonly CancellationToken _runningToken;");
-                _sourceBuilder.AppendIndentLine($"private {targetType.ToFullyQualifiedDisplayString()} _instance;", true);
+private readonly CancellationToken {_vars.RunningToken};");
+                _sourceBuilder.AppendIndentLine($"private {targetType.ToFullyQualifiedDisplayString()} {_vars.Instance};", true);
 
                 _sourceBuilder.AppendLine($@"public {TypeName}({targetType.ToFullyQualifiedDisplayString()} instance, int instanceId)
 {{
-    _instance = instance ?? throw new global::System.ArgumentNullException(nameof(instance));
-    _instanceId = instanceId;
+    {_vars.Instance} = instance ?? throw new global::System.ArgumentNullException(nameof(instance));
+    {_vars.InstanceId} = instanceId;
     _runningTokenSource = new CancellationTokenSource();
-    _runningToken = _runningTokenSource.Token;
+    {_vars.RunningToken} = _runningTokenSource.Token;
 }}");
 
                 _sourceBuilder.AppendLine();
@@ -128,7 +128,7 @@ public void Dispose()
     _runningTokenSource.Dispose();
     _runningTokenSource = null!;
 
-    if(_instance is {TypeFullNames.System.IDisposable} disposable)
+    if({_vars.Instance} is {TypeFullNames.System.IDisposable} disposable)
     {{
         disposable.Dispose();
     }}

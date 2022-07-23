@@ -59,13 +59,13 @@ public class VariableName
     {
         _storedNames = new();
 
-        ParameterPack = "parameterPack";
-        Executor = "_executor";
-        InstanceId = "_instanceId";
-        RunningToken = "_runningToken";
-        ExecutorOwner = "_executorOwner";
-        Instance = "_instance";
-        Message = "___message__";
+        ParameterPack = "@___parameterPack_";
+        Executor = "@___executor_";
+        InstanceId = "@___instanceId_";
+        RunningToken = "@___runningToken_";
+        ExecutorOwner = "@___executorOwner_";
+        Instance = "@___instance_";
+        Message = "@___message_";
     }
 
     public VariableName(IDictionary<string, string?> storedNames)

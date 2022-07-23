@@ -58,13 +58,13 @@ public class IllusionClassCodeGenerator : ISourceCodeProvider<SourceCode>
         _sourceBuilder.AppendLine($@"public {Descriptor.TypeName}({TypeFullNames.Juxtapose.IJuxtaposeExecutorOwner} executorOwner, int instanceId)
 {{
     _executorOwner = executorOwner;
-    _instanceId = instanceId;
+    {_vars.InstanceId} = instanceId;
 
     _executor = _executorOwner.Executor;
 
     _runningTokenRegistration = _executorOwner.Executor.RunningToken.Register(Dispose);
     _runningTokenSource = new CancellationTokenSource();
-    _runningToken = _runningTokenSource.Token;
+    {_vars.RunningToken} = _runningTokenSource.Token;
 }}");
 
         _sourceBuilder.AppendLine();
@@ -136,17 +136,17 @@ return (executorOwner, instanceId);");
             {
                 paramPackContext.GenParamPackCode(_sourceBuilder, "parameterPack");
 
-                _sourceBuilder.AppendLine(@"
+                _sourceBuilder.AppendLine(@$"
 var (executorOwner, instanceId) = CreateObjectAsync(parameterPack, true, CancellationToken.None).GetAwaiter().GetResult();
 
 _executorOwner = executorOwner;
-_instanceId = instanceId;
+{_vars.InstanceId} = instanceId;
 
 _executor = _executorOwner.Executor;
 
 _runningTokenRegistration = _executorOwner.Executor.RunningToken.Register(Dispose);
 _runningTokenSource = new CancellationTokenSource();
-_runningToken = _runningTokenSource.Token;");
+{_vars.RunningToken} = _runningTokenSource.Token;");
             });
             _sourceBuilder.AppendLine();
 
@@ -208,11 +208,11 @@ private {TypeFullNames.Juxtapose.IJuxtaposeExecutorOwner} _executorOwner;
 
 private {TypeFullNames.Juxtapose.JuxtaposeExecutor} {_vars.Executor} => _executorOwner.Executor;
 
-private readonly int _instanceId;
+private readonly int {_vars.InstanceId};
 
 private global::System.Threading.CancellationTokenSource _runningTokenSource;
 
-private readonly global::System.Threading.CancellationToken _runningToken;
+private readonly global::System.Threading.CancellationToken {_vars.RunningToken};
 
 private CancellationTokenRegistration? _runningTokenRegistration;
 
@@ -259,7 +259,7 @@ public void Dispose()
         return;
     }}
     _isDisposed = true;
-    {_vars.Executor}.DisposeObjectInstance(_instanceId);
+    {_vars.Executor}.DisposeObjectInstance({_vars.InstanceId});
     _runningTokenSource.Cancel();
     _runningTokenSource.Dispose();
     _executorOwner.Dispose();
