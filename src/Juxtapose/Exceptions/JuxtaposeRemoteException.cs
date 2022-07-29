@@ -45,7 +45,7 @@ public class JuxtaposeRemoteException : JuxtaposeException
     /// <param name="originExceptionType"></param>
     /// <param name="message"></param>
     public JuxtaposeRemoteException(string? originStackTrace, string originMessage, string originToStringValue, string originExceptionType, string? message = null)
-        : base(message ?? $"Exception [{originExceptionType}] has threw at remote.")
+        : base(message ?? $"Exception [{originExceptionType}] - `{originMessage}` has threw at remote.")
     {
         OriginStackTrace = originStackTrace;
         OriginMessage = originMessage;
