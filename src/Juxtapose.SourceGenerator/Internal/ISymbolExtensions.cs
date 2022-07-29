@@ -67,6 +67,11 @@ internal static class ISymbolExtensions
         return symbol.ToDisplayString(s_fullyQualifiedFormat);
     }
 
+    public static string ToInheritDocCrefString(this ISymbol symbol)
+    {
+        return symbol.ToDisplayString().Replace('<', '{').Replace('>', '}');
+    }
+
     #endregion ToFullyQualifiedDisplayString
 
     #endregion Public 方法

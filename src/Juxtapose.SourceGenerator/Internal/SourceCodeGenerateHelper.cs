@@ -383,7 +383,7 @@ finally
         var methodInvokeMessageTypeName = GetInvokeMessageFullTypeName(method, parameterPackSourceCode);
         var methodInvokeResultMessageTypeName = GetInvokeResultMessageFullTypeName(method, resultPackSourceCode);
 
-        sourceBuilder.AppendIndentLine($"var ___typedMessage = ({methodInvokeMessageTypeName}){vars.Message};");
+        sourceBuilder.AppendIndentLine($"var ___typedMessage__ = ({methodInvokeMessageTypeName}){vars.Message};");
 
         paramPackContext.GenParamUnPackCode(context, sourceBuilder, () =>
         {
@@ -455,7 +455,7 @@ finally
             }
         }, new VariableName(vars)
         {
-            ParameterPack = "___typedMessage.ParameterPack!",
+            ParameterPack = "___typedMessage__.ParameterPack!",
         });
     }
 

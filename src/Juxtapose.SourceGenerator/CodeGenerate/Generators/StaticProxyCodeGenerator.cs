@@ -56,7 +56,7 @@ public class StaticProxyCodeGenerator : ProxyCodeGenerator
 
         var returnType = methodSymbol.ReturnType;
 
-        builder.AppendIndentLine($"/// <inheritdoc cref=\"{methodSymbol.ToFullyQualifiedDisplayString()}\"/>");
+        builder.AppendIndentLine($"/// <inheritdoc cref=\"global::{methodSymbol.ToInheritDocCrefString()}\"/>");
 
         builder.AppendIndentLine($"public static {(returnType.IsAwaitable() ? "async " : string.Empty)}{returnType.ToFullyQualifiedDisplayString()} {methodSymbol.Name}({methodSymbol.GenerateMethodArgumentString()})");
         builder.Scope(() =>
@@ -71,7 +71,7 @@ public class StaticProxyCodeGenerator : ProxyCodeGenerator
     {
         var builder = new ClassStringBuilder();
 
-        builder.AppendIndentLine($"/// <inheritdoc cref=\"{propertySymbol.ToFullyQualifiedDisplayString()}\"/>");
+        builder.AppendIndentLine($"/// <inheritdoc cref=\"global::{propertySymbol.ToInheritDocCrefString()}\"/>");
 
         builder.AppendIndentLine($"public static {propertySymbol.Type.ToFullyQualifiedDisplayString()} {propertySymbol.Name}");
         builder.Scope(() =>

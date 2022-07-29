@@ -41,7 +41,7 @@ public class InstanceProxyCodeGenerator : ProxyCodeGenerator
 
         var returnType = methodSymbol.ReturnType;
 
-        builder.AppendIndentLine("/// <inheritdoc/>");
+        builder.AppendIndentLine($"/// <inheritdoc cref=\"global::{methodSymbol.ToInheritDocCrefString()}\"/>");
 
         builder.AppendIndentLine($"public {(returnType.IsAwaitable() ? "async " : string.Empty)}{returnType.ToFullyQualifiedDisplayString()} {methodSymbol.Name}({methodSymbol.GenerateMethodArgumentString()})");
         builder.Scope(() =>
@@ -56,7 +56,7 @@ public class InstanceProxyCodeGenerator : ProxyCodeGenerator
     {
         var builder = new ClassStringBuilder();
 
-        builder.AppendIndentLine("/// <inheritdoc/>");
+        builder.AppendIndentLine($"/// <inheritdoc cref=\"global::{propertySymbol.ToInheritDocCrefString()}\"/>");
 
         builder.AppendIndentLine($"public {propertySymbol.Type.ToFullyQualifiedDisplayString()} {propertySymbol.Name}");
         builder.Scope(() =>
