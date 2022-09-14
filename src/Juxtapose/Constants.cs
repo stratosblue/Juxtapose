@@ -5,7 +5,16 @@ namespace Juxtapose;
 /// <summary>
 /// 常量
 /// </summary>
+
+#if JUXTAPOSE_SOURCE_GENERATOR
+
+internal static class Constants
+
+#else
+
 public static class Constants
+
+#endif
 {
     #region Public 字段
 

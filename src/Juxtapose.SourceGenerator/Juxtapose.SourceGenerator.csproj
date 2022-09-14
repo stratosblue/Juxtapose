@@ -6,6 +6,8 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
 
     <IsPackable>false</IsPackable>
+
+    <DefineConstants>$(DefineConstants);JUXTAPOSE_SOURCE_GENERATOR</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

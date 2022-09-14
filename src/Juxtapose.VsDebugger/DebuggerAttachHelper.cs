@@ -1,4 +1,6 @@
-﻿using System.Runtime.Versioning;
+﻿using System.IO;
+using System.Reflection;
+using System.Runtime.Versioning;
 
 namespace System;
 
@@ -16,8 +18,38 @@ public static class DebuggerAttachHelper
     [SupportedOSPlatform("windows")]
     public static void AttachTo(int targetProcessId)
     {
-        VsDebuggerAttacher.AttachToTargetProcessDebugger(Environment.ProcessId, targetProcessId);
+        AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolve;
+        try
+        {
+            VsDebuggerAttacher.AttachToTargetProcessDebugger(Environment.ProcessId, targetProcessId);
+        }
+        finally
+        {
+            AppDomain.CurrentDomain.AssemblyResolve -= AssemblyResolve;
+        }
     }
 
     #endregion Public 方法
+
+    #region Private 方法
+
+    private static Assembly? AssemblyResolve(object? sender, ResolveEventArgs args)
+    {
+        try
+        {
+            if (args.RequestingAssembly == Assembly.GetExecutingAssembly())
+            {
+                var dllName = $"{args.Name.Split(',')[0]}.dll";
+                var tryLoadDllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dllName);
+                if (File.Exists(tryLoadDllPath))
+                {
+                    return Assembly.LoadFrom(tryLoadDllPath);
+                }
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    #endregion Private 方法
 }

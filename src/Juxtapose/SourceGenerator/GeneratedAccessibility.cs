@@ -3,7 +3,16 @@
 /// <summary>
 /// 可访问性
 /// </summary>
+
+#if JUXTAPOSE_SOURCE_GENERATOR
+
+internal enum GeneratedAccessibility
+
+#else
+
 public enum GeneratedAccessibility
+
+#endif
 {
     /// <summary>
     /// 默认

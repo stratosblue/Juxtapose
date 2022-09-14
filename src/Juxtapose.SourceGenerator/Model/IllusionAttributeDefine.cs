@@ -8,7 +8,7 @@ public class IllusionAttributeDefine
 {
     #region Public 属性
 
-    public GeneratedAccessibility Accessibility { get; }
+    internal GeneratedAccessibility Accessibility { get; }
 
     public AttributeData AttributeData { get; }
 
