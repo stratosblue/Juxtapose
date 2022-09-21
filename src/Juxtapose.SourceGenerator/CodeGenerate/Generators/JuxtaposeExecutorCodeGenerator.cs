@@ -156,7 +156,7 @@ public class JuxtaposeExecutorCodeGenerator : ISourceCodeProvider<SourceCode>
             if (!descriptorMap.Value.TryGetRealObjectInvokerSourceCode(descriptor.TargetType, descriptor.InheritType, out var invokerSourceCode)
                 || invokerSourceCode is null)
             {
-                Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ExecutorGenerateCanNotFoundGeneratedRealObjectInvoker, null, descriptor.TargetType, descriptor.InheritType));
+                Context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ExecutorGenerateCanNotFoundGeneratedRealObjectInvoker, null, descriptor.TargetType, descriptor.InheritType));
                 continue;
             }
             _sourceBuilder.AppendIndentLine($"\"{descriptor.TypeFullName}\" => new global::{invokerSourceCode.TypeFullName}(GetRequiredService<{descriptor.TargetType.ToFullyQualifiedDisplayString()}>(), instanceId),");
@@ -185,7 +185,7 @@ return null;");
         if (!resources.TryGetRealObjectInvokerSourceCode(descriptor.TargetType, descriptor.InheritType, out var realObjectInvokerSourceCode)
             || realObjectInvokerSourceCode is null)
         {
-            Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ExecutorGenerateCanNotFoundGeneratedRealObjectInvoker, null, descriptor.TargetType, descriptor.InheritType));
+            Context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ExecutorGenerateCanNotFoundGeneratedRealObjectInvoker, null, descriptor.TargetType, descriptor.InheritType));
             return;
         }
 

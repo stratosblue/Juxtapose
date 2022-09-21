@@ -203,11 +203,11 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
 
             if (Context.IllusionInstanceClasses.ContainsKey(descriptor))
             {
-                Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleIllusionClassDefine, null, descriptor.TargetType, descriptor.InheritType));
+                Context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleIllusionClassDefine, null, descriptor.TargetType, descriptor.InheritType));
                 continue;
             }
 
-            Context.IllusionInstanceClasses.Add(descriptor, resources);
+            Context.IllusionInstanceClasses.TryAdd(descriptor, resources);
 
             contextHashBuilder.AddIllusionInstanceClassDescriptor(descriptor);
 
@@ -231,7 +231,7 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
         {
             if (illusionStaticAttributeDefine.FromIoCContainer)
             {
-                Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.StaticTypeCanNotProvidedByServiceProvider, null, illusionStaticAttributeDefine.TargetType.ToDisplayString()));
+                Context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.StaticTypeCanNotProvidedByServiceProvider, null, illusionStaticAttributeDefine.TargetType.ToDisplayString()));
             }
 
             var descriptor = new IllusionStaticClassDescriptor(illusionStaticAttributeDefine, ContextTypeSymbol);
@@ -239,11 +239,11 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
 
             if (Context.IllusionStaticClasses.ContainsKey(descriptor))
             {
-                Context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleIllusionStaticClassDefine, null, descriptor.TargetType));
+                Context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleIllusionStaticClassDefine, null, descriptor.TargetType));
                 continue;
             }
 
-            Context.IllusionStaticClasses.Add(descriptor, resources);
+            Context.IllusionStaticClasses.TryAdd(descriptor, resources);
 
             var illusionStaticClassCodeGenerator = new IllusionStaticClassCodeGenerator(Context, descriptor, resources);
 
