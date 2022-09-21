@@ -12,7 +12,7 @@ internal static class BuildEnvironment
 
     private static readonly Dictionary<string, INamedTypeSymbol> s_storedNamedTypeSymbol = new();
 
-    private static bool _isInited = false;
+    private static bool s_isInited = false;
 
     #endregion Private 字段
 
@@ -51,20 +51,22 @@ internal static class BuildEnvironment
 
     public static void Init(Compilation compilation)
     {
-        if (_isInited)
+        if (s_isInited)
         {
             return;
         }
+
+        //TODO 缓存好像有问题
 
         TaskSymbol = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task") ?? throw new InvalidOperationException();
         TaskTSymbol = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1") ?? throw new InvalidOperationException();
         ValueTaskSymbol = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask") ?? throw new InvalidOperationException();
         ValueTaskTSymbol = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1") ?? throw new InvalidOperationException();
-        VoidSymbol = compilation.GetTypeByMetadataName("System.Void") ?? throw new InvalidOperationException();
+        VoidSymbol = compilation.GetSpecialType(SpecialType.System_Void) ?? throw new InvalidOperationException();
         CancellationToken = compilation.GetTypeByMetadataName("System.Threading.CancellationToken") ?? throw new InvalidOperationException();
-        DelegateSymbol = compilation.GetTypeByMetadataName("System.Delegate") ?? throw new InvalidOperationException();
+        DelegateSymbol = compilation.GetSpecialType(SpecialType.System_Delegate) ?? throw new InvalidOperationException();
 
-        _isInited = true;
+        s_isInited = true;
     }
 
     #endregion Public 方法
