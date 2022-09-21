@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
@@ -12,34 +13,34 @@ public abstract class ResourceCollection
     /// <summary>
     /// 构造函数参数包
     /// </summary>
-    protected Dictionary<IMethodSymbol, Dictionary<string, ConstructorParameterPackSourceCode>> ConstructorParameterPacks { get; } = new(SymbolEqualityComparer.Default);
+    protected ConcurrentDictionary<IMethodSymbol, Dictionary<string, ConstructorParameterPackSourceCode>> ConstructorParameterPacks { get; } = new(SymbolEqualityComparer.Default);
 
     /// <summary>
     /// 委托参数包字典
     /// </summary>
-    protected Dictionary<IMethodSymbol, ParameterPackSourceCode> DelegateParameterPacks { get; private set; } = new(SymbolEqualityComparer.Default);
+    protected ConcurrentDictionary<IMethodSymbol, ParameterPackSourceCode> DelegateParameterPacks { get; private set; } = new(SymbolEqualityComparer.Default);
 
     /// <summary>
     /// 委托返回值包字典
     /// </summary>
-    protected Dictionary<IMethodSymbol, ResultPackSourceCode?> DelegateResultPacks { get; private set; } = new(SymbolEqualityComparer.Default);
+    protected ConcurrentDictionary<IMethodSymbol, ResultPackSourceCode?> DelegateResultPacks { get; private set; } = new(SymbolEqualityComparer.Default);
 
     /// <summary>
     /// 方法参数包字典
     /// </summary>
-    protected Dictionary<IMethodSymbol, ParameterPackSourceCode> MethodParameterPacks { get; private set; } = new(SymbolEqualityComparer.Default);
+    protected ConcurrentDictionary<IMethodSymbol, ParameterPackSourceCode> MethodParameterPacks { get; private set; } = new(SymbolEqualityComparer.Default);
 
     /// <summary>
     /// 方法返回值包字典
     /// </summary>
-    protected Dictionary<IMethodSymbol, ResultPackSourceCode?> MethodResultPacks { get; private set; } = new(SymbolEqualityComparer.Default);
+    protected ConcurrentDictionary<IMethodSymbol, ResultPackSourceCode?> MethodResultPacks { get; private set; } = new(SymbolEqualityComparer.Default);
 
     /// <summary>
     /// 类型-RealObjectInvoker源码 隐射
     /// </summary>
-    protected Dictionary<INamedTypeSymbol, Dictionary<INamedTypeSymbol, RealObjectInvokerSourceCode>> RealObjectInvokers { get; private set; } = new(SymbolEqualityComparer.Default);
+    protected ConcurrentDictionary<INamedTypeSymbol, Dictionary<INamedTypeSymbol, RealObjectInvokerSourceCode>> RealObjectInvokers { get; private set; } = new(SymbolEqualityComparer.Default);
 
-    protected List<SourceCode> SourceCodes { get; } = new();
+    protected ConcurrentBag<SourceCode> SourceCodes { get; } = new();
 
     #endregion Protected 属性
 
@@ -112,7 +113,7 @@ public abstract class ResourceCollection
         if (!ConstructorParameterPacks.TryGetValue(item.MethodSymbol, out var map))
         {
             map = new();
-            ConstructorParameterPacks.Add(item.MethodSymbol, map);
+            ConstructorParameterPacks.TryAdd(item.MethodSymbol, map);
         }
         if (map.TryGetValue(item.GeneratedTypeName, out _))
         {
@@ -131,7 +132,7 @@ public abstract class ResourceCollection
                 {
                     if (!DelegateParameterPacks.ContainsKey(method))
                     {
-                        DelegateParameterPacks.Add(method, parameterPackSourceCode);
+                        DelegateParameterPacks.TryAdd(method, parameterPackSourceCode);
                         return true;
                     }
                 }
@@ -141,7 +142,7 @@ public abstract class ResourceCollection
                 {
                     if (!DelegateResultPacks.ContainsKey(method))
                     {
-                        DelegateResultPacks.Add(method, resultPackSourceCode);
+                        DelegateResultPacks.TryAdd(method, resultPackSourceCode);
                         return true;
                     }
                 }
@@ -173,7 +174,7 @@ public abstract class ResourceCollection
                 {
                     if (!MethodParameterPacks.ContainsKey(method))
                     {
-                        MethodParameterPacks.Add(method, parameterPackSourceCode);
+                        MethodParameterPacks.TryAdd(method, parameterPackSourceCode);
                         return true;
                     }
                 }
@@ -183,7 +184,7 @@ public abstract class ResourceCollection
                 {
                     if (!MethodResultPacks.ContainsKey(method))
                     {
-                        MethodResultPacks.Add(method, resultPackSourceCode);
+                        MethodResultPacks.TryAdd(method, resultPackSourceCode);
                         return true;
                     }
                 }
@@ -211,7 +212,7 @@ public abstract class ResourceCollection
             invokerSourceCodes = new(SymbolEqualityComparer.Default);
             invokerSourceCodes.Add(inheritTypeSymbol, invokerSourceCode);
 
-            RealObjectInvokers.Add(targetTypeSymbol, invokerSourceCodes);
+            RealObjectInvokers.TryAdd(targetTypeSymbol, invokerSourceCodes);
         }
         return true;
     }

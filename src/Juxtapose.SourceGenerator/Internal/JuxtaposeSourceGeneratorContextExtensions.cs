@@ -13,7 +13,7 @@ internal static class JuxtaposeSourceGeneratorContextExtensions
         if (!context.Resources.TryGetConstructorParameterPackSourceCode(constructor, generatedTypeName, out parameterPackSourceCode)
             || parameterPackSourceCode is null)
         {
-            context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.CanNotFoundGeneratedConstructorParameterPack, null, constructor.ToDisplayString(), generatedTypeName));
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.CanNotFoundGeneratedConstructorParameterPack, null, constructor.ToDisplayString(), generatedTypeName));
             return false;
         }
         return true;
@@ -24,7 +24,7 @@ internal static class JuxtaposeSourceGeneratorContextExtensions
         if (!context.Resources.TryGetMethodArgumentPackSourceCode(methodSymbol, out parameterPackSourceCode!)
             || parameterPackSourceCode is null)
         {
-            context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.CanNotFoundGeneratedParameterPack, null, methodSymbol.ToDisplayString()));
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.CanNotFoundGeneratedParameterPack, null, methodSymbol.ToDisplayString()));
             return false;
         }
         return true;
@@ -35,7 +35,7 @@ internal static class JuxtaposeSourceGeneratorContextExtensions
         if (!context.Resources.TryGetMethodResultPackSourceCode(methodSymbol, out resultPackSourceCode!)
             || resultPackSourceCode is null)
         {
-            context.GeneratorExecutionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.CanNotFoundGeneratedParameterPack, null, methodSymbol.ToDisplayString()));
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.CanNotFoundGeneratedParameterPack, null, methodSymbol.ToDisplayString()));
             return false;
         }
         return true;

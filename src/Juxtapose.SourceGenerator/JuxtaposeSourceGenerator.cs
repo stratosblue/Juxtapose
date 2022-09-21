@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Juxtapose.SourceGenerator;
 
-[Generator]
+//[Generator]
 public class JuxtaposeSourceGenerator : ISourceGenerator
 {
     #region Public 方法
@@ -25,7 +25,7 @@ public class JuxtaposeSourceGenerator : ISourceGenerator
         {
             DebuggerLauncher.TryLaunch(context);
 
-            BuildEnvironment.Init(context);
+            BuildEnvironment.Init(context.Compilation);
 
             if (context.SyntaxContextReceiver is not SyntaxContextReceiver contextReceiver)
             {
@@ -67,7 +67,7 @@ public class JuxtaposeSourceGenerator : ISourceGenerator
                 }
             }
 
-            var sourceGeneratorContext = new JuxtaposeSourceGeneratorContext(context);
+            var sourceGeneratorContext = new JuxtaposeSourceGeneratorContext(new GeneratorExecutionContextDiagnosticReporter(context));
 
             var allGeneratedSources = contextReceiver.ShouldGenerateTypes.Select(m => new JuxtaposeContextCodeGenerator(sourceGeneratorContext, m))
                                                                          .SelectMany(m => m.GetSources())
