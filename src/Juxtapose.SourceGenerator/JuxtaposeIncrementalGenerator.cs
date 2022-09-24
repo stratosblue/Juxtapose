@@ -25,11 +25,9 @@ public class JuxtaposeIncrementalGenerator : IIncrementalGenerator
     {
         //System.Diagnostics.Debugger.Launch();
 
-        var declarationsProvider = context.CompilationProvider.SelectMany(GetContextDeclarations);
+        var declarationsProvider = context.SyntaxProvider.CreateSyntaxProvider(FilterContextSyntaxNode, TransformContextSyntaxNode).Where(m => !m.IsDefault);
 
         var combinedDeclarationsProvider = context.AnalyzerConfigOptionsProvider.Combine(declarationsProvider.Collect());
-
-        var globalSourceGeneratorContext = new JuxtaposeSourceGeneratorContext(null);
 
         context.RegisterImplementationSourceOutput(combinedDeclarationsProvider, (context, input) =>
         {
@@ -48,6 +46,20 @@ public class JuxtaposeIncrementalGenerator : IIncrementalGenerator
                 }
 
                 contextDeclarations = contextDeclarations.Where(m => m.HasPartialKeyword).ToImmutableArray();
+
+                var firstContextDeclaration = contextDeclarations.FirstOrDefault();
+
+                if (firstContextDeclaration.IsDefault)
+                {
+                    return;
+                }
+
+                var currentAssembly = firstContextDeclaration.TypeSymbol.ContainingAssembly;
+                var compilation = firstContextDeclaration.SemanticModel.Compilation;
+
+                BuildEnvironment.Init(compilation);
+
+                var globalSourceGeneratorContext = new JuxtaposeSourceGeneratorContext(null);
 
                 isSaveGeneratedCodeFile = analyzerConfigOptionsProvider.TryGetMSBuildProperty("SaveJuxtaposeGeneratedCode", out saveGeneratedCodePath);
 
@@ -87,10 +99,6 @@ public class JuxtaposeIncrementalGenerator : IIncrementalGenerator
                                                      .ToArray();
 
                 var allPackTypeHashSet = new HashSet<string>();
-
-                var firstContextDeclarations = contextDeclarations.First();
-                var currentAssembly = firstContextDeclarations.TypeSymbol.ContainingAssembly;
-                var compilation = firstContextDeclarations.Compilation;
 
                 var aggregatedPartialSources = partialSources.GroupBy(m => m.HintName)
                                                              .Select(m =>
@@ -188,32 +196,27 @@ public class JuxtaposeIncrementalGenerator : IIncrementalGenerator
 
     #region Private 方法
 
-    private static ImmutableArray<ContextDeclaration> GetContextDeclarations(Compilation compilation, CancellationToken cancellationToken)
+    private static bool FilterContextSyntaxNode(SyntaxNode syntaxNode, CancellationToken cancellationToken)
     {
-        BuildEnvironment.Init(compilation);
-
-        var declarations = new List<ContextDeclaration>();
-        foreach (var syntaxTree in compilation.SyntaxTrees)
+        if (syntaxNode is ClassDeclarationSyntax classDeclarationSyntax
+            && classDeclarationSyntax.AttributeLists.Count > 0
+            && !classDeclarationSyntax.Modifiers.Any(SyntaxKind.AbstractKeyword))
         {
-            if (syntaxTree.TryGetRoot(out var syntaxNode)
-                && syntaxNode is CompilationUnitSyntax compilationUnitSyntax)
-            {
-                var classDeclarationSyntaxs = compilationUnitSyntax.Members.OfType<NamespaceDeclarationSyntax>()
-                                                                           .SelectMany(m => m.Members.OfType<ClassDeclarationSyntax>());
-
-                foreach (var classDeclarationSyntax in classDeclarationSyntaxs)
-                {
-                    if (classDeclarationSyntax.AttributeLists.Count > 0
-                        && !classDeclarationSyntax.Modifiers.Any(SyntaxKind.AbstractKeyword)
-                        && compilation.GetSemanticModel(syntaxTree).GetDeclaredSymbol(classDeclarationSyntax) is INamedTypeSymbol namedTypeSymbol
-                        && namedTypeSymbol.IsBaseOnJuxtaposeContext())
-                    {
-                        declarations.Add(new(compilation, classDeclarationSyntax, namedTypeSymbol, classDeclarationSyntax.Modifiers.Any(SyntaxKind.PartialKeyword)));
-                    }
-                }
-            }
+            return true;
         }
-        return declarations.ToImmutableArray();
+        return false;
+    }
+
+    private static ContextDeclaration TransformContextSyntaxNode(GeneratorSyntaxContext syntaxContext, CancellationToken cancellationToken)
+    {
+        if (syntaxContext.Node is ClassDeclarationSyntax classDeclarationSyntax
+            && syntaxContext.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax) is INamedTypeSymbol namedTypeSymbol
+            && namedTypeSymbol.IsBaseOnJuxtaposeContext())
+        {
+            return new(syntaxContext.SemanticModel, classDeclarationSyntax, namedTypeSymbol, classDeclarationSyntax.Modifiers.Any(SyntaxKind.PartialKeyword));
+        }
+
+        return ContextDeclaration.Default;
     }
 
     #endregion Private 方法
@@ -221,25 +224,34 @@ public class JuxtaposeIncrementalGenerator : IIncrementalGenerator
 
 public struct ContextDeclaration
 {
+    #region Public 字段
+
+    public static readonly ContextDeclaration Default = new();
+
+    #endregion Public 字段
+
     #region Public 属性
 
-    public ClassDeclarationSyntax ClassDeclarationSyntax { get; set; }
-
-    public Compilation Compilation { get; }
+    public ClassDeclarationSyntax ClassDeclarationSyntax { get; }
 
     public bool HasPartialKeyword { get; }
+    
+    public bool IsDefault => ClassDeclarationSyntax is null;
+    
+    public SemanticModel SemanticModel { get; }
+
     public INamedTypeSymbol TypeSymbol { get; }
 
     #endregion Public 属性
 
     #region Public 构造函数
 
-    public ContextDeclaration(Compilation compilation, ClassDeclarationSyntax classDeclarationSyntax, INamedTypeSymbol typeSymbol, bool hasPartialKeyword)
+    public ContextDeclaration(SemanticModel semanticModel, ClassDeclarationSyntax classDeclarationSyntax, INamedTypeSymbol typeSymbol, bool hasPartialKeyword)
     {
+        SemanticModel = semanticModel;
+        ClassDeclarationSyntax = classDeclarationSyntax;
         TypeSymbol = typeSymbol;
         HasPartialKeyword = hasPartialKeyword;
-        Compilation = compilation;
-        ClassDeclarationSyntax = classDeclarationSyntax;
     }
 
     #endregion Public 构造函数
