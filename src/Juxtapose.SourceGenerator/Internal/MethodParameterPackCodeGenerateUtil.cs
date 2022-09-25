@@ -51,7 +51,7 @@ public static class MethodParameterPackCodeGenerateUtil
     {
         foreach (var methodSymbol in EnumerateMethods())
         {
-            var packContext = methodSymbol.GetParamPackContext(typeSymbolAnalyzer);
+            var packContext = typeSymbolAnalyzer.GetParamPackContext(methodSymbol);
             yield return GenMethodParameterPackClassSource(methodSymbol, sourceHintName, packContext);
             if (typeSymbolAnalyzer.GetReturnType(methodSymbol) is not null)
             {
@@ -104,7 +104,7 @@ public static class MethodParameterPackCodeGenerateUtil
         {
             foreach (var methodSymbol in methodSymbols)
             {
-                var packContext = methodSymbol.GetConstructorParamPackContext(generatedTypeName, typeSymbolAnalyzer);
+                var packContext = typeSymbolAnalyzer.GetConstructorParamPackContext(methodSymbol, generatedTypeName);
                 yield return GenConstructorParameterPackClassSource(methodSymbol, sourceHintName, packContext, generatedTypeName);
             }
         }

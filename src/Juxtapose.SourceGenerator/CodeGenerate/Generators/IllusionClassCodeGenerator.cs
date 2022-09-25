@@ -122,7 +122,7 @@ return (executorOwner, instanceId);");
                 continue;
             }
 
-            var paramPackContext = constructor.GetConstructorParamPackContext(generatedTypeName, Context.TypeSymbolAnalyzer);
+            var paramPackContext = Context.TypeSymbolAnalyzer.GetConstructorParamPackContext(constructor, generatedTypeName);
 
             var ctorAnnotation = $"/// <inheritdoc cref=\"{targetTypeName}.{targetTypeName}({string.Join(", ", constructor.Parameters.Select(m => m.Type.ToFullyQualifiedDisplayString()))})\"/>";
 

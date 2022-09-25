@@ -193,7 +193,7 @@ return null;");
 
         foreach (var parameterPackSourceCode in resources.GetAllConstructorParameterPacks())
         {
-            var paramPackContext = parameterPackSourceCode.MethodSymbol.GetConstructorParamPackContext(descriptor.TypeFullName, resources.TypeSymbolAnalyzer);
+            var paramPackContext = resources.TypeSymbolAnalyzer.GetConstructorParamPackContext(parameterPackSourceCode.MethodSymbol, descriptor.TypeFullName);
 
             var methodInvokeMessageTypeName = $"{TypeFullNames.Juxtapose.Messages.CreateObjectInstanceMessage}<{parameterPackSourceCode.TypeName}>";
 

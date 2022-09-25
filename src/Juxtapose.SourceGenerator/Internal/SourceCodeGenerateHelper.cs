@@ -33,7 +33,7 @@ internal class SourceCodeGenerateHelper
             return;
         }
 
-        var paramPackContext = method.GetParamPackContext(context.TypeSymbolAnalyzer);
+        var paramPackContext = context.TypeSymbolAnalyzer.GetParamPackContext(method);
         var isAwaitable = context.TypeSymbolAnalyzer.IsAwaitable(method.ReturnType);
 
         builder.AppendLine(vars.MethodBodyPrefixSnippet);
@@ -49,7 +49,7 @@ internal class SourceCodeGenerateHelper
         foreach (var parameter in paramPackContext.DelegateParams)
         {
             var callbackMethod = ((INamedTypeSymbol)parameter.Type).DelegateInvokeMethod!;
-            var callbackParamPackContext = callbackMethod.GetParamPackContext(context.TypeSymbolAnalyzer);
+            var callbackParamPackContext = context.TypeSymbolAnalyzer.GetParamPackContext(callbackMethod);
 
             var callbackBodyBuilder = new ClassStringBuilder();
             callbackBodyBuilder.Indent();
@@ -185,7 +185,7 @@ finally
         {
             return;
         }
-        var paramPackContext = method.GetParamPackContext(context.TypeSymbolAnalyzer);
+        var paramPackContext = context.TypeSymbolAnalyzer.GetParamPackContext(method);
         var isAwaitable = context.TypeSymbolAnalyzer.IsAwaitable(method.ReturnType);
 
         var awaitTag = isAwaitable ? "await " : string.Empty;
@@ -236,7 +236,7 @@ finally
         foreach (var parameter in paramPackContext.DelegateParams)
         {
             var callbackMethod = ((INamedTypeSymbol)parameter.Type).DelegateInvokeMethod!;
-            var callbackParamPackContext = callbackMethod.GetParamPackContext(context.TypeSymbolAnalyzer);
+            var callbackParamPackContext = context.TypeSymbolAnalyzer.GetParamPackContext(callbackMethod);
 
             var callbackBodyBuilder = new ClassStringBuilder();
             callbackBodyBuilder.Indent();
@@ -378,7 +378,7 @@ finally
         {
             return;
         }
-        var paramPackContext = method.GetParamPackContext(context.TypeSymbolAnalyzer);
+        var paramPackContext = context.TypeSymbolAnalyzer.GetParamPackContext(method);
 
         var methodInvokeMessageTypeName = GetInvokeMessageFullTypeName(method, parameterPackSourceCode);
         var methodInvokeResultMessageTypeName = GetInvokeResultMessageFullTypeName(method, resultPackSourceCode);

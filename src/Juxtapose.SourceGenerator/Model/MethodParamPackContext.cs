@@ -216,7 +216,7 @@ public class MethodParamPackContext
             };
 
             var callbackMethod = ((INamedTypeSymbol)parameter.Type).DelegateInvokeMethod!;
-            var callbackParamPackContext = callbackMethod.GetParamPackContext(context.TypeSymbolAnalyzer);
+            var callbackParamPackContext = context.TypeSymbolAnalyzer.GetParamPackContext(callbackMethod);
 
             var callbackBodyBuilder = new ClassStringBuilder();
             callbackBodyBuilder.Indent();
