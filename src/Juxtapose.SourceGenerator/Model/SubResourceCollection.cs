@@ -15,7 +15,7 @@ public class SubResourceCollection : ResourceCollection
 
     #region Public 构造函数
 
-    public SubResourceCollection(ContextResourceCollection contextResourceCollection)
+    public SubResourceCollection(ContextResourceCollection contextResourceCollection) : base(contextResourceCollection.TypeSymbolAnalyzer)
     {
         _contextResourceCollection = contextResourceCollection ?? throw new ArgumentNullException(nameof(contextResourceCollection));
     }

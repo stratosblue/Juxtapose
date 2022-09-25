@@ -57,9 +57,9 @@ public class JuxtaposeIncrementalGenerator : IIncrementalGenerator
                 var currentAssembly = firstContextDeclaration.TypeSymbol.ContainingAssembly;
                 var compilation = firstContextDeclaration.SemanticModel.Compilation;
 
-                BuildEnvironment.Init(compilation);
+                var typeSymbolChecker = new TypeSymbolAnalyzer(compilation);
 
-                var globalSourceGeneratorContext = new JuxtaposeSourceGeneratorContext(null);
+                var sourceGeneratorContext = new JuxtaposeSourceGeneratorContext(typeSymbolChecker, new SourceProductionContextDiagnosticReporter(context));
 
                 isSaveGeneratedCodeFile = analyzerConfigOptionsProvider.TryGetMSBuildProperty("SaveJuxtaposeGeneratedCode", out saveGeneratedCodePath);
 
@@ -85,8 +85,6 @@ public class JuxtaposeIncrementalGenerator : IIncrementalGenerator
                         Directory.CreateDirectory(saveGeneratedCodePath);
                     }
                 }
-
-                var sourceGeneratorContext = new JuxtaposeSourceGeneratorContextWrapper(globalSourceGeneratorContext, new SourceProductionContextDiagnosticReporter(context));
 
                 var allGeneratedSources = contextDeclarations.Select(m => new JuxtaposeContextCodeGenerator(sourceGeneratorContext, m.TypeSymbol))
                                                              .SelectMany(m => m.GetSources())
@@ -235,9 +233,9 @@ public struct ContextDeclaration
     public ClassDeclarationSyntax ClassDeclarationSyntax { get; }
 
     public bool HasPartialKeyword { get; }
-    
+
     public bool IsDefault => ClassDeclarationSyntax is null;
-    
+
     public SemanticModel SemanticModel { get; }
 
     public INamedTypeSymbol TypeSymbol { get; }

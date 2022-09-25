@@ -17,6 +17,8 @@ public abstract class ProxyCodeGenerator
 
     public INamedTypeSymbol TypeSymbol { get; }
 
+    public TypeSymbolAnalyzer TypeSymbolAnalyzer => Context.TypeSymbolAnalyzer;
+
     #endregion Public 属性
 
     #region Public 构造函数

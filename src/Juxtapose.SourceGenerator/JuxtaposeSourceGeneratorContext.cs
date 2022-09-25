@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 
 using Juxtapose.SourceGenerator.Model;
 
@@ -16,14 +17,18 @@ public class JuxtaposeSourceGeneratorContext
 
     public virtual ConcurrentDictionary<IllusionStaticClassDescriptor, SubResourceCollection> IllusionStaticClasses { get; private set; } = new();
 
-    public virtual ContextResourceCollection Resources { get; private set; } = new();
+    public virtual ContextResourceCollection Resources { get; private set; }
+
+    public virtual TypeSymbolAnalyzer TypeSymbolAnalyzer { get; private set; }
 
     #endregion Public 属性
 
     #region Public 构造函数
 
-    public JuxtaposeSourceGeneratorContext(IDiagnosticReporter? diagnosticReporter)
+    public JuxtaposeSourceGeneratorContext(TypeSymbolAnalyzer typeSymbolAnalyzer, IDiagnosticReporter? diagnosticReporter)
     {
+        TypeSymbolAnalyzer = typeSymbolAnalyzer ?? throw new ArgumentNullException(nameof(typeSymbolAnalyzer));
+        Resources = new(TypeSymbolAnalyzer);
         DiagnosticReporter = diagnosticReporter;
     }
 
@@ -35,38 +40,10 @@ public class JuxtaposeSourceGeneratorContext
     {
         IllusionInstanceClasses = new();
         IllusionStaticClasses = new();
-        Resources = new();
+        Resources = new(TypeSymbolAnalyzer);
     }
 
     public void ReportDiagnostic(Diagnostic diagnostic) => DiagnosticReporter?.ReportDiagnostic(diagnostic);
 
     #endregion Public 方法
-}
-
-internal class JuxtaposeSourceGeneratorContextWrapper : JuxtaposeSourceGeneratorContext
-{
-    #region Private 字段
-
-    private readonly JuxtaposeSourceGeneratorContext _inner;
-
-    #endregion Private 字段
-
-    #region Public 属性
-
-    public override ConcurrentDictionary<IllusionInstanceClassDescriptor, SubResourceCollection> IllusionInstanceClasses => _inner.IllusionInstanceClasses;
-
-    public override ConcurrentDictionary<IllusionStaticClassDescriptor, SubResourceCollection> IllusionStaticClasses => _inner.IllusionStaticClasses;
-
-    public override ContextResourceCollection Resources => _inner.Resources;
-
-    #endregion Public 属性
-
-    #region Public 构造函数
-
-    public JuxtaposeSourceGeneratorContextWrapper(JuxtaposeSourceGeneratorContext inner, IDiagnosticReporter diagnosticReporter) : base(diagnosticReporter)
-    {
-        _inner = inner;
-    }
-
-    #endregion Public 构造函数
 }

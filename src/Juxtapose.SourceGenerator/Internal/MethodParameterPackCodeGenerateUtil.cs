@@ -47,13 +47,13 @@ public static class MethodParameterPackCodeGenerateUtil
 
     #region Public 方法
 
-    public static IEnumerable<ArgumentPackSourceCode> Generate(IEnumerable<ISymbol> memberSymbols, string sourceHintName)
+    public static IEnumerable<ArgumentPackSourceCode> Generate(IEnumerable<ISymbol> memberSymbols, string sourceHintName, TypeSymbolAnalyzer typeSymbolAnalyzer)
     {
         foreach (var methodSymbol in EnumerateMethods())
         {
-            var packContext = methodSymbol.GetParamPackContext();
+            var packContext = methodSymbol.GetParamPackContext(typeSymbolAnalyzer);
             yield return GenMethodParameterPackClassSource(methodSymbol, sourceHintName, packContext);
-            if (methodSymbol.GetReturnType() is not null)
+            if (typeSymbolAnalyzer.GetReturnType(methodSymbol) is not null)
             {
                 yield return GenMethodResultPackClassSource(methodSymbol, sourceHintName, packContext);
             }
@@ -91,7 +91,7 @@ public static class MethodParameterPackCodeGenerateUtil
         }
     }
 
-    public static IEnumerable<ConstructorParameterPackSourceCode> GenerateConstructorPack(IEnumerable<IMethodSymbol> methodSymbols, string sourceHintName, string generatedTypeName)
+    public static IEnumerable<ConstructorParameterPackSourceCode> GenerateConstructorPack(IEnumerable<IMethodSymbol> methodSymbols, string sourceHintName, string generatedTypeName, TypeSymbolAnalyzer typeSymbolAnalyzer)
     {
         if (methodSymbols.Any(m => m.MethodKind != MethodKind.Constructor))
         {
@@ -104,7 +104,7 @@ public static class MethodParameterPackCodeGenerateUtil
         {
             foreach (var methodSymbol in methodSymbols)
             {
-                var packContext = methodSymbol.GetConstructorParamPackContext(generatedTypeName);
+                var packContext = methodSymbol.GetConstructorParamPackContext(generatedTypeName, typeSymbolAnalyzer);
                 yield return GenConstructorParameterPackClassSource(methodSymbol, sourceHintName, packContext, generatedTypeName);
             }
         }

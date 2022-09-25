@@ -66,22 +66,25 @@ public class MethodParamPackContext
     /// <summary>
     /// 结果包的类名
     /// </summary>
-    public string? ResultPackClassName => _resultPackClassName ??= MethodSymbol.GetReturnType() is null ? null : MethodSymbol.GetResultPackClassName();
+    public string? ResultPackClassName => _resultPackClassName ??= TypeSymbolAnalyzer.GetReturnType(MethodSymbol) is null ? null : MethodSymbol.GetResultPackClassName();
+
+    public TypeSymbolAnalyzer TypeSymbolAnalyzer { get; }
 
     #endregion Public 属性
 
     #region Public 构造函数
 
-    public MethodParamPackContext(IMethodSymbol methodSymbol)
+    public MethodParamPackContext(IMethodSymbol methodSymbol, TypeSymbolAnalyzer typeSymbolAnalyzer)
     {
         MethodSymbol = methodSymbol ?? throw new ArgumentNullException(nameof(methodSymbol));
+        TypeSymbolAnalyzer = typeSymbolAnalyzer ?? throw new ArgumentNullException(nameof(typeSymbolAnalyzer));
 
-        CancellationTokenParams = MethodSymbol.Parameters.Where(m => m.Type.IsCancellationToken()).ToImmutableArray();
+        CancellationTokenParams = MethodSymbol.Parameters.Where(m => TypeSymbolAnalyzer.IsCancellationToken(m.Type)).ToImmutableArray();
 
         DelegateParams = MethodSymbol.Parameters.Where(m => m.Type.IsDelegate()).ToImmutableArray();
 
         //HACK 支持其它特殊参数时需要处理
-        NormalParams = MethodSymbol.Parameters.Where(m => !m.Type.IsCancellationToken() && !m.Type.IsDelegate()).ToImmutableArray();
+        NormalParams = MethodSymbol.Parameters.Where(m => !TypeSymbolAnalyzer.IsCancellationToken(m.Type) && !m.Type.IsDelegate()).ToImmutableArray();
     }
 
     #endregion Public 构造函数
@@ -103,7 +106,7 @@ public class MethodParamPackContext
                 string type;
                 string name;
 
-                if (parameter.Type.IsCancellationToken()
+                if (TypeSymbolAnalyzer.IsCancellationToken(parameter.Type)
                     || parameter.Type.IsDelegate())
                 {
                     type = "int?";
@@ -128,7 +131,7 @@ public class MethodParamPackContext
 
     private string? GenResultPackClassCode()
     {
-        var returnType = MethodSymbol.GetReturnType();
+        var returnType = TypeSymbolAnalyzer.GetReturnType(MethodSymbol);
         if (returnType is null)
         {
             return null;
@@ -166,7 +169,7 @@ public class MethodParamPackContext
 
         foreach (var parameter in MethodSymbol.Parameters)
         {
-            if (parameter.Type.IsCancellationToken()
+            if (TypeSymbolAnalyzer.IsCancellationToken(parameter.Type)
                 || parameter.Type.IsDelegate())
             {
                 builder.AppendIndentLine($"{parameter.Name}_RID = {parameter.Name}_RID,");
@@ -213,7 +216,7 @@ public class MethodParamPackContext
             };
 
             var callbackMethod = ((INamedTypeSymbol)parameter.Type).DelegateInvokeMethod!;
-            var callbackParamPackContext = callbackMethod.GetParamPackContext();
+            var callbackParamPackContext = callbackMethod.GetParamPackContext(context.TypeSymbolAnalyzer);
 
             var callbackBodyBuilder = new ClassStringBuilder();
             callbackBodyBuilder.Indent();
@@ -223,7 +226,7 @@ public class MethodParamPackContext
             builder.AppendLine($@"{parameter.Type.ToFullyQualifiedDisplayString()} {parameter.Name} = null!;
 if ({LocalParamPackVariableName}.{parameter.Name}_RID.HasValue)
 {{
-    {parameter.Name} = {(callbackMethod.ReturnType.IsAwaitable() ? "async " : string.Empty)}({callbackMethod.GenerateMethodArgumentStringWithoutType()}) =>
+    {parameter.Name} = {(TypeSymbolAnalyzer.IsAwaitable(callbackMethod.ReturnType) ? "async " : string.Empty)}({callbackMethod.GenerateMethodArgumentStringWithoutType()}) =>
     {{
 {callbackBodyBuilder.ToString().Trim('\r', '\n')}
     }};

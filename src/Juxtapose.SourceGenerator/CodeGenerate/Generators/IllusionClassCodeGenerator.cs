@@ -122,7 +122,7 @@ return (executorOwner, instanceId);");
                 continue;
             }
 
-            var paramPackContext = constructor.GetConstructorParamPackContext(generatedTypeName);
+            var paramPackContext = constructor.GetConstructorParamPackContext(generatedTypeName, Context.TypeSymbolAnalyzer);
 
             var ctorAnnotation = $"/// <inheritdoc cref=\"{targetTypeName}.{targetTypeName}({string.Join(", ", constructor.Parameters.Select(m => m.Type.ToFullyQualifiedDisplayString()))})\"/>";
 
@@ -309,7 +309,7 @@ public void Dispose()
                                                  .OfType<IMethodSymbol>()
                                                  .ToArray();
 
-        foreach (var item in MethodParameterPackCodeGenerateUtil.Generate(delegateSymbols, "Delegates.ParameterPack.g.cs"))
+        foreach (var item in MethodParameterPackCodeGenerateUtil.Generate(delegateSymbols, "Delegates.ParameterPack.g.cs", Context.TypeSymbolAnalyzer))
         {
             Resources.TryAddDelegateArgumentPackSourceCode(item);
             yield return item;
@@ -323,7 +323,7 @@ public void Dispose()
                                                             .OfType<IMethodSymbol>()
                                                             .ToArray();
 
-        foreach (var item in MethodParameterPackCodeGenerateUtil.Generate(targetTypeProxyableMembers, $"{targetTypeSymbol.ToDisplayString()}.ParameterPack.g.cs"))
+        foreach (var item in MethodParameterPackCodeGenerateUtil.Generate(targetTypeProxyableMembers, $"{targetTypeSymbol.ToDisplayString()}.ParameterPack.g.cs", Context.TypeSymbolAnalyzer))
         {
             Resources.TryAddMethodArgumentPackSourceCode(item);
             yield return item;
@@ -340,7 +340,7 @@ public void Dispose()
                                                     .OfType<IMethodSymbol>()
                                                     .ToArray();
 
-            foreach (var item in MethodParameterPackCodeGenerateUtil.GenerateConstructorPack(constructors, $"{targetTypeSymbol.ToDisplayString()}.ParameterPack.g.cs", Descriptor.TypeFullName))
+            foreach (var item in MethodParameterPackCodeGenerateUtil.GenerateConstructorPack(constructors, $"{targetTypeSymbol.ToDisplayString()}.ParameterPack.g.cs", Descriptor.TypeFullName, Context.TypeSymbolAnalyzer))
             {
                 Resources.TryAddConstructorParameterPackSourceCode(item);
                 yield return item;

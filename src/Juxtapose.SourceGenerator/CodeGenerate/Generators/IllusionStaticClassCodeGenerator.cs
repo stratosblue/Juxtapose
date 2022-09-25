@@ -99,7 +99,7 @@ public class IllusionStaticClassCodeGenerator : ISourceCodeProvider<SourceCode>
                                                  .OfType<IMethodSymbol>()
                                                  .ToArray();
 
-        foreach (var item in MethodParameterPackCodeGenerateUtil.Generate(delegateSymbols, "Delegates.ParameterPack.g.cs"))
+        foreach (var item in MethodParameterPackCodeGenerateUtil.Generate(delegateSymbols, "Delegates.ParameterPack.g.cs", Context.TypeSymbolAnalyzer))
         {
             Resources.TryAddDelegateArgumentPackSourceCode(item);
             yield return item;
@@ -107,7 +107,7 @@ public class IllusionStaticClassCodeGenerator : ISourceCodeProvider<SourceCode>
 
         #endregion 委托
 
-        foreach (var item in MethodParameterPackCodeGenerateUtil.Generate(allProxyableMembers, $"{Descriptor.TargetType.ToDisplayString()}.ParameterPack.g.cs"))
+        foreach (var item in MethodParameterPackCodeGenerateUtil.Generate(allProxyableMembers, $"{Descriptor.TargetType.ToDisplayString()}.ParameterPack.g.cs", Context.TypeSymbolAnalyzer))
         {
             Resources.TryAddMethodArgumentPackSourceCode(item);
             yield return item;

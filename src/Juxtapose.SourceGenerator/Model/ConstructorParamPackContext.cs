@@ -14,7 +14,7 @@ public class ConstructorParamPackContext : MethodParamPackContext
 
     #region Public 构造函数
 
-    public ConstructorParamPackContext(IMethodSymbol methodSymbol, string generatedTypeName) : base(methodSymbol)
+    public ConstructorParamPackContext(IMethodSymbol methodSymbol, string generatedTypeName, TypeSymbolAnalyzer typeSymbolAnalyzer) : base(methodSymbol, typeSymbolAnalyzer)
     {
         if (string.IsNullOrWhiteSpace(generatedTypeName))
         {
