@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
-
-using Juxtapose.SourceGenerator.Model;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -91,71 +87,10 @@ internal static class IMethodSymbolExtensions
         }
     }
 
-    #region GetParamPackContext
-
-    private static readonly ConditionalWeakTable<IMethodSymbol, Dictionary<string, ConstructorParamPackContext>> s_constructorParamPackContextCache = new();
-    private static readonly ConditionalWeakTable<IMethodSymbol, MethodParamPackContext> s_methodParamPackContextCache = new();
-
-    public static ConstructorParamPackContext GetConstructorParamPackContext(this IMethodSymbol methodSymbol, string generatedTypeName, TypeSymbolAnalyzer typeSymbolAnalyzer)
-    {
-        if (methodSymbol.MethodKind != MethodKind.Constructor)
-        {
-            throw new ArgumentException($"{methodSymbol.ToDisplayString()} not a constructor.", nameof(methodSymbol));
-        }
-
-        if (string.IsNullOrWhiteSpace(generatedTypeName))
-        {
-            throw new ArgumentException($"“{nameof(generatedTypeName)}”不能为 null 或空白。", nameof(generatedTypeName));
-        }
-
-        lock (s_constructorParamPackContextCache)
-        {
-            if (s_constructorParamPackContextCache.TryGetValue(methodSymbol, out var packContextMap))
-            {
-                if (!packContextMap.TryGetValue(generatedTypeName, out var packContext))
-                {
-                    packContext = new ConstructorParamPackContext(methodSymbol, generatedTypeName, typeSymbolAnalyzer);
-                    packContextMap.Add(generatedTypeName, packContext);
-                }
-                return packContext;
-            }
-            else
-            {
-                var packContext = new ConstructorParamPackContext(methodSymbol, generatedTypeName, typeSymbolAnalyzer);
-                s_constructorParamPackContextCache.Add(methodSymbol, new() { { generatedTypeName, packContext } });
-                return packContext;
-            }
-        }
-    }
-
-    public static MethodParamPackContext GetParamPackContext(this IMethodSymbol methodSymbol, TypeSymbolAnalyzer typeSymbolAnalyzer)
-    {
-        if (methodSymbol.MethodKind == MethodKind.Constructor)
-        {
-            throw new ArgumentException($"{methodSymbol.ToDisplayString()} is a constructor.", nameof(methodSymbol));
-        }
-
-        lock (s_methodParamPackContextCache)
-        {
-            if (!s_methodParamPackContextCache.TryGetValue(methodSymbol, out var packContext))
-            {
-                if (!s_methodParamPackContextCache.TryGetValue(methodSymbol, out packContext))
-                {
-                    packContext = new MethodParamPackContext(methodSymbol, typeSymbolAnalyzer);
-                    s_methodParamPackContextCache.Add(methodSymbol, packContext);
-                }
-            }
-            return packContext;
-        }
-    }
-
-    #endregion GetParamPackContext
-
     public static string GetResultPackClassName(this IMethodSymbol methodSymbol)
     {
         return methodSymbol.GetNormalizeClassName() + "_ResultPack";
     }
-
 
     public static bool NotStatic(this IMethodSymbol methodSymbol)
     {

@@ -11,30 +11,6 @@ public interface IDiagnosticReporter
     #endregion Public 方法
 }
 
-internal class GeneratorExecutionContextDiagnosticReporter : IDiagnosticReporter
-{
-    #region Private 字段
-
-    private readonly GeneratorExecutionContext _context;
-
-    #endregion Private 字段
-
-    #region Public 构造函数
-
-    public GeneratorExecutionContextDiagnosticReporter(GeneratorExecutionContext context)
-    {
-        _context = context;
-    }
-
-    #endregion Public 构造函数
-
-    #region Public 方法
-
-    public void ReportDiagnostic(Diagnostic diagnostic) => _context.ReportDiagnostic(diagnostic);
-
-    #endregion Public 方法
-}
-
 internal class SourceProductionContextDiagnosticReporter : IDiagnosticReporter
 {
     #region Private 字段
