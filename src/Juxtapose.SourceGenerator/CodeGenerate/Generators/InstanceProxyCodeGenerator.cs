@@ -43,7 +43,7 @@ public class InstanceProxyCodeGenerator : ProxyCodeGenerator
 
         builder.AppendIndentLine($"/// <inheritdoc cref=\"global::{methodSymbol.ToInheritDocCrefString()}\"/>");
 
-        builder.AppendIndentLine($"public {(returnType.IsAwaitable() ? "async " : string.Empty)}{returnType.ToFullyQualifiedDisplayString()} {methodSymbol.Name}({methodSymbol.GenerateMethodArgumentString()})");
+        builder.AppendIndentLine($"public {(TypeSymbolAnalyzer.IsAwaitable(returnType) ? "async " : string.Empty)}{returnType.ToFullyQualifiedDisplayString()} {methodSymbol.Name}({methodSymbol.GenerateMethodArgumentString()})");
         builder.Scope(() =>
         {
             GenerateMethodProxyBody(builder, methodSymbol);

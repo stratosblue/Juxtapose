@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 namespace Juxtapose.SourceGenerator.Model;
 
 public class ContextResourceCollection : ResourceCollection
 {
+    public ContextResourceCollection(TypeSymbolAnalyzer typeSymbolAnalyzer) : base(typeSymbolAnalyzer)
+    {
+    }
 }

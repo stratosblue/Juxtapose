@@ -58,7 +58,7 @@ public class StaticProxyCodeGenerator : ProxyCodeGenerator
 
         builder.AppendIndentLine($"/// <inheritdoc cref=\"global::{methodSymbol.ToInheritDocCrefString()}\"/>");
 
-        builder.AppendIndentLine($"public static {(returnType.IsAwaitable() ? "async " : string.Empty)}{returnType.ToFullyQualifiedDisplayString()} {methodSymbol.Name}({methodSymbol.GenerateMethodArgumentString()})");
+        builder.AppendIndentLine($"public static {(TypeSymbolAnalyzer.IsAwaitable(returnType) ? "async " : string.Empty)}{returnType.ToFullyQualifiedDisplayString()} {methodSymbol.Name}({methodSymbol.GenerateMethodArgumentString()})");
         builder.Scope(() =>
         {
             GenerateMethodProxyBody(builder, methodSymbol);

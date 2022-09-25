@@ -96,7 +96,7 @@ internal static class IMethodSymbolExtensions
     private static readonly ConditionalWeakTable<IMethodSymbol, Dictionary<string, ConstructorParamPackContext>> s_constructorParamPackContextCache = new();
     private static readonly ConditionalWeakTable<IMethodSymbol, MethodParamPackContext> s_methodParamPackContextCache = new();
 
-    public static ConstructorParamPackContext GetConstructorParamPackContext(this IMethodSymbol methodSymbol, string generatedTypeName)
+    public static ConstructorParamPackContext GetConstructorParamPackContext(this IMethodSymbol methodSymbol, string generatedTypeName, TypeSymbolAnalyzer typeSymbolAnalyzer)
     {
         if (methodSymbol.MethodKind != MethodKind.Constructor)
         {
@@ -114,21 +114,21 @@ internal static class IMethodSymbolExtensions
             {
                 if (!packContextMap.TryGetValue(generatedTypeName, out var packContext))
                 {
-                    packContext = new ConstructorParamPackContext(methodSymbol, generatedTypeName);
+                    packContext = new ConstructorParamPackContext(methodSymbol, generatedTypeName, typeSymbolAnalyzer);
                     packContextMap.Add(generatedTypeName, packContext);
                 }
                 return packContext;
             }
             else
             {
-                var packContext = new ConstructorParamPackContext(methodSymbol, generatedTypeName);
+                var packContext = new ConstructorParamPackContext(methodSymbol, generatedTypeName, typeSymbolAnalyzer);
                 s_constructorParamPackContextCache.Add(methodSymbol, new() { { generatedTypeName, packContext } });
                 return packContext;
             }
         }
     }
 
-    public static MethodParamPackContext GetParamPackContext(this IMethodSymbol methodSymbol)
+    public static MethodParamPackContext GetParamPackContext(this IMethodSymbol methodSymbol, TypeSymbolAnalyzer typeSymbolAnalyzer)
     {
         if (methodSymbol.MethodKind == MethodKind.Constructor)
         {
@@ -141,7 +141,7 @@ internal static class IMethodSymbolExtensions
             {
                 if (!s_methodParamPackContextCache.TryGetValue(methodSymbol, out packContext))
                 {
-                    packContext = new MethodParamPackContext(methodSymbol);
+                    packContext = new MethodParamPackContext(methodSymbol, typeSymbolAnalyzer);
                     s_methodParamPackContextCache.Add(methodSymbol, packContext);
                 }
             }
@@ -156,29 +156,6 @@ internal static class IMethodSymbolExtensions
         return methodSymbol.GetNormalizeClassName() + "_ResultPack";
     }
 
-    /// <summary>
-    /// 获取方法的返回类型（当返回类型为Task`T`时，返回T的类型）当类型为 void 时，返回null
-    /// </summary>
-    /// <param name="methodSymbol"></param>
-    /// <returns></returns>
-    public static ITypeSymbol? GetReturnType(this IMethodSymbol methodSymbol)
-    {
-        var returnType = methodSymbol.ReturnType;
-        if (returnType is INamedTypeSymbol namedTypeSymbol
-            && (namedTypeSymbol.IsTaskT() || namedTypeSymbol.IsValueTaskT()))
-        {
-            return namedTypeSymbol.TypeArguments[0];
-        }
-        return returnType.IsVoid() || returnType.IsTask() || returnType.IsValueTask() ? null : returnType;
-    }
-
-    public static bool IsReturnVoidOrTask(this IMethodSymbol methodSymbol)
-    {
-        return methodSymbol.ReturnsVoid
-               || methodSymbol.ReturnType.IsTask()
-               || methodSymbol.ReturnType.IsValueTask()
-               ;
-    }
 
     public static bool NotStatic(this IMethodSymbol methodSymbol)
     {

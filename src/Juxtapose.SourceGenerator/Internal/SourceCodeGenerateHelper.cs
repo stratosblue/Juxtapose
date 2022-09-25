@@ -27,14 +27,14 @@ internal class SourceCodeGenerateHelper
             return;
         }
         ResultPackSourceCode? resultPackSourceCode = null;
-        if (method.GetReturnType() is not null
+        if (context.TypeSymbolAnalyzer.GetReturnType(method) is not null
             && !context.TryGetMethodResultPackWithDiagnostic(method, out resultPackSourceCode))
         {
             return;
         }
 
-        var paramPackContext = method.GetParamPackContext();
-        var isAwaitable = method.ReturnType.IsAwaitable();
+        var paramPackContext = method.GetParamPackContext(context.TypeSymbolAnalyzer);
+        var isAwaitable = context.TypeSymbolAnalyzer.IsAwaitable(method.ReturnType);
 
         builder.AppendLine(vars.MethodBodyPrefixSnippet);
 
@@ -49,7 +49,7 @@ internal class SourceCodeGenerateHelper
         foreach (var parameter in paramPackContext.DelegateParams)
         {
             var callbackMethod = ((INamedTypeSymbol)parameter.Type).DelegateInvokeMethod!;
-            var callbackParamPackContext = callbackMethod.GetParamPackContext();
+            var callbackParamPackContext = callbackMethod.GetParamPackContext(context.TypeSymbolAnalyzer);
 
             var callbackBodyBuilder = new ClassStringBuilder();
             callbackBodyBuilder.Indent();
@@ -180,13 +180,13 @@ finally
             return;
         }
         ResultPackSourceCode? resultPackSourceCode = null;
-        if (method.GetReturnType() is not null
+        if (context.TypeSymbolAnalyzer.GetReturnType(method) is not null
             && !context.TryGetMethodResultPackWithDiagnostic(method, out resultPackSourceCode))
         {
             return;
         }
-        var paramPackContext = method.GetParamPackContext();
-        var isAwaitable = method.ReturnType.IsAwaitable();
+        var paramPackContext = method.GetParamPackContext(context.TypeSymbolAnalyzer);
+        var isAwaitable = context.TypeSymbolAnalyzer.IsAwaitable(method.ReturnType);
 
         var awaitTag = isAwaitable ? "await " : string.Empty;
         var asyncTag = isAwaitable ? "Async" : string.Empty;
@@ -236,7 +236,7 @@ finally
         foreach (var parameter in paramPackContext.DelegateParams)
         {
             var callbackMethod = ((INamedTypeSymbol)parameter.Type).DelegateInvokeMethod!;
-            var callbackParamPackContext = callbackMethod.GetParamPackContext();
+            var callbackParamPackContext = callbackMethod.GetParamPackContext(context.TypeSymbolAnalyzer);
 
             var callbackBodyBuilder = new ClassStringBuilder();
             callbackBodyBuilder.Indent();
@@ -373,12 +373,12 @@ finally
             return;
         }
         ResultPackSourceCode? resultPackSourceCode = null;
-        if (method.GetReturnType() is not null
+        if (context.TypeSymbolAnalyzer.GetReturnType(method) is not null
             && !context.TryGetMethodResultPackWithDiagnostic(method, out resultPackSourceCode))
         {
             return;
         }
-        var paramPackContext = method.GetParamPackContext();
+        var paramPackContext = method.GetParamPackContext(context.TypeSymbolAnalyzer);
 
         var methodInvokeMessageTypeName = GetInvokeMessageFullTypeName(method, parameterPackSourceCode);
         var methodInvokeResultMessageTypeName = GetInvokeResultMessageFullTypeName(method, resultPackSourceCode);
@@ -415,7 +415,7 @@ finally
                 return;
             }
 
-            if (method.IsReturnVoidOrTask())
+            if (context.TypeSymbolAnalyzer.IsReturnVoidOrTask(method))
             {
                 sourceBuilder.AppendIndentSpace();
             }
@@ -424,7 +424,7 @@ finally
                 sourceBuilder.AppendIndent("var result = ");
             }
 
-            if (method.ReturnType.IsAwaitable())
+            if (context.TypeSymbolAnalyzer.IsAwaitable(method.ReturnType))
             {
                 sourceBuilder.Append("await ");
             }
@@ -438,7 +438,7 @@ finally
                 sourceBuilder.Append($"{vars.Instance}.{method.Name}({method.GenerateMethodArgumentStringWithoutType()});{Environment.NewLine}");
             }
 
-            if (method.IsReturnVoidOrTask())
+            if (context.TypeSymbolAnalyzer.IsReturnVoidOrTask(method))
             {
                 sourceBuilder.AppendIndentLine("return null;");
             }

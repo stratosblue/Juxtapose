@@ -44,6 +44,21 @@ public abstract class ResourceCollection
 
     #endregion Protected 属性
 
+    #region Public 属性
+
+    public TypeSymbolAnalyzer TypeSymbolAnalyzer { get; }
+
+    #endregion Public 属性
+
+    #region Public 构造函数
+
+    public ResourceCollection(TypeSymbolAnalyzer typeSymbolAnalyzer)
+    {
+        TypeSymbolAnalyzer = typeSymbolAnalyzer;
+    }
+
+    #endregion Public 构造函数
+
     #region Public 方法
 
     public void AddSourceCode(SourceCode sourceCode)
@@ -198,7 +213,7 @@ public abstract class ResourceCollection
 
     public virtual bool TryAddRealObjectInvokerSourceCode(INamedTypeSymbol targetTypeSymbol, INamedTypeSymbol? inheritTypeSymbol, RealObjectInvokerSourceCode invokerSourceCode)
     {
-        inheritTypeSymbol ??= BuildEnvironment.VoidSymbol;
+        inheritTypeSymbol ??= TypeSymbolAnalyzer.VoidSymbol;
         if (RealObjectInvokers.TryGetValue(targetTypeSymbol, out var invokerSourceCodes))
         {
             if (invokerSourceCodes.ContainsKey(inheritTypeSymbol))
@@ -243,7 +258,7 @@ public abstract class ResourceCollection
 
     public virtual bool TryGetRealObjectInvokerSourceCode(INamedTypeSymbol targetTypeSymbol, INamedTypeSymbol? inheritTypeSymbol, out RealObjectInvokerSourceCode? invokerSourceCode)
     {
-        inheritTypeSymbol ??= BuildEnvironment.VoidSymbol;
+        inheritTypeSymbol ??= TypeSymbolAnalyzer.VoidSymbol;
         invokerSourceCode = RealObjectInvokers.TryGetValue(targetTypeSymbol, out var invokerSourceCodes)
                             && invokerSourceCodes.TryGetValue(inheritTypeSymbol, out var sourceCode)
                             && sourceCode is not null
