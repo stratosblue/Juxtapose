@@ -29,9 +29,18 @@ public class IndentStringBuilder
     /// <summary>
     /// 使用的<see cref="StringBuilder"/>
     /// </summary>
-    public StringBuilder Builder { get; } = new(4096);
+    public StringBuilder Builder { get; }
 
     #endregion Public 属性
+
+    #region Public 构造函数
+
+    public IndentStringBuilder(int capacity = 4096)
+    {
+        Builder = new(capacity);
+    }
+
+    #endregion Public 构造函数
 
     #region Public 方法
 
@@ -123,6 +132,11 @@ public class IndentStringBuilder
         AppendLine(value);
         Dedent();
         AppendIndentLine("}");
+    }
+
+    public void Clear()
+    {
+        Builder.Clear();
     }
 
     /// <summary>
