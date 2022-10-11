@@ -1,6 +1,7 @@
 # Juxtapose
 ## 1. Intro
-基于 `SourceGenerator` 的硬编码 `.Net` 多`进程`运行库。
+A multi process runtime library based on 'SourceGenerator'.
+基于 `SourceGenerator` 的多`进程`运行库。
 
 ## 2. Features
  - 可以为`类型`、`接口`、`静态类`生成代理，无需手动编写RPC相关代码，即可`多进程`运行；
@@ -21,7 +22,7 @@
 ### 4.1 引用包
 ```XML
 <ItemGroup>
-  <PackageReference Include="Juxtapose" Version="1.0.2" />
+  <PackageReference Include="Juxtapose" Version="1.2.0" />
   <!--<PackageReference Include="Juxtapose.SourceGenerator" Version="1.0.0" /> 1.0.2 以后不再需要单独引用 SourceGenerator 包-->
 </ItemGroup>
 ```
@@ -83,7 +84,7 @@ await JuxtaposeEntryPoint.TryAsEndpointAsync(args, GreeterJuxtaposeContext.Share
 
 ## 5. 调试子进程（`Windows`&&`VisualStudio` Only）
 
-现在会自动附加调试器
+现在会自动附加调试器（启动项目需要直接引用`Juxtapose`包，以确保依赖包正确引入）
 
 ------
 

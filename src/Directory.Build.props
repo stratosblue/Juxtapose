@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.1.2</Version>
+    <Version>1.2.0</Version>
 
-    <Description>基于 `SourceGenerator` 的硬编码 `.Net` 多`进程`运行库。</Description>
+    <Description>A multi process runtime library based on 'SourceGenerator'. 基于 `SourceGenerator` 的多`进程`运行库。</Description>
 
     <PackageIdPrefix>Juxtapose</PackageIdPrefix>
     <Authors>Stratos</Authors>
