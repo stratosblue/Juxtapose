@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 
 using Microsoft.CodeAnalysis;
 
 namespace Juxtapose.SourceGenerator.Model;
 
+[DebuggerDisplay("{Accessibility} {TargetType} {InheritType} {GeneratedTypeName} {FromIoCContainer}")]
 public class IllusionAttributeDefine
 {
     #region Public 属性

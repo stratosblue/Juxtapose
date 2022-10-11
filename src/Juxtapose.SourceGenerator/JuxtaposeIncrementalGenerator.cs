@@ -51,23 +51,23 @@ public class JuxtaposeIncrementalGenerator : IIncrementalGenerator
         return false;
     }
 
-    private static ContextDeclaration TransformContextSyntaxNode(GeneratorSyntaxContext syntaxContext, CancellationToken cancellationToken)
+    private static JuxtaposeContextDeclaration TransformContextSyntaxNode(GeneratorSyntaxContext syntaxContext, CancellationToken cancellationToken)
     {
         if (syntaxContext.Node is ClassDeclarationSyntax classDeclarationSyntax
             && syntaxContext.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax) is INamedTypeSymbol namedTypeSymbol
             && namedTypeSymbol.IsBaseOnJuxtaposeContext())
         {
-            return new(syntaxContext.SemanticModel, namedTypeSymbol, classDeclarationSyntax.Modifiers.Any(SyntaxKind.PartialKeyword));
+            return JuxtaposeContextDeclaration.Create(syntaxContext.SemanticModel, namedTypeSymbol, classDeclarationSyntax);
         }
 
-        return ContextDeclaration.Default;
+        return JuxtaposeContextDeclaration.Default;
     }
 
     #endregion filter
 
     private static void GenerateSourceCodes(SourceProductionContext context,
                                             AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider,
-                                            ImmutableArray<ContextDeclaration> contextDeclarations)
+                                            ImmutableArray<JuxtaposeContextDeclaration> contextDeclarations)
     {
         bool isSaveGeneratedCodeFile = false;
         string? saveGeneratedCodePath = null;
@@ -228,36 +228,4 @@ public class JuxtaposeIncrementalGenerator : IIncrementalGenerator
     }
 
     #endregion Private 方法
-}
-
-public struct ContextDeclaration
-{
-    #region Public 字段
-
-    public static readonly ContextDeclaration Default = new();
-
-    #endregion Public 字段
-
-    #region Public 属性
-
-    public bool HasPartialKeyword { get; }
-
-    public bool IsDefault => TypeSymbol is null;
-
-    public SemanticModel SemanticModel { get; }
-
-    public INamedTypeSymbol TypeSymbol { get; }
-
-    #endregion Public 属性
-
-    #region Public 构造函数
-
-    public ContextDeclaration(SemanticModel semanticModel, INamedTypeSymbol typeSymbol, bool hasPartialKeyword)
-    {
-        SemanticModel = semanticModel;
-        TypeSymbol = typeSymbol;
-        HasPartialKeyword = hasPartialKeyword;
-    }
-
-    #endregion Public 构造函数
 }
