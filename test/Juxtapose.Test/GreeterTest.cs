@@ -110,6 +110,18 @@ namespace Juxtapose.Test
             ReNewInput();
             AssertUtil.Equal(await origin.AsyncMethod(input), await illusion.AsyncMethod(input));
 
+            var arrayInput = new int[] { 1, 2, 3 };
+            var arrayOutput = await origin.AsyncMethod(arrayInput);
+            var arrayOutput1 = await illusion.AsyncMethod(arrayInput);
+            AssertUtil.Equal(arrayOutput.Length, arrayOutput1.Length);
+            for (int i = 0; i < arrayOutput.Length; i++)
+            {
+                AssertUtil.Equal(arrayOutput[i], arrayOutput1[i]);
+            }
+
+            int? nullableIntInput = 1;
+            AssertUtil.Equal(await origin.AsyncMethod(nullableIntInput), await illusion.AsyncMethod(nullableIntInput));
+
             ReNewInput();
             await origin.AsyncMethodWithoutReturn(input);
             await illusion.AsyncMethodWithoutReturn(input);

@@ -26,6 +26,10 @@ namespace Juxtapose.Test
 
         Task<string> AsyncMethod(string input);
 
+        Task<int[]?> AsyncMethod(int[]? input);
+
+        Task<int?> AsyncMethod(int? input);
+
         Task<int> AsyncMethodCancelable(int millisecondsDelay, CancellationToken cancellation);
 
         Task<int> AsyncMethodCancelable(int millisecondsDelay, CancellationToken cancellation, CancellationToken cancellation2);

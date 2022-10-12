@@ -116,7 +116,7 @@ public struct JuxtaposeContextDeclaration : IEquatable<JuxtaposeContextDeclarati
                 return;
             }
 
-            AppendString(typeSymbol.ContainingNamespace.Name);
+            AppendString(typeSymbol.ContainingNamespace?.Name);
             AppendString(typeSymbol.Name);
 
             foreach (var item in typeSymbol.GetMembers().OrderBy(m => m.Name))
@@ -130,11 +130,11 @@ public struct JuxtaposeContextDeclaration : IEquatable<JuxtaposeContextDeclarati
 
                             foreach (var parameter in methodSymbol.Parameters)
                             {
-                                AppendString(parameter.Type.ContainingNamespace.Name);
+                                AppendString(parameter.Type.ContainingNamespace?.Name);
                                 AppendString(parameter.Type.Name);
                                 AppendString(parameter.Name);
                             }
-                            AppendString(methodSymbol.ReturnType.ContainingNamespace.Name);
+                            AppendString(methodSymbol.ReturnType.ContainingNamespace?.Name);
                             AppendString(methodSymbol.ReturnType.Name);
                             break;
                         }

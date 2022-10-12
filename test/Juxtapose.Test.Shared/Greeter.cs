@@ -53,6 +53,16 @@ namespace Juxtapose.Test
             return Task.FromResult(Reserve(input));
         }
 
+        public Task<int[]?> AsyncMethod(int[]? input)
+        {
+            return Task.FromResult(input.Reverse().ToArray());
+        }
+
+        public Task<int?> AsyncMethod(int? input)
+        {
+            return Task.FromResult(input);
+        }
+
         public async Task<int> AsyncMethodCancelable(int millisecondsDelay, CancellationToken cancellation)
         {
             await Task.Delay(millisecondsDelay, cancellation);

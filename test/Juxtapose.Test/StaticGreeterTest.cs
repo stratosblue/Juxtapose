@@ -92,7 +92,19 @@ namespace Juxtapose.Test
             PropCheck();
 
             ReNewInput();
-            AssertEqual(await StaticGreeterOrigin.AsyncMethod(input), await StaticGreeterIllusion.AsyncMethod(input));
+            AssertUtil.Equal(await StaticGreeterOrigin.AsyncMethod(input), await StaticGreeterIllusion.AsyncMethod(input));
+
+            var arrayInput = new int[] { 1, 2, 3 };
+            var arrayOutput = await StaticGreeterOrigin.AsyncMethod(arrayInput);
+            var arrayOutput1 = await StaticGreeterIllusion.AsyncMethod(arrayInput);
+            AssertUtil.Equal(arrayOutput.Length, arrayOutput1.Length);
+            for (int i = 0; i < arrayOutput.Length; i++)
+            {
+                AssertUtil.Equal(arrayOutput[i], arrayOutput1[i]);
+            }
+
+            int? nullableIntInput = 1;
+            AssertUtil.Equal(await StaticGreeterOrigin.AsyncMethod(nullableIntInput), await StaticGreeterIllusion.AsyncMethod(nullableIntInput));
 
             ReNewInput();
             await StaticGreeterOrigin.AsyncMethodWithoutReturn(input);
@@ -100,13 +112,13 @@ namespace Juxtapose.Test
             PropCheck();
 
             ReNewInput();
-            AssertEqual(await StaticGreeterOrigin.AwaitedAsyncMethod(input), await StaticGreeterIllusion.AwaitedAsyncMethod(input));
+            AssertUtil.Equal(await StaticGreeterOrigin.AwaitedAsyncMethod(input), await StaticGreeterIllusion.AwaitedAsyncMethod(input));
 
             ReNewInput();
-            AssertEqual(await StaticGreeterOrigin.AwaitedValueTaskAsyncMethod(input), await StaticGreeterIllusion.AwaitedValueTaskAsyncMethod(input));
+            AssertUtil.Equal(await StaticGreeterOrigin.AwaitedValueTaskAsyncMethod(input), await StaticGreeterIllusion.AwaitedValueTaskAsyncMethod(input));
 
             ReNewInput();
-            AssertEqual(StaticGreeterOrigin.Method(input), StaticGreeterIllusion.Method(input));
+            AssertUtil.Equal(StaticGreeterOrigin.Method(input), StaticGreeterIllusion.Method(input));
 
             ReNewInput();
             StaticGreeterOrigin.MethodWithoutReturn(input);
@@ -114,7 +126,7 @@ namespace Juxtapose.Test
             PropCheck();
 
             ReNewInput();
-            AssertEqual(await StaticGreeterOrigin.ValueTaskAsyncMethod(input), await StaticGreeterIllusion.ValueTaskAsyncMethod(input));
+            AssertUtil.Equal(await StaticGreeterOrigin.ValueTaskAsyncMethod(input), await StaticGreeterIllusion.ValueTaskAsyncMethod(input));
 
             ReNewInput();
             await StaticGreeterOrigin.ValueTaskAsyncMethodWithoutReturn(input);
@@ -160,21 +172,10 @@ namespace Juxtapose.Test
 
         #region Protected 方法
 
-        protected static void AssertEqual<T>(T origin,
-                                             T illusion,
-                                             [CallerArgumentExpression("origin")] string StaticGreeterOriginExpression = null,
-                                             [CallerArgumentExpression("illusion")] string StaticGreeterIllusionExpression = null)
-        {
-            Debug.WriteLine("origin value:   {0} - {1}", origin, StaticGreeterOriginExpression);
-            Debug.WriteLine("illusion value: {0} - {1}", illusion, StaticGreeterIllusionExpression);
-            Debug.WriteLine("   ----   ");
-            Assert.AreEqual(origin, illusion, "{0} Not Equals {1}", StaticGreeterOriginExpression, StaticGreeterIllusionExpression);
-        }
-
         protected static void PropCheck()
         {
-            AssertEqual(StaticGreeterOrigin.Prop, StaticGreeterIllusion.Prop);
-            AssertEqual(StaticGreeterOrigin.PropGet, StaticGreeterIllusion.PropGet);
+            AssertUtil.Equal(StaticGreeterOrigin.Prop, StaticGreeterIllusion.Prop);
+            AssertUtil.Equal(StaticGreeterOrigin.PropGet, StaticGreeterIllusion.PropGet);
         }
 
         #endregion Protected 方法
