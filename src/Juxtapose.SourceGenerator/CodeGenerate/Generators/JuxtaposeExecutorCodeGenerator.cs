@@ -33,7 +33,7 @@ public class JuxtaposeExecutorCodeGenerator : ISourceCodeProvider<SourceCode>
     /// <summary>
     /// 上下文的命名空间
     /// </summary>
-    public string Namespace { get; }
+    public string? Namespace { get; }
 
     public string SourceHintName { get; }
 
@@ -53,7 +53,7 @@ public class JuxtaposeExecutorCodeGenerator : ISourceCodeProvider<SourceCode>
 
         TypeFullName = contextTypeSymbol.ToDisplayString();
 
-        Namespace = contextTypeSymbol.ContainingNamespace.ToDisplayString();
+        Namespace = contextTypeSymbol.ContainingNamespace.GetNamespaceName();
 
         SourceHintName = $"{TypeFullName}.Executor.g.cs";
 

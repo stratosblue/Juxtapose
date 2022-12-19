@@ -45,7 +45,10 @@ public class RealObjectInvokerCodeGenerator : ISourceCodeProvider<SourceCode>
         Resources = resources ?? throw new ArgumentNullException(nameof(resources));
 
         TypeFullName = $"{descriptor.TypeFullName}RealObjectInvoker";
-        TypeName = TypeFullName.Substring(descriptor.Namespace.Length + 1);
+
+        TypeName = descriptor.Namespace?.Length > 0
+                   ? TypeFullName.Substring(descriptor.Namespace.Length + 1)
+                   : TypeFullName;
 
         SourceHintName = $"{TypeFullName}.RealObjectInvoker.g.cs";
 

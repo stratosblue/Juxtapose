@@ -24,10 +24,17 @@ public class ClassStringBuilder : IndentStringBuilder
     /// </summary>
     /// <param name="action"></param>
     /// <param name="name"></param>
-    public void Namespace(Action action, string name)
+    public void Namespace(Action action, string? name)
     {
-        AppendIndentLine($"namespace {name}");
-        Scope(action);
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            AppendIndentLine($"namespace {name}");
+            Scope(action);
+        }
+        else
+        {
+            action();
+        }
     }
 
     #endregion Public 方法

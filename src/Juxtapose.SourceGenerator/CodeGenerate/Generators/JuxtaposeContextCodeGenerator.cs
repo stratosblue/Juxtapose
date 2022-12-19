@@ -35,7 +35,7 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
     /// <summary>
     /// 上下文的命名空间
     /// </summary>
-    public string Namespace { get; }
+    public string? Namespace { get; }
 
     public string SourceHintName { get; }
 
@@ -55,7 +55,7 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
 
         TypeFullName = contextTypeSymbol.ToDisplayString();
 
-        Namespace = contextTypeSymbol.ContainingNamespace.ToDisplayString();
+        Namespace = contextTypeSymbol.ContainingNamespace.GetNamespaceName();
 
         var allIllusionAttributes = contextTypeSymbol.GetAttributes()
                                                      .Where(m => m.IsIllusionAttribute())

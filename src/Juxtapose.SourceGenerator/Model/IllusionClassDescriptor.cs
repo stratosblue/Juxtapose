@@ -17,7 +17,7 @@ public abstract class IllusionClassDescriptor : IEquatable<IllusionClassDescript
     /// <summary>
     /// 生成的类型的命名空间
     /// </summary>
-    public string Namespace { get; }
+    public string? Namespace { get; }
 
     /// <summary>
     /// 要生成代理的目标类型
@@ -56,14 +56,17 @@ public abstract class IllusionClassDescriptor : IEquatable<IllusionClassDescript
 
         Namespace = GenerateNameSpace(attributeDefine, contextType);
         TypeName = GenerateTypeName(attributeDefine, contextType);
-        TypeFullName = $"{Namespace}.{TypeName}";
+
+        TypeFullName = Namespace?.Length > 0
+                       ? $"{Namespace}.{TypeName}"
+                       : TypeName;
     }
 
     #endregion Public 构造函数
 
     #region Protected 方法
 
-    protected virtual string GenerateNameSpace(IllusionAttributeDefine attributeDefine, INamedTypeSymbol contextType)
+    protected virtual string? GenerateNameSpace(IllusionAttributeDefine attributeDefine, INamedTypeSymbol contextType)
     {
         if (attributeDefine.GeneratedTypeName is string proxyTypeName
             && string.IsNullOrWhiteSpace(proxyTypeName)
@@ -72,7 +75,10 @@ public abstract class IllusionClassDescriptor : IEquatable<IllusionClassDescript
             return proxyTypeName.Substring(0, proxyTypeName.LastIndexOf('.'));
         }
         var implementTypeFullName = attributeDefine.TargetType.ToDisplayString();
-        return implementTypeFullName.Substring(0, implementTypeFullName.LastIndexOf('.'));
+        var dotIndex = implementTypeFullName.LastIndexOf('.');
+        return dotIndex > 0
+               ? implementTypeFullName.Substring(0, dotIndex)
+               : null;
     }
 
     protected virtual string GenerateTypeName(IllusionAttributeDefine attributeDefine, INamedTypeSymbol contextType)
@@ -144,7 +150,7 @@ public abstract class IllusionClassDescriptor : IEquatable<IllusionClassDescript
         int hashCode = 1771693360;
         hashCode = hashCode * -1521134295 + Accessibility.GetHashCode();
         hashCode = hashCode * -1521134295 + SymbolEqualityComparer.Default.GetHashCode(ContextType);
-        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Namespace);
+        hashCode = hashCode * -1521134295 + (Namespace is null ? 0 : EqualityComparer<string>.Default.GetHashCode(Namespace));
         hashCode = hashCode * -1521134295 + SymbolEqualityComparer.Default.GetHashCode(TargetType);
         hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(TypeFullName);
         hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(TypeName);
