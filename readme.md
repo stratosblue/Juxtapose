@@ -15,7 +15,7 @@ A multi process runtime library based on 'SourceGenerator'.
  - 目前所有的参数都不应该在方法完成后进行保留，`CancellationToken`、`委托`等在方法完成后会被释放；
 
 ## 3. Requirement
- - .Net5.0+(其它版本没有尝试过)
+ - .Net6.0+(其它版本没有尝试过)
 
 ## 4. 使用方法
 
