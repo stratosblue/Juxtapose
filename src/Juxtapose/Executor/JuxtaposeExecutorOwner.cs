@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-
-namespace Juxtapose;
+﻿namespace Juxtapose;
 
 /// <inheritdoc cref="IJuxtaposeExecutorOwner"/>
 public sealed class JuxtaposeExecutorOwner : IJuxtaposeExecutorOwner
@@ -9,10 +6,15 @@ public sealed class JuxtaposeExecutorOwner : IJuxtaposeExecutorOwner
     #region Private 字段
 
     private readonly ExecutorCreationContext _creationContext;
+
     private readonly ExecutorHolderDestroyCallback _destroyCallback;
+
     private readonly IJuxtaposeExecutorHolder _executorHolder;
+
     private readonly IExecutorPoolPolicy _executorPoolPolicy;
+
     private readonly string _identifier;
+
     private int _isDisposed = 0;
 
     #endregion Private 字段
@@ -27,7 +29,11 @@ public sealed class JuxtaposeExecutorOwner : IJuxtaposeExecutorOwner
     #region Public 构造函数
 
     /// <inheritdoc cref="JuxtaposeExecutorOwner"/>
-    public JuxtaposeExecutorOwner(string identifier, IJuxtaposeExecutorHolder executorHolder, ExecutorCreationContext creationContext, IExecutorPoolPolicy executorPoolPolicy, ExecutorHolderDestroyCallback destroyCallback)
+    public JuxtaposeExecutorOwner(string identifier,
+                                  IJuxtaposeExecutorHolder executorHolder,
+                                  ExecutorCreationContext creationContext,
+                                  IExecutorPoolPolicy executorPoolPolicy,
+                                  ExecutorHolderDestroyCallback destroyCallback)
     {
         _identifier = identifier ?? throw new ArgumentNullException(nameof(identifier));
         _executorHolder = executorHolder ?? throw new ArgumentNullException(nameof(executorHolder));

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Juxtapose;
+﻿namespace Juxtapose;
 
 /// <summary>
 /// 外部进程激活器

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Juxtapose.SourceGenerator.Model;
+﻿namespace Juxtapose.SourceGenerator.Model;
 
 /// <summary>
 /// 真实对象调用

@@ -5,7 +5,6 @@
 /// </summary>
 public class StaticMethodInvokeResultMessage<TResult>
     : MethodInvokeResultMessage<TResult>
-    where TResult : class
 {
     #region Public 构造函数
 

@@ -1,15 +1,13 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Juxtapose.ObjectPool;
+﻿namespace Juxtapose.ObjectPool;
 
 internal class DelegateBaseDynamicObjectPool<T> : DynamicObjectPool<T>
 {
     #region Private 字段
 
     private readonly Func<CancellationToken, Task<T>> _createDelegate;
+
     private readonly Action<T> _destroyDelegate;
+
     private readonly ResourcePressureDelegate _resourcePressureDelegate;
 
     #endregion Private 字段

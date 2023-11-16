@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -75,21 +73,10 @@ internal static class IMethodSymbolExtensions
         return symbol.ToDisplayString().NormalizeAsClassName();
     }
 
-    public static string GetParamPackClassName(this IMethodSymbol methodSymbol)
+    public static bool IsPropertyAccessor(this IMethodSymbol methodSymbol)
     {
-        if (methodSymbol.MethodKind == MethodKind.Constructor)
-        {
-            return methodSymbol.GetNormalizeClassName() + "_ctor_ParamPack";
-        }
-        else
-        {
-            return methodSymbol.GetNormalizeClassName() + "_ParamPack";
-        }
-    }
-
-    public static string GetResultPackClassName(this IMethodSymbol methodSymbol)
-    {
-        return methodSymbol.GetNormalizeClassName() + "_ResultPack";
+        return methodSymbol.MethodKind == MethodKind.PropertyGet
+               || methodSymbol.MethodKind == MethodKind.PropertySet;
     }
 
     public static bool NotStatic(this IMethodSymbol methodSymbol)

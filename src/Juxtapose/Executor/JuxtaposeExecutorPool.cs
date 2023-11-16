@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 
 using Microsoft.Extensions.Logging;
 
@@ -13,8 +10,11 @@ public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
     #region Private 字段
 
     private readonly IInitializationContext _context;
+
     private readonly SemaphoreSlim _executorCreateSemaphore = new(1, 1);
+
     private readonly ILogger _logger;
+
     private bool _isDisposed;
 
     #endregion Private 字段
@@ -34,7 +34,9 @@ public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
     #region Public 构造函数
 
     /// <inheritdoc cref="JuxtaposeExecutorPool"/>
-    public JuxtaposeExecutorPool(IInitializationContext context, IExecutorPoolPolicy poolPolicy, ILoggerFactory loggerFactory)
+    public JuxtaposeExecutorPool(IInitializationContext context,
+                                 IExecutorPoolPolicy poolPolicy,
+                                 ILoggerFactory loggerFactory)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         Policy = poolPolicy ?? throw new ArgumentNullException(nameof(poolPolicy));
@@ -45,7 +47,11 @@ public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
 
     #region Private 方法
 
-    private async Task<IJuxtaposeExecutorHolder> GetAndHoldExecutorHolderAsync(ExecutorCreationContext creationContext, string identifier, int? holdLimit, CancellationToken cancellation, bool shouldRetry = true)
+    private async Task<IJuxtaposeExecutorHolder> GetAndHoldExecutorHolderAsync(ExecutorCreationContext creationContext,
+                                                                               string identifier,
+                                                                               int? holdLimit,
+                                                                               CancellationToken cancellation,
+                                                                               bool shouldRetry = true)
     {
         cancellation.ThrowIfCancellationRequested();
 
@@ -55,7 +61,7 @@ public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
         if (holder.IsDisposed
             || holder.Executor.IsDisposed)
         {
-            _logger.LogWarning("Executor holder {0} has disposed. Try get a new holder.", identifier);
+            _logger.LogWarning("Executor holder {Identifier} has disposed. Try get a new holder.", identifier);
             RemoveExecutorHolder(identifier);
             holder = await TryGetExecutorHolderAsync(creationContext, identifier, holdLimit, cancellation);
         }
@@ -68,9 +74,9 @@ public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
 
         try
         {
-            _logger.LogTrace("Holding executor - {0} .", identifier);
+            _logger.LogTrace("Holding executor - {Identifier} .", identifier);
             await holder.HoldAsync(cancellation);
-            _logger.LogTrace("Executor Holded - {0} .", identifier);
+            _logger.LogTrace("Executor Holded - {Identifier} .", identifier);
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
@@ -78,7 +84,7 @@ public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
             if (shouldRetry
                 && (holder.IsDisposed || holder.Executor.IsDisposed))
             {
-                _logger.LogWarning(ex, "Exception threw while holding executor - {0} . And holder has disposed. Try get a executor again.", identifier);
+                _logger.LogWarning(ex, "Exception threw while holding executor - {Identifier} . And holder has disposed. Try get a executor again.", identifier);
                 return await GetAndHoldExecutorHolderAsync(creationContext, identifier, holdLimit, cancellation, false);
             }
             else
@@ -151,9 +157,9 @@ public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
     {
         if (ExecutorHolders.TryRemove(identifier, out var executorHolder))
         {
-            _logger.LogTrace("Executor {0} prepare drop starting. Current hold count: {1}.", identifier, executorHolder.Count);
+            _logger.LogTrace("Executor {Identifier} prepare drop starting. Current hold count: {HoldCount}.", identifier, executorHolder.Count);
             executorHolder.PrepareDrop();
-            _logger.LogTrace("Executor {0} prepare drop complete. Is disposed: {1} ", identifier, executorHolder.IsDisposed);
+            _logger.LogTrace("Executor {Identifier} prepare drop complete. Is disposed: {IsDisposed} ", identifier, executorHolder.IsDisposed);
         }
     }
 
@@ -165,7 +171,10 @@ public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
     /// <param name="holdLimit"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
-    protected async Task<IJuxtaposeExecutorHolder> TryGetExecutorHolderAsync(ExecutorCreationContext creationContext, string identifier, int? holdLimit, CancellationToken cancellation)
+    protected async Task<IJuxtaposeExecutorHolder> TryGetExecutorHolderAsync(ExecutorCreationContext creationContext,
+                                                                             string identifier,
+                                                                             int? holdLimit,
+                                                                             CancellationToken cancellation)
     {
         if (!ExecutorHolders.TryGetValue(identifier, out var holder))
         {
@@ -174,7 +183,7 @@ public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
             {
                 if (!ExecutorHolders.TryGetValue(identifier, out holder))
                 {
-                    _logger.LogDebug("Creating new executor for identifier - {0} .", identifier);
+                    _logger.LogDebug("Creating new executor for identifier - {Identifier} .", identifier);
                     var newExecutor = await CreateExecutorAsync(creationContext, cancellation);
                     holder = CreateExecutorHolder(newExecutor, holdLimit);
                     ExecutorHolders.TryAdd(identifier, holder);

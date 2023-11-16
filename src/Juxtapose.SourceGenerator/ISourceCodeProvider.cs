@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Juxtapose.SourceGenerator.Model;
+﻿using Juxtapose.SourceGenerator.Model;
 
 namespace Juxtapose.SourceGenerator;
 

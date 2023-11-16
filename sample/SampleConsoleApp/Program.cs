@@ -8,11 +8,16 @@ await JuxtaposeEntryPoint.TryAsEndpointAsync(args, () => new IInitializationCont
 
 Console.WriteLine($"Current Process Id: {Environment.ProcessId}.");
 {
-    Console.WriteLine(" ----------------- HelloAsIHelloIllusion ----------------- ");
-    using var instance = new HelloAsIHelloIllusion();
+    Console.WriteLine(" ----------------- HelloIllusion ----------------- ");
+    using var instance = new HelloIllusion();
 
     Console.WriteLine(instance.Where());
     Console.WriteLine(await instance.SayAsync("Tom"));
+
+    var ihello = instance as IHello;
+
+    Console.WriteLine("IHello: " + ihello.Where());
+    Console.WriteLine("IHello: " + await ihello.SayAsync("Tom"));
 }
 
 {
@@ -21,6 +26,11 @@ Console.WriteLine($"Current Process Id: {Environment.ProcessId}.");
 
     Console.WriteLine(anotherInstance.Where());
     Console.WriteLine(await anotherInstance.SayAsync("Jerry"));
+
+    var ihello = anotherInstance as IHello;
+
+    Console.WriteLine("IHello: " + ihello.Where());
+    Console.WriteLine("IHello: " + await ihello.SayAsync("Jerry"));
 }
 
 Console.WriteLine("Completed.");

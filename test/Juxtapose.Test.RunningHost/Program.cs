@@ -1,26 +1,24 @@
 ﻿using System.Diagnostics;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
-namespace Juxtapose.Test.RunningHost
+namespace Juxtapose.Test.RunningHost;
+
+internal class Program
 {
-    internal class Program
+    #region Private 方法
+
+    private static async Task Main(string[] args)
     {
-        #region Private 方法
-
-        private static async Task Main(string[] args)
+        if (!Debugger.IsAttached)
         {
-            if (!Debugger.IsAttached)
-            {
-                //Debugger.Launch();
-            }
-
-            //GreeterJuxtaposeContext.SharedInstance.FastSetFileLoggerFactory(LogLevel.Trace);
-            GreeterJuxtaposeContext.SharedInstance.UnSetConsoleLoggerFactory();
-
-            await JuxtaposeEntryPoint.AsEndpointAsync(args);
+            //Debugger.Launch();
         }
 
-        #endregion Private 方法
+        //GreeterJuxtaposeContext.SharedInstance.FastSetFileLoggerFactory(LogLevel.Trace);
+        GreeterJuxtaposeContext.SharedInstance.UnSetConsoleLoggerFactory();
+
+        await JuxtaposeEntryPoint.AsEndpointAsync(args);
     }
+
+    #endregion Private 方法
 }

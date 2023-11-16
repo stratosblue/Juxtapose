@@ -1,5 +1,5 @@
-﻿using System;
-
+﻿using Juxtapose.Communication.Channel;
+using Juxtapose.Communication.Codec;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -13,8 +13,11 @@ public abstract class JuxtaposeContext : IInitializationContext, IDisposable
     #region Private 字段
 
     private IJuxtaposeBootstrapper? _bootstrapper;
+
     private IJuxtaposeExecutorPool? _executorPool;
+
     private bool _isDisposed;
+
     private ILoggerFactory? _loggerFactory;
 
     #endregion Private 字段
@@ -37,14 +40,14 @@ public abstract class JuxtaposeContext : IInitializationContext, IDisposable
 
     #region Public 属性
 
-    /// <inheritdoc cref="JuxtaposeContext"/>
-    public abstract CommunicationOptions CommunicationOptions { get; }
+    /// <inheritdoc cref="Juxtapose.CommunicationOptions"/>
+    public virtual CommunicationOptions CommunicationOptions => new(NamedPipeCommunicationChannelFactory.Shared, LengthBasedFrameCodecFactory.Shared, CreateCommunicationMessageCodecFactory());
 
     /// <inheritdoc/>
     public abstract string Identifier { get; }
 
     /// <summary>
-    ///
+    /// <inheritdoc cref="ILoggerFactory"/>
     /// </summary>
     public ILoggerFactory LoggerFactory { get => _loggerFactory ?? CreateLoggerFactory(); set => _loggerFactory = value; }
 
@@ -87,6 +90,26 @@ public abstract class JuxtaposeContext : IInitializationContext, IDisposable
     /// </summary>
     /// <returns></returns>
     protected virtual ILoggerFactory CreateLoggerFactory() => NullLoggerFactory.Instance;
+
+    #region Communication
+
+    /// <summary>
+    /// 创建 <inheritdoc cref="ICommunicationMessageCodecFactory"/>
+    /// </summary>
+    /// <returns></returns>
+    protected virtual ICommunicationMessageCodecFactory CreateCommunicationMessageCodecFactory()
+    {
+        var communicationMessageCodec = new DefaultJsonBasedMessageCodec(GetMessageTypes(), LoggerFactory, null);
+        return new GenericSharedMessageCodecFactory(communicationMessageCodec);
+    }
+
+    /// <summary>
+    /// 获取所有消息类型
+    /// </summary>
+    /// <returns></returns>
+    protected abstract IEnumerable<Type> GetMessageTypes();
+
+    #endregion Communication
 
     #endregion Protected 方法
 

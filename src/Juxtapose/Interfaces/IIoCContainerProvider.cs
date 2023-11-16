@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace Juxtapose;
+﻿namespace Juxtapose;
 
 /// <summary>
 /// IoC容器提供器

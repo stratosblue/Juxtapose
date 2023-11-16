@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Juxtapose.ObjectPool;
+﻿namespace Juxtapose.ObjectPool;
 
 /// <summary>
 /// 空的<inheritdoc cref="IDynamicObjectPoolScheduler{T}"/>

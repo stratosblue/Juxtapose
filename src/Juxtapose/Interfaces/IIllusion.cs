@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Juxtapose;
+﻿namespace Juxtapose;
 
 /// <summary>
 /// 幻象类接口

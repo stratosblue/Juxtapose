@@ -5,7 +5,6 @@
 /// </summary>
 public class CreateObjectInstanceMessage<TParameterPack>
     : MethodInvokeMessage<TParameterPack>
-    where TParameterPack : class
 {
     #region Public 属性
 
@@ -19,7 +18,7 @@ public class CreateObjectInstanceMessage<TParameterPack>
     #region Public 构造函数
 
     /// <inheritdoc cref="CreateObjectInstanceMessage{TParameterPack}"/>
-    public CreateObjectInstanceMessage(int instanceId)
+    public CreateObjectInstanceMessage(int instanceId, int commandId) : base(commandId)
     {
         InstanceId = instanceId;
     }
@@ -31,7 +30,7 @@ public class CreateObjectInstanceMessage<TParameterPack>
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"【CreateObjectInstanceMessage】Id: {Id} ,InstanceId: {InstanceId} ,ParameterPack: {ParameterPack}";
+        return $"【CreateObjectInstanceMessage】Id: {Id} ,CommandId: {CommandId} ,InstanceId: {InstanceId} ,ParameterPack: {ParameterPack}";
     }
 
     #endregion Public 方法

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-using Juxtapose.SourceGenerator.Internal;
+﻿using Juxtapose.SourceGenerator.Internal;
 using Juxtapose.SourceGenerator.Model;
 
 using Microsoft.CodeAnalysis;
@@ -21,8 +18,12 @@ public class StaticProxyCodeGenerator : ProxyCodeGenerator
 
     #region Public 构造函数
 
-    public StaticProxyCodeGenerator(JuxtaposeSourceGeneratorContext context, ClassStringBuilder sourceBuilder, INamedTypeSymbol typeSymbol, VariableName vars)
-        : base(context, sourceBuilder, typeSymbol)
+    public StaticProxyCodeGenerator(JuxtaposeContextSourceGeneratorContext context,
+                                    ResourceCollection resources,
+                                    ClassStringBuilder sourceBuilder,
+                                    INamedTypeSymbol typeSymbol,
+                                    VariableName vars)
+        : base(context, resources, sourceBuilder, typeSymbol)
     {
         _vars = vars ?? throw new ArgumentNullException(nameof(vars));
     }
@@ -47,7 +48,7 @@ public class StaticProxyCodeGenerator : ProxyCodeGenerator
 
     protected override void GenerateMethodProxyBody(ClassStringBuilder builder, IMethodSymbol method)
     {
-        SourceCodeGenerateHelper.GenerateStaticMethodProxyBodyCode(builder, Context, method, new VariableName(_vars) { RunningToken = "CancellationToken.None" });
+        SourceCodeGenerateHelper.GenerateStaticMethodProxyBodyCode(builder, Context, Resources, method, new VariableName(_vars) { RunningToken = "CancellationToken.None" });
     }
 
     protected override string GenerateMethodProxyCode(IMethodSymbol methodSymbol)
@@ -103,56 +104,38 @@ public class StaticProxyCodeGenerator : ProxyCodeGenerator
 
     public override void GenerateMemberProxyCode()
     {
-        var typeMembers = TypeSymbol.GetProxyableMembers(false).Where(m => m.DeclaredAccessibility == Accessibility.Public).ToArray();
+        var properties = Resources.GetAllProperties().ToList();
+        var methods = Resources.GetAllMethods().ToList();
 
-        foreach (var typeMember in typeMembers)
+        foreach (var propertySymbol in properties)
         {
-            switch (typeMember)
-            {
-                case IPropertySymbol propertySymbol:
-                    GenerateCreationContext(propertySymbol.GetMethod);
-                    GenerateCreationContext(propertySymbol.SetMethod);
-                    break;
-
-                case IMethodSymbol methodSymbol:
-                    if (methodSymbol.MethodKind == MethodKind.PropertyGet
-                        || methodSymbol.MethodKind == MethodKind.PropertySet)
-                    {
-                        continue;
-                    }
-                    GenerateCreationContext(methodSymbol);
-                    break;
-
-                default://暂时先不支持
-                    throw new NotImplementedException();
-            }
+            GenerateCreationContext(propertySymbol.GetMethod);
+            GenerateCreationContext(propertySymbol.SetMethod);
         }
 
-        foreach (var typeMember in typeMembers)
+        foreach (var methodSymbol in methods)
         {
-            switch (typeMember.Kind)
+            if (methodSymbol.IsPropertyAccessor())
             {
-                case SymbolKind.Property:
-                    Builder.AppendLine();
-                    Builder.AppendLine(GeneratePropertyProxyCode((IPropertySymbol)typeMember));
-                    break;
-
-                case SymbolKind.Method:
-                    var methodSymbol = (IMethodSymbol)typeMember;
-                    if (methodSymbol.MethodKind == MethodKind.PropertyGet
-                        || methodSymbol.MethodKind == MethodKind.PropertySet)
-                    {
-                        continue;
-                    }
-                    Builder.AppendLine();
-                    Builder.AppendLine(GenerateMethodProxyCode(methodSymbol));
-                    break;
-
-                case SymbolKind.Event:   //暂时先不支持
-                    throw new NotImplementedException();
-                default:
-                    throw new NotImplementedException();
+                continue;
             }
+            GenerateCreationContext(methodSymbol);
+        }
+
+        foreach (var propertySymbol in properties)
+        {
+            Builder.AppendLine();
+            Builder.AppendLine(GeneratePropertyProxyCode(propertySymbol));
+        }
+
+        foreach (var methodSymbol in methods)
+        {
+            if (methodSymbol.IsPropertyAccessor())
+            {
+                continue;
+            }
+            Builder.AppendLine();
+            Builder.AppendLine(GenerateMethodProxyCode(methodSymbol));
         }
     }
 

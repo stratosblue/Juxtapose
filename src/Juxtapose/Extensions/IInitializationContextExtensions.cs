@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Juxtapose.Messages;
+﻿using Juxtapose.Messages;
 
 namespace Juxtapose;
 
@@ -82,24 +78,25 @@ public static class IInitializationContextExtensions
     /// <param name="context"></param>
     /// <param name="creationContext"></param>
     /// <param name="parameterPack"></param>
+    /// <param name="commandId"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
     public static TResultPack InvokeStaticMessage<TParameterPack, TResultPack>(this IInitializationContext context,
                                                                                ExecutorCreationContext creationContext,
                                                                                TParameterPack parameterPack,
+                                                                               int commandId,
                                                                                CancellationToken cancellation)
-        where TParameterPack : class
-        where TResultPack : class
     {
-        return InvokeStaticMessageWithoutSyncContextAsync(context, creationContext, parameterPack, cancellation).GetAwaiter().GetResult();
+        return InvokeStaticMessageWithoutSyncContextAsync(context, creationContext, parameterPack, commandId, cancellation).GetAwaiter().GetResult();
 
         static async Task<TResultPack> InvokeStaticMessageWithoutSyncContextAsync(IInitializationContext context,
                                                                                   ExecutorCreationContext creationContext,
                                                                                   TParameterPack parameterPack,
+                                                                                  int commandId,
                                                                                   CancellationToken cancellation)
         {
             await SynchronizationContextRemover.Awaiter;
-            return await context.InvokeStaticMessageAsync<TParameterPack, TResultPack>(creationContext, parameterPack, cancellation);
+            return await context.InvokeStaticMessageAsync<TParameterPack, TResultPack>(creationContext, parameterPack, commandId, cancellation);
         }
     }
 
@@ -110,23 +107,25 @@ public static class IInitializationContextExtensions
     /// <param name="context"></param>
     /// <param name="creationContext"></param>
     /// <param name="parameterPack"></param>
+    /// <param name="commandId"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
     public static JuxtaposeAckMessage InvokeStaticMessage<TParameterPack>(this IInitializationContext context,
                                                                           ExecutorCreationContext creationContext,
                                                                           TParameterPack parameterPack,
+                                                                          int commandId,
                                                                           CancellationToken cancellation)
-        where TParameterPack : class
     {
-        return InvokeStaticMessageWithoutSyncContextAsync(context, creationContext, parameterPack, cancellation).GetAwaiter().GetResult();
+        return InvokeStaticMessageWithoutSyncContextAsync(context, creationContext, parameterPack, commandId, cancellation).GetAwaiter().GetResult();
 
         static async Task<JuxtaposeAckMessage> InvokeStaticMessageWithoutSyncContextAsync(IInitializationContext context,
                                                                                           ExecutorCreationContext creationContext,
                                                                                           TParameterPack parameterPack,
+                                                                                          int commandId,
                                                                                           CancellationToken cancellation)
         {
             await SynchronizationContextRemover.Awaiter;
-            return await context.InvokeStaticMessageAsync<TParameterPack>(creationContext, parameterPack, cancellation);
+            return await context.InvokeStaticMessageAsync<TParameterPack>(creationContext, parameterPack, commandId, cancellation);
         }
     }
 
@@ -138,17 +137,17 @@ public static class IInitializationContextExtensions
     /// <param name="context"></param>
     /// <param name="creationContext"></param>
     /// <param name="parameterPack"></param>
+    /// <param name="commandId"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
     public static async Task<TResultPack> InvokeStaticMessageAsync<TParameterPack, TResultPack>(this IInitializationContext context,
                                                                                                 ExecutorCreationContext creationContext,
                                                                                                 TParameterPack parameterPack,
+                                                                                                int commandId,
                                                                                                 CancellationToken cancellation)
-        where TParameterPack : class
-        where TResultPack : class
     {
         using var executorOwner = await context.GetExecutorOwnerAsync(creationContext, cancellation);
-        return await executorOwner.Executor.InvokeStaticMethodMessageAsync<TParameterPack, TResultPack>(parameterPack, cancellation);
+        return await executorOwner.Executor.InvokeStaticMethodMessageAsync<TParameterPack, TResultPack>(parameterPack, commandId, cancellation);
     }
 
     /// <summary>
@@ -158,16 +157,17 @@ public static class IInitializationContextExtensions
     /// <param name="context"></param>
     /// <param name="creationContext"></param>
     /// <param name="parameterPack"></param>
+    /// <param name="commandId"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
     public static async Task<JuxtaposeAckMessage> InvokeStaticMessageAsync<TParameterPack>(this IInitializationContext context,
                                                                                            ExecutorCreationContext creationContext,
                                                                                            TParameterPack parameterPack,
+                                                                                           int commandId,
                                                                                            CancellationToken cancellation)
-        where TParameterPack : class
     {
         using var executorOwner = await context.GetExecutorOwnerAsync(creationContext, cancellation);
-        return await executorOwner.Executor.InvokeStaticMethodMessageAsync<TParameterPack>(parameterPack, cancellation);
+        return await executorOwner.Executor.InvokeStaticMethodMessageAsync<TParameterPack>(parameterPack, commandId, cancellation);
     }
 
     #endregion Message

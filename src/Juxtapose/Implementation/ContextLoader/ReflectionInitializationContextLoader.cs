@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace Juxtapose;
 
@@ -19,7 +16,7 @@ public class ReflectionInitializationContextLoader : IInitializationContextLoade
     #region Public 构造函数
 
     /// <inheritdoc cref="ReflectionInitializationContextLoader"/>
-    public ReflectionInitializationContextLoader()
+    public ReflectionInitializationContextLoader(bool loadSharedInstance = true)
     {
         _contexts = AppDomain.CurrentDomain.GetAssemblies()
                                            .SelectMany(GetAssemblyTypes)
@@ -47,9 +44,10 @@ public class ReflectionInitializationContextLoader : IInitializationContextLoade
                    && type.IsAssignableTo(typeof(IInitializationContext));
         }
 
-        static IInitializationContext? TryGetContextInstance(Type type)
+        IInitializationContext? TryGetContextInstance(Type type)
         {
-            if (type.GetProperty("SharedInstance", BindingFlags.Public | BindingFlags.Static) is PropertyInfo propertyInfo
+            if (loadSharedInstance
+                && type.GetProperty("SharedInstance", BindingFlags.Public | BindingFlags.Static) is PropertyInfo propertyInfo
                 && propertyInfo.CanRead
                 && IsContext(propertyInfo.PropertyType))
             {

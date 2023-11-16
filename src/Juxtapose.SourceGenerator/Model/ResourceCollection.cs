@@ -1,44 +1,47 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-
+﻿using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis;
 
 namespace Juxtapose.SourceGenerator.Model;
 
 public abstract class ResourceCollection
 {
+    #region Private 字段
+
+    private readonly ConcurrentDictionary<ISymbol, int> _commandIdMap = new(SymbolEqualityComparer.Default);
+
+    /// <summary>
+    /// 指令计数
+    /// </summary>
+    private int _commandIndex = byte.MaxValue;
+
+    #endregion Private 字段
+
     #region Protected 属性
 
     /// <summary>
-    /// 构造函数参数包
+    /// 构造函数集合
     /// </summary>
-    protected ConcurrentDictionary<IMethodSymbol, Dictionary<string, ConstructorParameterPackSourceCode>> ConstructorParameterPacks { get; } = new(SymbolEqualityComparer.Default);
+    protected ConcurrentDictionary<IMethodSymbol, int> Constructors { get; } = new(SymbolEqualityComparer.Default);
 
     /// <summary>
-    /// 委托参数包字典
+    /// 委托集合
     /// </summary>
-    protected ConcurrentDictionary<IMethodSymbol, ParameterPackSourceCode> DelegateParameterPacks { get; private set; } = new(SymbolEqualityComparer.Default);
+    protected ConcurrentDictionary<IMethodSymbol, int> Delegates { get; private set; } = new(SymbolEqualityComparer.Default);
 
     /// <summary>
-    /// 委托返回值包字典
+    /// 方法集合
     /// </summary>
-    protected ConcurrentDictionary<IMethodSymbol, ResultPackSourceCode?> DelegateResultPacks { get; private set; } = new(SymbolEqualityComparer.Default);
+    protected ConcurrentDictionary<IMethodSymbol, int> Methods { get; private set; } = new(SymbolEqualityComparer.Default);
 
     /// <summary>
-    /// 方法参数包字典
+    /// 属性集合
     /// </summary>
-    protected ConcurrentDictionary<IMethodSymbol, ParameterPackSourceCode> MethodParameterPacks { get; private set; } = new(SymbolEqualityComparer.Default);
+    protected ConcurrentDictionary<IPropertySymbol, int?> Properties { get; private set; } = new(SymbolEqualityComparer.Default);
 
     /// <summary>
-    /// 方法返回值包字典
+    /// 类型-RealObjectInvoker源码 映射
     /// </summary>
-    protected ConcurrentDictionary<IMethodSymbol, ResultPackSourceCode?> MethodResultPacks { get; private set; } = new(SymbolEqualityComparer.Default);
-
-    /// <summary>
-    /// 类型-RealObjectInvoker源码 隐射
-    /// </summary>
-    protected ConcurrentDictionary<INamedTypeSymbol, Dictionary<INamedTypeSymbol, RealObjectInvokerSourceCode>> RealObjectInvokers { get; private set; } = new(SymbolEqualityComparer.Default);
+    protected ConcurrentDictionary<INamedTypeSymbol, RealObjectInvokerSourceCode> RealObjectInvokers { get; private set; } = new(SymbolEqualityComparer.Default);
 
     protected ConcurrentBag<SourceCode> SourceCodes { get; } = new();
 
@@ -59,212 +62,65 @@ public abstract class ResourceCollection
 
     #endregion Public 构造函数
 
+    #region Protected 方法
+
+    protected virtual int GetOrCreateCommandId(ISymbol symbol)
+    {
+        return _commandIdMap.GetOrAdd(symbol, _ => Interlocked.Increment(ref _commandIndex));
+    }
+
+    #endregion Protected 方法
+
     #region Public 方法
 
-    public void AddSourceCode(SourceCode sourceCode)
+    public virtual void AddConstructors(IMethodSymbol methodSymbol)
+    {
+        var id = GetOrCreateCommandId(methodSymbol);
+        Constructors.TryAdd(methodSymbol, id);
+    }
+
+    public virtual void AddDelegates(IMethodSymbol methodSymbol)
+    {
+        var id = GetOrCreateCommandId(methodSymbol);
+        Delegates.TryAdd(methodSymbol, id);
+    }
+
+    public virtual void AddMethods(IMethodSymbol methodSymbol)
+    {
+        var id = GetOrCreateCommandId(methodSymbol);
+        Methods.TryAdd(methodSymbol, id);
+    }
+
+    public virtual void AddProperties(IPropertySymbol propertySymbol)
+    {
+        Properties.TryAdd(propertySymbol, Properties.Count);
+    }
+
+    public virtual void AddSourceCode(SourceCode sourceCode)
     {
         SourceCodes.Add(sourceCode);
     }
 
-    public IEnumerable<ConstructorParameterPackSourceCode> GetAllConstructorParameterPacks()
+    public virtual IEnumerable<ISymbol> GetAllCommandedSymbol() => GetAllConstructors().Concat(GetAllMethods()).Concat(GetAllDelegates());
+
+    public virtual IEnumerable<IMethodSymbol> GetAllConstructors() => Constructors.OrderBy(m => m.Value).Select(m => m.Key);
+
+    public virtual IEnumerable<IMethodSymbol> GetAllDelegates() => Delegates.OrderBy(m => m.Value).Select(m => m.Key);
+
+    public virtual IEnumerable<IMethodSymbol> GetAllMethods() => Methods.OrderBy(m => m.Value).Select(m => m.Key);
+
+    public virtual IEnumerable<IPropertySymbol> GetAllProperties() => Properties.OrderBy(m => m.Value).Select(m => m.Key);
+
+    public virtual int GetCommandId(ISymbol symbol) => _commandIdMap[symbol];
+
+    public virtual bool TryAddRealObjectInvokerSourceCode(INamedTypeSymbol targetTypeSymbol, RealObjectInvokerSourceCode invokerSourceCode)
     {
-        foreach (var map in ConstructorParameterPacks.Values)
-        {
-            foreach (var item in map.Values)
-            {
-                yield return item;
-            }
-        }
+        return RealObjectInvokers.TryAdd(targetTypeSymbol, invokerSourceCode);
     }
 
-    public IEnumerable<ParameterPackSourceCode> GetAllDelegateParameterPacks()
+    public virtual bool TryGetRealObjectInvokerSourceCode(INamedTypeSymbol targetTypeSymbol, out RealObjectInvokerSourceCode? invokerSourceCode)
     {
-        foreach (var item in DelegateParameterPacks.Values)
-        {
-            yield return item;
-        }
-    }
-
-    public IEnumerable<ResultPackSourceCode> GetAllDelegateResultPacks()
-    {
-        foreach (var item in DelegateResultPacks.Values)
-        {
-            if (item is not null)
-            {
-                yield return item;
-            }
-        }
-    }
-
-    public IEnumerable<ParameterPackSourceCode> GetAllMethodParameterPacks()
-    {
-        foreach (var item in MethodParameterPacks.Values)
-        {
-            yield return item;
-        }
-    }
-
-    public IEnumerable<ResultPackSourceCode> GetAllMethodResultPacks()
-    {
-        foreach (var item in MethodResultPacks.Values)
-        {
-            if (item is not null)
-            {
-                yield return item;
-            }
-        }
-    }
-
-    public IEnumerable<IMethodSymbol> GetAllMethods()
-    {
-        foreach (var item in MethodParameterPacks.Keys)
-        {
-            yield return item;
-        }
-    }
-
-    public virtual bool TryAddConstructorParameterPackSourceCode(ConstructorParameterPackSourceCode item)
-    {
-        if (!ConstructorParameterPacks.TryGetValue(item.MethodSymbol, out var map))
-        {
-            map = new();
-            ConstructorParameterPacks.TryAdd(item.MethodSymbol, map);
-        }
-        if (map.TryGetValue(item.GeneratedTypeName, out _))
-        {
-            return false;
-        }
-        map.Add(item.GeneratedTypeName, item);
-        return true;
-    }
-
-    public virtual bool TryAddDelegateArgumentPackSourceCode(ArgumentPackSourceCode item)
-    {
-        var method = item.MethodSymbol;
-        switch (item)
-        {
-            case ParameterPackSourceCode parameterPackSourceCode:
-                {
-                    if (!DelegateParameterPacks.ContainsKey(method))
-                    {
-                        DelegateParameterPacks.TryAdd(method, parameterPackSourceCode);
-                        return true;
-                    }
-                }
-                break;
-
-            case ResultPackSourceCode resultPackSourceCode:
-                {
-                    if (!DelegateResultPacks.ContainsKey(method))
-                    {
-                        DelegateResultPacks.TryAdd(method, resultPackSourceCode);
-                        return true;
-                    }
-                }
-                break;
-
-            default:
-                throw new NotSupportedException($"not support {item}");
-        }
-        return false;
-    }
-
-    public virtual IEnumerable<ArgumentPackSourceCode> TryAddMethodArgumentPackSourceCode(IEnumerable<ArgumentPackSourceCode> items)
-    {
-        foreach (var item in items)
-        {
-            if (TryAddMethodArgumentPackSourceCode(item))
-            {
-                yield return item;
-            }
-        }
-    }
-
-    public virtual bool TryAddMethodArgumentPackSourceCode(ArgumentPackSourceCode item)
-    {
-        var method = item.MethodSymbol;
-        switch (item)
-        {
-            case ParameterPackSourceCode parameterPackSourceCode:
-                {
-                    if (!MethodParameterPacks.ContainsKey(method))
-                    {
-                        MethodParameterPacks.TryAdd(method, parameterPackSourceCode);
-                        return true;
-                    }
-                }
-                break;
-
-            case ResultPackSourceCode resultPackSourceCode:
-                {
-                    if (!MethodResultPacks.ContainsKey(method))
-                    {
-                        MethodResultPacks.TryAdd(method, resultPackSourceCode);
-                        return true;
-                    }
-                }
-                break;
-
-            default:
-                throw new NotSupportedException($"not support {item}");
-        }
-        return false;
-    }
-
-    public virtual bool TryAddRealObjectInvokerSourceCode(INamedTypeSymbol targetTypeSymbol, INamedTypeSymbol? inheritTypeSymbol, RealObjectInvokerSourceCode invokerSourceCode)
-    {
-        inheritTypeSymbol ??= TypeSymbolAnalyzer.VoidSymbol;
-        if (RealObjectInvokers.TryGetValue(targetTypeSymbol, out var invokerSourceCodes))
-        {
-            if (invokerSourceCodes.ContainsKey(inheritTypeSymbol))
-            {
-                return false;
-            }
-            invokerSourceCodes.Add(inheritTypeSymbol, invokerSourceCode);
-        }
-        else
-        {
-            invokerSourceCodes = new(SymbolEqualityComparer.Default);
-            invokerSourceCodes.Add(inheritTypeSymbol, invokerSourceCode);
-
-            RealObjectInvokers.TryAdd(targetTypeSymbol, invokerSourceCodes);
-        }
-        return true;
-    }
-
-    public virtual bool TryGetConstructorParameterPackSourceCode(IMethodSymbol constructor, string generatedTypeName, out ConstructorParameterPackSourceCode? item)
-    {
-        if (ConstructorParameterPacks.TryGetValue(constructor, out var map)
-            && map is not null
-            && map.TryGetValue(generatedTypeName, out item))
-        {
-            return true;
-        }
-        item = default;
-        return false;
-    }
-
-    public virtual bool TryGetMethodArgumentPackSourceCode(IMethodSymbol methodSymbol, out ParameterPackSourceCode? item)
-    {
-        return MethodParameterPacks.TryGetValue(methodSymbol, out item)
-               || DelegateParameterPacks.TryGetValue(methodSymbol, out item);
-    }
-
-    public virtual bool TryGetMethodResultPackSourceCode(IMethodSymbol methodSymbol, out ResultPackSourceCode? item)
-    {
-        return MethodResultPacks.TryGetValue(methodSymbol, out item)
-               || DelegateResultPacks.TryGetValue(methodSymbol, out item);
-    }
-
-    public virtual bool TryGetRealObjectInvokerSourceCode(INamedTypeSymbol targetTypeSymbol, INamedTypeSymbol? inheritTypeSymbol, out RealObjectInvokerSourceCode? invokerSourceCode)
-    {
-        inheritTypeSymbol ??= TypeSymbolAnalyzer.VoidSymbol;
-        invokerSourceCode = RealObjectInvokers.TryGetValue(targetTypeSymbol, out var invokerSourceCodes)
-                            && invokerSourceCodes.TryGetValue(inheritTypeSymbol, out var sourceCode)
-                            && sourceCode is not null
-                            ? sourceCode
-                            : null;
-        return invokerSourceCode is not null;
+        return RealObjectInvokers.TryGetValue(targetTypeSymbol, out invokerSourceCode);
     }
 
     #endregion Public 方法

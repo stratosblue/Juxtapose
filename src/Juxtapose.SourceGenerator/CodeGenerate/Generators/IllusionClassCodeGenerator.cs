@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
+﻿using Juxtapose.SourceGenerator.Internal;
 using Juxtapose.SourceGenerator.Model;
 
 using Microsoft.CodeAnalysis;
@@ -22,7 +19,7 @@ public class IllusionClassCodeGenerator : ISourceCodeProvider<SourceCode>
 
     #region Public 属性
 
-    public JuxtaposeSourceGeneratorContext Context { get; }
+    public JuxtaposeContextSourceGeneratorContext Context { get; }
 
     public IllusionInstanceClassDescriptor Descriptor { get; }
 
@@ -34,7 +31,7 @@ public class IllusionClassCodeGenerator : ISourceCodeProvider<SourceCode>
 
     #region Public 构造函数
 
-    public IllusionClassCodeGenerator(JuxtaposeSourceGeneratorContext context, IllusionInstanceClassDescriptor descriptor, SubResourceCollection resources)
+    public IllusionClassCodeGenerator(JuxtaposeContextSourceGeneratorContext context, IllusionInstanceClassDescriptor descriptor, SubResourceCollection resources)
     {
         Context = context ?? throw new ArgumentNullException(nameof(context));
         Descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
@@ -69,7 +66,7 @@ public class IllusionClassCodeGenerator : ISourceCodeProvider<SourceCode>
 
         _sourceBuilder.AppendLine();
 
-        _sourceBuilder.AppendLine($"private static async {TypeFullNames.System.Threading.Tasks.Task}<({TypeFullNames.Juxtapose.IJuxtaposeExecutorOwner} executorOwner, int instanceId)> CreateObjectAsync<TParameterPack>(TParameterPack parameterPack, bool noContext = true, {TypeFullNames.System.Threading.CancellationToken} cancellation = default) where TParameterPack : class");
+        _sourceBuilder.AppendLine($"private static async {TypeFullNames.System.Threading.Tasks.Task}<({TypeFullNames.Juxtapose.IJuxtaposeExecutorOwner} executorOwner, int instanceId)> CreateObjectAsync<TParameterPack>(TParameterPack parameterPack, int commandId, bool noContext = true, {TypeFullNames.System.Threading.CancellationToken} cancellation = default)");
         _sourceBuilder.Scope(() =>
         {
             _sourceBuilder.AppendLine($@"if (noContext)
@@ -81,7 +78,7 @@ var executorOwner = await {Descriptor.ContextType.ToFullyQualifiedDisplayString(
 var executor = executorOwner.Executor;
 
 var instanceId = executor.InstanceIdGenerator.Next();
-var message = new global::Juxtapose.Messages.CreateObjectInstanceMessage<TParameterPack>(instanceId) {{ ParameterPack = parameterPack }};
+var message = new global::Juxtapose.Messages.CreateObjectInstanceMessage<TParameterPack>(instanceId, commandId) {{ ParameterPack = parameterPack }};
 
 try
 {{
@@ -115,16 +112,11 @@ return (executorOwner, instanceId);");
     {
         var targetTypeName = Descriptor.TargetType.Name;
         var generatedTypeName = Descriptor.TypeFullName;
-        foreach (var constructor in Descriptor.TargetType.Constructors.Where(m => m.NotStatic()))
+        foreach (var constructor in Resources.GetAllConstructors().Where(m => m.NotStatic()))
         {
-            if (!Context.TryGetConstructorParameterPackWithDiagnostic(constructor, generatedTypeName, out var parameterPackSourceCode))
-            {
-                continue;
-            }
-
-            var paramPackContext = Context.TypeSymbolAnalyzer.GetConstructorParamPackContext(constructor, generatedTypeName);
-
             var ctorAnnotation = $"/// <inheritdoc cref=\"{targetTypeName}.{targetTypeName}({string.Join(", ", constructor.Parameters.Select(m => m.Type.ToFullyQualifiedDisplayString()))})\"/>";
+
+            var commandId = Context.Resources.GetCommandId(constructor);
 
             var ctorArguments = constructor.GenerateMethodArgumentString();
             var accessibility = constructor.GetAccessibilityCodeString();
@@ -134,10 +126,10 @@ return (executorOwner, instanceId);");
             _sourceBuilder.AppendIndentLine($"{accessibility} {Descriptor.TypeName}({ctorArguments})");
             _sourceBuilder.Scope(() =>
             {
-                paramPackContext.GenParamPackCode(_sourceBuilder, "parameterPack");
+                ArgumentsAndResultsHelper.GenerateMethodArgumentsPackCode(constructor, Context.TypeSymbolAnalyzer, _sourceBuilder, "parameterPack");
 
                 _sourceBuilder.AppendLine(@$"
-var (executorOwner, instanceId) = CreateObjectAsync(parameterPack, true, CancellationToken.None).GetAwaiter().GetResult();
+var (executorOwner, instanceId) = CreateObjectAsync(parameterPack, (int){GeneratedCommandUtil.GetAccessExpression(Descriptor.ContextType, commandId)}, true, CancellationToken.None).GetAwaiter().GetResult();
 
 _executorOwner = executorOwner;
 {_vars.InstanceId} = instanceId;
@@ -154,10 +146,10 @@ _runningTokenSource = new CancellationTokenSource();
             _sourceBuilder.AppendIndentLine($"{accessibility} static async Task<{Descriptor.TypeName}> NewAsync({ctorArguments}{(ctorArguments.Length > 0 ? ", " : string.Empty)}CancellationToken cancellation = default)");
             _sourceBuilder.Scope(() =>
             {
-                paramPackContext.GenParamPackCode(_sourceBuilder, "parameterPack");
+                ArgumentsAndResultsHelper.GenerateMethodArgumentsPackCode(constructor, Context.TypeSymbolAnalyzer, _sourceBuilder, "parameterPack");
 
                 _sourceBuilder.AppendLine($@"
-var (executorOwner, instanceId) = await CreateObjectAsync(parameterPack, false, cancellation);
+var (executorOwner, instanceId) = await CreateObjectAsync(parameterPack, (int){GeneratedCommandUtil.GetAccessExpression(Descriptor.ContextType, commandId)}, false, cancellation);
 return new {Descriptor.TypeName}(executorOwner, instanceId);");
             });
             _sourceBuilder.AppendLine();
@@ -175,7 +167,7 @@ return new {Descriptor.TypeName}(executorOwner, instanceId);");
         {
             _sourceBuilder.AppendLine($@"
 var parameterPack = new global::Juxtapose.Messages.ParameterPacks.ServiceProviderGetInstanceParameterPack(""{Descriptor.TypeFullName}"");
-var (executorOwner, instanceId) = await CreateObjectAsync(parameterPack, false, cancellation);
+var (executorOwner, instanceId) = await CreateObjectAsync(parameterPack, (int){TypeFullNames.Juxtapose.SpecialCommand}.{nameof(SpecialCommand.GetInstanceByServiceProvider)}, false, cancellation);
 return new {Descriptor.TypeName}(executorOwner, instanceId);");
         });
 
@@ -193,11 +185,7 @@ return new {Descriptor.TypeName}(executorOwner, instanceId);");
         {
             _sourceBuilder.AppendIndentLine($"/// <inheritdoc cref=\"{Descriptor.TargetType.ToFullyQualifiedDisplayString()}\"/>");
 
-            var inheritBaseCodeSnippet = Descriptor.InheritType is null
-                                         ? string.Empty
-                                         : $"{Descriptor.InheritType.ToFullyQualifiedDisplayString()}, ";
-
-            _sourceBuilder.AppendIndentLine($"{Descriptor.Accessibility.ToCodeString()} sealed partial class {Descriptor.TypeName} : {inheritBaseCodeSnippet}global::Juxtapose.IIllusion, {TypeFullNames.System.IDisposable}");
+            _sourceBuilder.AppendIndentLine($"{Descriptor.Accessibility.ToCodeString()} sealed partial class {Descriptor.TypeName} : global::Juxtapose.IIllusion, {TypeFullNames.System.IDisposable}");
 
             _sourceBuilder.Scope(() =>
             {
@@ -233,7 +221,7 @@ bool IIllusion.IsAvailable => !_isDisposed;
 
                 GenerateConstructorProxyCode();
 
-                new InstanceProxyCodeGenerator(Context, _sourceBuilder, Descriptor.InheritType ?? Descriptor.TargetType, new(_vars) { MethodBodyPrefixSnippet = "ThrowIfDisposed();" }).GenerateMemberProxyCode();
+                new InstanceProxyCodeGenerator(Context, Resources, _sourceBuilder, Descriptor.TargetType, new(_vars) { MethodBodyPrefixSnippet = "ThrowIfDisposed();" }).GenerateMemberProxyCode();
 
                 _sourceBuilder.AppendLine();
 
@@ -292,63 +280,6 @@ public void Dispose()
 
     public IEnumerable<SourceCode> GetSources()
     {
-        var targetTypeSymbol = Descriptor.InheritType ?? Descriptor.TargetType;
-
-        var allProxyableMembers = targetTypeSymbol.GetProxyableMembers(true).ToArray();
-
-        #region 委托
-
-        //HACK 暂不处理嵌套委托
-        var delegateSymbols = allProxyableMembers.OfType<IMethodSymbol>()
-                                                 .SelectMany(m => m.Parameters)
-                                                 .Where(m => m.Type.IsDelegate())
-                                                 .Select(m => m.Type)
-                                                 .OfType<INamedTypeSymbol>()
-                                                 .Select(m => m.DelegateInvokeMethod)
-                                                 .Distinct(SymbolEqualityComparer.Default)
-                                                 .OfType<IMethodSymbol>()
-                                                 .ToArray();
-
-        foreach (var item in MethodParameterPackCodeGenerateUtil.Generate(delegateSymbols, "Delegates.ParameterPack.g.cs", Context.TypeSymbolAnalyzer))
-        {
-            Resources.TryAddDelegateArgumentPackSourceCode(item);
-            yield return item;
-        }
-
-        #endregion 委托
-
-        #region 成员
-
-        var targetTypeProxyableMembers = allProxyableMembers.Where(m => m is not IMethodSymbol methodSymbol || methodSymbol.MethodKind != MethodKind.Constructor)
-                                                            .OfType<IMethodSymbol>()
-                                                            .ToArray();
-
-        foreach (var item in MethodParameterPackCodeGenerateUtil.Generate(targetTypeProxyableMembers, $"{targetTypeSymbol.ToDisplayString()}.ParameterPack.g.cs", Context.TypeSymbolAnalyzer))
-        {
-            Resources.TryAddMethodArgumentPackSourceCode(item);
-            yield return item;
-        }
-
-        #endregion 成员
-
-        #region 构造函数
-
-        if (!Descriptor.FromIoCContainer)
-        {
-            var constructors = Descriptor.TargetType.GetProxyableMembers(true)
-                                                    .Where(m => m is IMethodSymbol methodSymbol && methodSymbol.MethodKind is MethodKind.Constructor)
-                                                    .OfType<IMethodSymbol>()
-                                                    .ToArray();
-
-            foreach (var item in MethodParameterPackCodeGenerateUtil.GenerateConstructorPack(constructors, $"{targetTypeSymbol.ToDisplayString()}.ParameterPack.g.cs", Descriptor.TypeFullName, Context.TypeSymbolAnalyzer))
-            {
-                Resources.TryAddConstructorParameterPackSourceCode(item);
-                yield return item;
-            }
-        }
-
-        #endregion 构造函数
-
         yield return new FullSourceCode(SourceHintName, GenerateProxyTypeSource());
     }
 

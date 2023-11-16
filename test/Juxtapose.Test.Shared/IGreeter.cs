@@ -2,72 +2,71 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Juxtapose.Test
+namespace Juxtapose.Test;
+
+public delegate string GetLongerString(string str1, string str2);
+
+public delegate Task<string> GetLongerStringTaskAsync(string str1, string str2);
+
+public delegate ValueTask<string> GetLongerStringValueTaskAsync(string str1, string str2);
+
+public interface IGreeter
 {
-    public delegate string GetLongerString(string str1, string str2);
+    #region Public 属性
 
-    public delegate Task<string> GetLongerStringTaskAsync(string str1, string str2);
+    string Prop { get; set; }
 
-    public delegate ValueTask<string> GetLongerStringValueTaskAsync(string str1, string str2);
+    string PropGet { get; }
 
-    public interface IGreeter
-    {
-        #region Public 属性
+    string PropSet { set; }
 
-        string Prop { get; set; }
+    #endregion Public 属性
 
-        string PropGet { get; }
+    #region Public 方法
 
-        string PropSet { set; }
+    Task<string> AsyncMethod(string input);
 
-        #endregion Public 属性
+    Task<int[]?> AsyncMethod(int[]? input);
 
-        #region Public 方法
+    Task<int?> AsyncMethod(int? input);
 
-        Task<string> AsyncMethod(string input);
+    Task<int> AsyncMethodCancelable(int millisecondsDelay, CancellationToken cancellation);
 
-        Task<int[]?> AsyncMethod(int[]? input);
+    Task<int> AsyncMethodCancelable(int millisecondsDelay, CancellationToken cancellation, CancellationToken cancellation2);
 
-        Task<int?> AsyncMethod(int? input);
+    Task AsyncMethodWithoutReturn(string input);
 
-        Task<int> AsyncMethodCancelable(int millisecondsDelay, CancellationToken cancellation);
+    Task<string> AwaitedAsyncMethod(string input);
 
-        Task<int> AsyncMethodCancelable(int millisecondsDelay, CancellationToken cancellation, CancellationToken cancellation2);
+    ValueTask<string> AwaitedValueTaskAsyncMethod(string input);
 
-        Task AsyncMethodWithoutReturn(string input);
+    string Method(string input);
 
-        Task<string> AwaitedAsyncMethod(string input);
+    string MethodWithAction(Action callback, string input);
 
-        ValueTask<string> AwaitedValueTaskAsyncMethod(string input);
+    string MethodWithAction(Action<string> callback, string input);
 
-        string Method(string input);
+    string MethodWithAction(Action<string, string> callback, string input);
 
-        string MethodWithDefaultValue(string input1 = "input1", string? input2 = null, int input3 = 123, CancellationToken cancellation = default);
+    string MethodWithDefaultValue(string input1 = "input1", string? input2 = null, int input3 = 123, CancellationToken cancellation = default);
 
-        string MethodWithAction(Action callback, string input);
+    string MethodWithDelegate(GetLongerString callback, string input);
 
-        string MethodWithAction(Action<string> callback, string input);
+    Task<string> MethodWithDelegateAsync(GetLongerStringTaskAsync callback, string input);
 
-        string MethodWithAction(Action<string, string> callback, string input);
+    Task<string> MethodWithDelegateAsync(GetLongerStringValueTaskAsync callback, string input);
 
-        string MethodWithDelegate(GetLongerString callback, string input);
+    string MethodWithFunc(Func<string, string> callback, string input);
 
-        Task<string> MethodWithDelegateAsync(GetLongerStringTaskAsync callback, string input);
+    Task<string> MethodWithFuncAsync(Func<string, Task<string>> callback, string input);
 
-        Task<string> MethodWithDelegateAsync(GetLongerStringValueTaskAsync callback, string input);
+    Task<string> MethodWithFuncAsync(Func<string, string, Task<string>> callback, string input);
 
-        string MethodWithFunc(Func<string, string> callback, string input);
+    void MethodWithoutReturn(string input);
 
-        Task<string> MethodWithFuncAsync(Func<string, Task<string>> callback, string input);
+    ValueTask<string> ValueTaskAsyncMethod(string input);
 
-        Task<string> MethodWithFuncAsync(Func<string, string, Task<string>> callback, string input);
+    ValueTask ValueTaskAsyncMethodWithoutReturn(string input);
 
-        void MethodWithoutReturn(string input);
-
-        ValueTask<string> ValueTaskAsyncMethod(string input);
-
-        ValueTask ValueTaskAsyncMethodWithoutReturn(string input);
-
-        #endregion Public 方法
-    }
+    #endregion Public 方法
 }

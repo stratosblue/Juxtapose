@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Juxtapose;
+﻿namespace Juxtapose;
 
 /// <summary>
 /// Juxtapose启用引导

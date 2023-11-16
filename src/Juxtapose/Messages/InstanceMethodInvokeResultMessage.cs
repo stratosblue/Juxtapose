@@ -6,7 +6,6 @@
 public class InstanceMethodInvokeResultMessage<TResult>
     : MethodInvokeResultMessage<TResult>
     , IInstanceMessage
-    where TResult : class
 {
     #region Public 属性
 

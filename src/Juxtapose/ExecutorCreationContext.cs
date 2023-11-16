@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Juxtapose;
+﻿namespace Juxtapose;
 
 /// <summary>
 /// 执行器创建上下文

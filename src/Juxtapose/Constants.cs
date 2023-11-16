@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Juxtapose;
+﻿namespace Juxtapose;
 
 /// <summary>
 /// 常量
@@ -31,7 +29,7 @@ public static class Constants
     /// <summary>
     /// Juxtapose版本号
     /// </summary>
-    public const uint Version = 1;
+    public const uint Version = 2;
 
     #endregion Public 字段
 }

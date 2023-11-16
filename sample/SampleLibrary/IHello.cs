@@ -1,22 +1,21 @@
-﻿namespace SampleLibrary
+﻿namespace SampleLibrary;
+
+public interface IHello
 {
-    public interface IHello
-    {
-        #region Public 方法
+    #region Public 方法
 
-        /// <summary>
-        /// say
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        Task<string> SayAsync(string name);
+    /// <summary>
+    /// say
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    Task<string> SayAsync(string name);
 
-        /// <summary>
-        /// where
-        /// </summary>
-        /// <returns></returns>
-        string Where();
+    /// <summary>
+    /// where
+    /// </summary>
+    /// <returns></returns>
+    string Where();
 
-        #endregion Public 方法
-    }
+    #endregion Public 方法
 }

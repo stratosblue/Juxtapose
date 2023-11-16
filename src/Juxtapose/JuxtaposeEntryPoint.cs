@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 using Juxtapose.Utils;
 
@@ -17,19 +13,23 @@ public static class JuxtaposeEntryPoint
 
     #region AsEndpointAsync
 
+    /// <inheritdoc cref="AsEndpointAsync(string[], CancellationToken, IInitializationContext[])"/>
+    public static Task AsEndpointAsync(string[] args, params IInitializationContext[] contexts) => AsEndpointAsync(args, CancellationToken.None, contexts);
+
     /// <summary>
     /// <inheritdoc cref="TryAsEndpointAsync(string[], IInitializationContext[])"/>
     /// <para/>
     /// 如果启动参数不包含子进程运行信息，则以错误码<see cref="ExternalProcessExitCodes.NoJuxtaposeCommandLineArguments"/>退出进程
     /// </summary>
     /// <param name="args"></param>
+    /// <param name="cancellationToken"></param>
     /// <param name="contexts"></param>
     /// <returns></returns>
-    public static async Task AsEndpointAsync(string[] args, params IInitializationContext[] contexts)
+    public static async Task AsEndpointAsync(string[] args, CancellationToken cancellationToken, params IInitializationContext[] contexts)
     {
         var runTask = contexts is null || contexts.Length is 0
-                      ? TryRunAsync(args, new ReflectionInitializationContextLoader())
-                      : TryRunAsync(args, contexts);
+                      ? TryRunAsync(args, new ReflectionInitializationContextLoader(), cancellationToken)
+                      : TryRunAsync(args, cancellationToken, contexts);
 
         if (!await runTask)
         {
@@ -38,48 +38,51 @@ public static class JuxtaposeEntryPoint
     }
 
     /// <summary>
-    /// <inheritdoc cref="TryAsEndpointAsync(string[], Func{IInitializationContext})"/>
+    /// <inheritdoc cref="TryAsEndpointAsync(string[], Func{IInitializationContext}, CancellationToken)"/>
     /// <para/>
     /// 如果启动参数不包含子进程运行信息，则以错误码<see cref="ExternalProcessExitCodes.NoJuxtaposeCommandLineArguments"/>退出进程
     /// </summary>
     /// <param name="args"></param>
     /// <param name="contextLoadAction"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task AsEndpointAsync(string[] args, Func<IInitializationContext> contextLoadAction)
+    public static async Task AsEndpointAsync(string[] args, Func<IInitializationContext> contextLoadAction, CancellationToken cancellationToken = default)
     {
-        if (!await TryRunAsync(args, () => new[] { contextLoadAction() }))
+        if (!await TryRunAsync(args, () => new[] { contextLoadAction() }, cancellationToken))
         {
             ExitWithNoJuxtaposeCommandLineArguments();
         }
     }
 
     /// <summary>
-    /// <inheritdoc cref="TryAsEndpointAsync(string[], Func{IEnumerable{IInitializationContext}})"/>
+    /// <inheritdoc cref="TryAsEndpointAsync(string[], Func{IEnumerable{IInitializationContext}}, CancellationToken)"/>
     /// <para/>
     /// 如果启动参数不包含子进程运行信息，则以错误码<see cref="ExternalProcessExitCodes.NoJuxtaposeCommandLineArguments"/>退出进程
     /// </summary>
     /// <param name="args"></param>
     /// <param name="contextLoadAction"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task AsEndpointAsync(string[] args, Func<IEnumerable<IInitializationContext>> contextLoadAction)
+    public static async Task AsEndpointAsync(string[] args, Func<IEnumerable<IInitializationContext>> contextLoadAction, CancellationToken cancellationToken = default)
     {
-        if (!await TryRunAsync(args, contextLoadAction))
+        if (!await TryRunAsync(args, contextLoadAction, cancellationToken))
         {
             ExitWithNoJuxtaposeCommandLineArguments();
         }
     }
 
     /// <summary>
-    /// <inheritdoc cref="TryAsEndpointAsync(string[], IInitializationContextLoader)"/>
+    /// <inheritdoc cref="TryAsEndpointAsync(string[], IInitializationContextLoader, CancellationToken)"/>
     /// <para/>
     /// 如果启动参数不包含子进程运行信息，则以错误码<see cref="ExternalProcessExitCodes.NoJuxtaposeCommandLineArguments"/>退出进程
     /// </summary>
     /// <param name="args"></param>
     /// <param name="contextLoader"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task AsEndpointAsync(string[] args, IInitializationContextLoader contextLoader)
+    public static async Task AsEndpointAsync(string[] args, IInitializationContextLoader contextLoader, CancellationToken cancellationToken = default)
     {
-        if (!await TryRunAsync(args, contextLoader))
+        if (!await TryRunAsync(args, contextLoader, cancellationToken))
         {
             ExitWithNoJuxtaposeCommandLineArguments();
         }
@@ -89,16 +92,20 @@ public static class JuxtaposeEntryPoint
 
     #region TryAsEndpointAsync
 
+    /// <inheritdoc cref="TryAsEndpointAsync(string[], CancellationToken, IInitializationContext[])"/>
+    public static Task TryAsEndpointAsync(string[] args, params IInitializationContext[] contexts) => TryAsEndpointAsync(args, CancellationToken.None, contexts);
+
     /// <summary>
     /// 如果 <paramref name="args"/> 包含子进程运行参数，则加载 <paramref name="contexts"/>，并将当前进程作为子进程终结点运行<para/>
     /// 运行结束后将退出程序（执行<see cref="Environment.Exit"/>）
     /// </summary>
     /// <param name="args"></param>
+    /// <param name="cancellationToken"></param>
     /// <param name="contexts"></param>
     /// <returns></returns>
-    public static async Task TryAsEndpointAsync(string[] args, params IInitializationContext[] contexts)
+    public static async Task TryAsEndpointAsync(string[] args, CancellationToken cancellationToken, params IInitializationContext[] contexts)
     {
-        if (await TryRunAsync(args, contexts))
+        if (await TryRunAsync(args, cancellationToken, contexts))
         {
             ExitWithSuccessRunAsEndpoint();
         }
@@ -110,10 +117,11 @@ public static class JuxtaposeEntryPoint
     /// </summary>
     /// <param name="args"></param>
     /// <param name="contextLoadAction"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task TryAsEndpointAsync(string[] args, Func<IInitializationContext> contextLoadAction)
+    public static async Task TryAsEndpointAsync(string[] args, Func<IInitializationContext> contextLoadAction, CancellationToken cancellationToken = default)
     {
-        if (await TryRunAsync(args, () => new[] { contextLoadAction() }))
+        if (await TryRunAsync(args, () => new[] { contextLoadAction() }, cancellationToken))
         {
             ExitWithSuccessRunAsEndpoint();
         }
@@ -125,10 +133,11 @@ public static class JuxtaposeEntryPoint
     /// </summary>
     /// <param name="args"></param>
     /// <param name="contextLoadAction"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task TryAsEndpointAsync(string[] args, Func<IEnumerable<IInitializationContext>> contextLoadAction)
+    public static async Task TryAsEndpointAsync(string[] args, Func<IEnumerable<IInitializationContext>> contextLoadAction, CancellationToken cancellationToken = default)
     {
-        if (await TryRunAsync(args, contextLoadAction))
+        if (await TryRunAsync(args, contextLoadAction, cancellationToken))
         {
             ExitWithSuccessRunAsEndpoint();
         }
@@ -140,10 +149,11 @@ public static class JuxtaposeEntryPoint
     /// </summary>
     /// <param name="args"></param>
     /// <param name="contextLoader"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task TryAsEndpointAsync(string[] args, IInitializationContextLoader contextLoader)
+    public static async Task TryAsEndpointAsync(string[] args, IInitializationContextLoader contextLoader, CancellationToken cancellationToken = default)
     {
-        if (await TryRunAsync(args, contextLoader))
+        if (await TryRunAsync(args, contextLoader, cancellationToken))
         {
             ExitWithSuccessRunAsEndpoint();
         }
@@ -153,17 +163,21 @@ public static class JuxtaposeEntryPoint
 
     #region TryRunAsync
 
+    /// <inheritdoc cref="TryRunAsync(string[], CancellationToken, IInitializationContext[])"/>
+    public static Task<bool> TryRunAsync(string[] args, params IInitializationContext[] contexts) => TryRunAsync(args, CancellationToken.None, contexts);
+
     /// <summary>
     /// 如果 <paramref name="args"/> 包含子进程运行参数，则加载 <paramref name="contexts"/>，并阻塞当前线程，运行子进程任务<para/>
     /// </summary>
     /// <param name="args"></param>
+    /// <param name="cancellationToken"></param>
     /// <param name="contexts"></param>
     /// <returns>是否已作为子进程运行</returns>
-    public static Task<bool> TryRunAsync(string[] args, params IInitializationContext[] contexts)
+    public static Task<bool> TryRunAsync(string[] args, CancellationToken cancellationToken, params IInitializationContext[] contexts)
     {
         return contexts is null || contexts.Length is 0
-               ? TryRunAsync(args, new ReflectionInitializationContextLoader())
-               : TryRunAsync(args, InitializationContextLoader.Create(contexts));
+               ? TryRunAsync(args, new ReflectionInitializationContextLoader(), cancellationToken)
+               : TryRunAsync(args, InitializationContextLoader.Create(contexts), cancellationToken);
     }
 
     /// <summary>
@@ -171,10 +185,11 @@ public static class JuxtaposeEntryPoint
     /// </summary>
     /// <param name="args"></param>
     /// <param name="contextLoadAction"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns>是否已作为子进程运行</returns>
-    public static Task<bool> TryRunAsync(string[] args, Func<IEnumerable<IInitializationContext>> contextLoadAction)
+    public static Task<bool> TryRunAsync(string[] args, Func<IEnumerable<IInitializationContext>> contextLoadAction, CancellationToken cancellationToken = default)
     {
-        return TryRunAsync(args, InitializationContextLoader.Create(contextLoadAction));
+        return TryRunAsync(args, InitializationContextLoader.Create(contextLoadAction), cancellationToken);
     }
 
     /// <summary>
@@ -182,8 +197,9 @@ public static class JuxtaposeEntryPoint
     /// </summary>
     /// <param name="args"></param>
     /// <param name="contextLoader"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns>是否已作为子进程运行</returns>
-    public static async Task<bool> TryRunAsync(string[] args, IInitializationContextLoader contextLoader)
+    public static async Task<bool> TryRunAsync(string[] args, IInitializationContextLoader contextLoader, CancellationToken cancellationToken = default)
     {
         if (contextLoader is null)
         {
@@ -232,10 +248,11 @@ public static class JuxtaposeEntryPoint
                 var executorCreationContext = new ExecutorCreationContext(typeof(JuxtaposeEntryPoint), nameof(TryRunAsync), true, false, startupOptions);
                 using var executorOwner = await context.GetExecutorOwnerAsync(executorCreationContext, default);
 
+                using var localCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, executorOwner.Executor.RunningToken);
                 try
                 {
                     //HACK 调整结束逻辑
-                    await Task.Delay(Timeout.Infinite, executorOwner.Executor.RunningToken);
+                    await Task.Delay(Timeout.Infinite, localCts.Token);
                 }
                 catch { }
             }

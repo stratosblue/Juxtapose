@@ -22,8 +22,6 @@
 
 // implementation sourced from https://github.com/CyAScott/AppDomainAlternative/
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.Versioning;

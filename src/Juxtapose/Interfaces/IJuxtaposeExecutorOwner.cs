@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Juxtapose;
+﻿namespace Juxtapose;
 
 /// <summary>
 /// <see cref="JuxtaposeExecutor"/> 所有者

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-using Juxtapose.SourceGenerator.Internal;
+﻿using Juxtapose.SourceGenerator.Internal;
 using Juxtapose.SourceGenerator.Model;
 
 using Microsoft.CodeAnalysis;
@@ -22,7 +19,7 @@ public class RealObjectInvokerCodeGenerator : ISourceCodeProvider<SourceCode>
 
     #region Public 属性
 
-    public JuxtaposeSourceGeneratorContext Context { get; }
+    public JuxtaposeContextSourceGeneratorContext Context { get; }
 
     public IllusionInstanceClassDescriptor Descriptor { get; }
 
@@ -38,7 +35,7 @@ public class RealObjectInvokerCodeGenerator : ISourceCodeProvider<SourceCode>
 
     #region Public 构造函数
 
-    public RealObjectInvokerCodeGenerator(JuxtaposeSourceGeneratorContext context, IllusionInstanceClassDescriptor descriptor, SubResourceCollection resources)
+    public RealObjectInvokerCodeGenerator(JuxtaposeContextSourceGeneratorContext context, IllusionInstanceClassDescriptor descriptor, SubResourceCollection resources)
     {
         Context = context ?? throw new ArgumentNullException(nameof(context));
         Descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
@@ -61,7 +58,6 @@ public class RealObjectInvokerCodeGenerator : ISourceCodeProvider<SourceCode>
 
     private void GenerateProxyClassSource()
     {
-        var inheritType = Descriptor.InheritType;
         var targetType = Descriptor.TargetType;
 
         _sourceBuilder.AppendLine(Constants.JuxtaposeGenerateCodeHeader);
@@ -93,16 +89,20 @@ private readonly CancellationToken {_vars.RunningToken};");
                 _sourceBuilder.Scope(() =>
                 {
                     _sourceBuilder.AppendIndentLine("ThrowIfDisposed();", true);
-                    _sourceBuilder.AppendIndentLine($"switch ({_vars.Message})");
+
+                    _sourceBuilder.AppendIndentLine($"if ({_vars.Message} is {TypeFullNames.Juxtapose.JuxtaposeCommandMessage} @___cmd_message_)");
                     _sourceBuilder.Scope(() =>
                     {
-                        foreach (var method in Resources.GetAllMethods())
+                        _sourceBuilder.AppendIndentLine("switch (@___cmd_message_.CommandId)");
+                        _sourceBuilder.Scope(() =>
                         {
-                            SourceCodeGenerateHelper.GenerateMethodInvokeThroughMessageCaseScopeCode(Context, _sourceBuilder, method, _vars);
-                        }
-
-                        _sourceBuilder.AppendIndentLine($"default: throw new global::System.InvalidOperationException($\"can not process with {{ {_vars.Message} }}\");");
+                            foreach (var method in Resources.GetAllMethods())
+                            {
+                                SourceCodeGenerateHelper.GenerateMethodInvokeThroughMessageCaseScopeCode(Context, Resources, _sourceBuilder, method, _vars);
+                            }
+                        });
                     });
+                    _sourceBuilder.AppendIndentLine($"throw new global::System.InvalidOperationException($\"can not process with {{ {_vars.Message} }}\");");
                 });
 
                 _sourceBuilder.AppendLine($@"private bool _isDisposed = false;
@@ -162,7 +162,7 @@ public void Dispose()
     {
         var sourceCode = new RealObjectInvokerSourceCode(SourceHintName, GenerateProxyTypeSource(), TypeName, TypeFullName);
 
-        Resources.TryAddRealObjectInvokerSourceCode(Descriptor.TargetType, Descriptor.InheritType, sourceCode);
+        Resources.TryAddRealObjectInvokerSourceCode(Descriptor.TargetType, sourceCode);
 
         yield return sourceCode;
     }

@@ -4,26 +4,25 @@ using Juxtapose.ObjectPool;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Juxtapose.Test.ObjectPool
+namespace Juxtapose.Test.ObjectPool;
+
+[TestClass]
+public class NullDynamicObjectPoolTest
 {
-    [TestClass]
-    public class NullDynamicObjectPoolTest
+    #region Public 方法
+
+    [TestMethod]
+    public async Task ShouldNoException()
     {
-        #region Public 方法
+        var pool = NullDynamicObjectPool<object>.Instance;
 
-        [TestMethod]
-        public async Task ShouldNoException()
+        for (int i = 0; i < 5; i++)
         {
-            var pool = NullDynamicObjectPool<object>.Instance;
-
-            for (int i = 0; i < 5; i++)
-            {
-                Assert.IsNull(await pool.RentAsync());
-                pool.Return(null);
-                pool.Dispose();
-            }
+            Assert.IsNull(await pool.RentAsync());
+            pool.Return(null);
+            pool.Dispose();
         }
-
-        #endregion Public 方法
     }
+
+    #endregion Public 方法
 }

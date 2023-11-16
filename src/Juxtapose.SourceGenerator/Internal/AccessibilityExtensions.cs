@@ -2,6 +2,8 @@
 
 internal static class AccessibilityExtensions
 {
+    #region Public 方法
+
     public static string ToCodeString(this Accessibility accessibility)
     {
         return accessibility switch
@@ -16,4 +18,6 @@ internal static class AccessibilityExtensions
             _ => string.Empty,
         };
     }
+
+    #endregion Public 方法
 }

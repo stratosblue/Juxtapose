@@ -1,6 +1,4 @@
-﻿using System;
-
-using Juxtapose.SourceGenerator.Internal;
+﻿using Juxtapose.SourceGenerator.Internal;
 using Juxtapose.SourceGenerator.Model;
 
 using Microsoft.CodeAnalysis;
@@ -20,8 +18,12 @@ public class InstanceProxyCodeGenerator : ProxyCodeGenerator
 
     #region Public 构造函数
 
-    public InstanceProxyCodeGenerator(JuxtaposeSourceGeneratorContext context, ClassStringBuilder sourceBuilder, INamedTypeSymbol typeSymbol, VariableName vars)
-        : base(context, sourceBuilder, typeSymbol)
+    public InstanceProxyCodeGenerator(JuxtaposeContextSourceGeneratorContext context,
+                                      ResourceCollection resources,
+                                      ClassStringBuilder sourceBuilder,
+                                      INamedTypeSymbol typeSymbol,
+                                      VariableName vars)
+        : base(context, resources, sourceBuilder, typeSymbol)
     {
         _vars = vars ?? throw new ArgumentNullException(nameof(vars));
     }
@@ -32,7 +34,7 @@ public class InstanceProxyCodeGenerator : ProxyCodeGenerator
 
     protected override void GenerateMethodProxyBody(ClassStringBuilder builder, IMethodSymbol method)
     {
-        SourceCodeGenerateHelper.GenerateInstanceMethodProxyBodyCode(builder, Context, method, _vars);
+        SourceCodeGenerateHelper.GenerateInstanceMethodProxyBodyCode(builder, Context, Resources, method, _vars);
     }
 
     protected override string GenerateMethodProxyCode(IMethodSymbol methodSymbol)

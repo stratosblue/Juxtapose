@@ -1,6 +1,5 @@
-﻿namespace Juxtapose.Test
+﻿namespace Juxtapose.Test;
+
+public interface IGreeterFromServiceProvider : IGreeter
 {
-    public interface IGreeterFromServiceProvider : IGreeter
-    {
-    }
 }

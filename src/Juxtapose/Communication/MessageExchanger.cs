@@ -1,12 +1,7 @@
-﻿using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Buffers;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -26,14 +21,23 @@ public class MessageExchanger : KeepRunningObject, IMessageExchanger
     #region Private 字段
 
     private readonly ICommunicationChannel _communicationChannel;
+
     private readonly ICommunicationFrameCodec _frameCodec;
+
     private readonly ILogger _logger;
+
     private readonly ICommunicationMessageCodec _messageCodec;
+
     private readonly Channel<object> _messageReceivingChannel;
+
     private readonly SemaphoreSlim _messageWriteSemaphore;
+
     private readonly object _syncRoot = new();
+
     private CancellationTokenSource? _channelCancellationTokenSource;
+
     private PipeReader? _pipeReader;
+
     private PipeWriter? _pipeWriter;
 
     #endregion Private 字段
@@ -91,7 +95,7 @@ public class MessageExchanger : KeepRunningObject, IMessageExchanger
                 buffer = buffer.Slice(frameBuffer.Value.End);
                 var message = _messageCodec.Decode(frameBuffer.Value);
 
-                _logger.LogTrace("Message received: {0}", message);
+                _logger.LogTrace("Message received: {Message}", message);
 
                 await _messageReceivingChannel.Writer.WriteAsync(message, RunningToken);
             }
@@ -206,7 +210,7 @@ public class MessageExchanger : KeepRunningObject, IMessageExchanger
         var localBufferWriter = new ArrayBufferWriter<byte>(1024);
         var length = await _messageCodec.Encode(message, localBufferWriter);
 
-        _logger.LogTrace("Message waiting for write: {0}", message);
+        _logger.LogTrace("Message waiting for write: {Message}", message);
         await _messageWriteSemaphore.WaitAsync(cancellation);
         try
         {
@@ -226,7 +230,7 @@ public class MessageExchanger : KeepRunningObject, IMessageExchanger
             _messageWriteSemaphore.Release();
         }
 
-        _logger.LogTrace("Message written: {0}", message);
+        _logger.LogTrace("Message written: {Message}", message);
     }
 
     #endregion Public 方法

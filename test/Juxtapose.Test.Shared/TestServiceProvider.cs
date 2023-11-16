@@ -2,27 +2,26 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Juxtapose.Test
+namespace Juxtapose.Test;
+
+public static class TestServiceProvider
 {
-    public static class TestServiceProvider
+    #region Public 方法
+
+    /// <summary>
+    /// 创建一个测试的IServiceProvider
+    /// </summary>
+    /// <returns></returns>
+    public static IServiceProvider Create()
     {
-        #region Public 方法
+        var services = new ServiceCollection();
 
-        /// <summary>
-        /// 创建一个测试的IServiceProvider
-        /// </summary>
-        /// <returns></returns>
-        public static IServiceProvider Create()
-        {
-            var services = new ServiceCollection();
+        services.AddScoped<IGreeter, Greeter>();
+        services.AddScoped<GreeterFromServiceProvider>();
+        services.AddScoped<IGreeterFromServiceProvider, GreeterFromServiceProvider>();
 
-            services.AddScoped<IGreeter, Greeter>();
-            services.AddScoped<GreeterFromServiceProvider>();
-            services.AddScoped<IGreeterFromServiceProvider, GreeterFromServiceProvider>();
-
-            return services.BuildServiceProvider();
-        }
-
-        #endregion Public 方法
+        return services.BuildServiceProvider();
     }
+
+    #endregion Public 方法
 }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-using Juxtapose.SourceGenerator.Internal;
+﻿using Juxtapose.SourceGenerator.Internal;
 using Juxtapose.SourceGenerator.Model;
 
 using Microsoft.CodeAnalysis;
@@ -23,7 +19,7 @@ public class JuxtaposeExecutorCodeGenerator : ISourceCodeProvider<SourceCode>
 
     #region Public 属性
 
-    public JuxtaposeSourceGeneratorContext Context { get; }
+    public JuxtaposeContextSourceGeneratorContext Context { get; }
 
     /// <summary>
     /// 上下文类型符号
@@ -46,11 +42,10 @@ public class JuxtaposeExecutorCodeGenerator : ISourceCodeProvider<SourceCode>
 
     #region Public 构造函数
 
-    public JuxtaposeExecutorCodeGenerator(JuxtaposeSourceGeneratorContext context, INamedTypeSymbol contextTypeSymbol)
+    public JuxtaposeExecutorCodeGenerator(JuxtaposeContextSourceGeneratorContext context, INamedTypeSymbol contextTypeSymbol)
     {
         Context = context ?? throw new ArgumentNullException(nameof(context));
         ContextTypeSymbol = contextTypeSymbol ?? throw new ArgumentNullException(nameof(contextTypeSymbol));
-
         TypeFullName = contextTypeSymbol.ToDisplayString();
 
         Namespace = contextTypeSymbol.ContainingNamespace.GetNamespaceName();
@@ -90,25 +85,24 @@ public class JuxtaposeExecutorCodeGenerator : ISourceCodeProvider<SourceCode>
                     _sourceBuilder.AppendIndentLine($"protected override async {TypeFullNames.System.Threading.Tasks.Task}<{TypeFullNames.Juxtapose.Messages.JuxtaposeMessage}?> OnMessageAsync({TypeFullNames.Juxtapose.Messages.JuxtaposeMessage} {_vars.Message}, {TypeFullNames.System.Threading.CancellationToken} __cancellation__)");
                     _sourceBuilder.Scope(() =>
                     {
-                        _sourceBuilder.AppendIndentLine($"switch ({_vars.Message})");
+                        _sourceBuilder.AppendIndentLine($"if ({_vars.Message} is {TypeFullNames.Juxtapose.JuxtaposeCommandMessage} @___cmd_message_)");
                         _sourceBuilder.Scope(() =>
                         {
-                            GenerateAllServiceProviderObjectConstructorProcessCode();
-
-                            GenerateAllObjectConstructorProcessCode();
-
-                            GenerateAllStaticMethodProcessCode();
-
-                            _sourceBuilder.AppendLine();
-                            _sourceBuilder.AppendIndentLine("default:");
-
-                            _sourceBuilder.Indent();
+                            _sourceBuilder.AppendIndentLine("switch (@___cmd_message_.CommandId)");
                             _sourceBuilder.Scope(() =>
                             {
-                                _sourceBuilder.AppendIndentLine($"return await base.OnMessageAsync({_vars.Message}, __cancellation__);");
+                                GenerateAllServiceProviderObjectConstructorProcessCode();
+
+                                GenerateAllObjectConstructorProcessCode();
+
+                                GenerateAllStaticMethodProcessCode();
+
+                                _sourceBuilder.AppendLine();
                             });
-                            _sourceBuilder.Dedent();
                         });
+
+                        _sourceBuilder.AppendLine();
+                        _sourceBuilder.AppendIndentLine($"return await base.OnMessageAsync({_vars.Message}, __cancellation__);");
                     });
                 });
             });
@@ -125,9 +119,14 @@ public class JuxtaposeExecutorCodeGenerator : ISourceCodeProvider<SourceCode>
 
     private void GenerateAllObjectConstructorProcessCode()
     {
-        foreach (var item in Context.IllusionInstanceClasses)
+        var targetTypes = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+        foreach (var item in Context.IllusionInstanceClasses.Where(m => !m.Key.FromIoCContainer))
         {
-            GenerateConstructorProcessCode(item.Key, item.Value);
+            if (!targetTypes.Contains(item.Key.TargetType))
+            {
+                GenerateConstructorProcessCode(item.Key, item.Value);
+                targetTypes.Add(item.Key.TargetType);
+            }
         }
     }
 
@@ -140,11 +139,12 @@ public class JuxtaposeExecutorCodeGenerator : ISourceCodeProvider<SourceCode>
             return;
         }
 
-        _sourceBuilder.AppendIndentLine("case global::Juxtapose.Messages.CreateObjectInstanceMessage<ServiceProviderGetInstanceParameterPack> createObjectByServiceProviderMessage:");
+        _sourceBuilder.AppendIndentLine($"case (int){TypeFullNames.Juxtapose.SpecialCommand}.{nameof(SpecialCommand.GetInstanceByServiceProvider)}:");
         _sourceBuilder.Indent();
         _sourceBuilder.AppendIndentLine("{");
         _sourceBuilder.Indent();
 
+        _sourceBuilder.AppendIndentLine($"var createObjectByServiceProviderMessage = (global::Juxtapose.Messages.CreateObjectInstanceMessage<ServiceProviderGetInstanceParameterPack>){_vars.Message};");
         _sourceBuilder.AppendIndentLine("var instanceId = createObjectByServiceProviderMessage.InstanceId;");
         _sourceBuilder.AppendIndentLine("IMessageExecutor realObjectInvoker = createObjectByServiceProviderMessage?.ParameterPack?.TypeFullName switch");
         _sourceBuilder.AppendIndentLine("{");
@@ -153,10 +153,10 @@ public class JuxtaposeExecutorCodeGenerator : ISourceCodeProvider<SourceCode>
         foreach (var descriptorMap in fromServiceProviderDescriptorMaps)
         {
             var descriptor = descriptorMap.Key;
-            if (!descriptorMap.Value.TryGetRealObjectInvokerSourceCode(descriptor.TargetType, descriptor.InheritType, out var invokerSourceCode)
+            if (!descriptorMap.Value.TryGetRealObjectInvokerSourceCode(descriptor.TargetType, out var invokerSourceCode)
                 || invokerSourceCode is null)
             {
-                Context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ExecutorGenerateCanNotFoundGeneratedRealObjectInvoker, null, descriptor.TargetType, descriptor.InheritType));
+                Context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ExecutorGenerateCanNotFoundGeneratedRealObjectInvoker, null, descriptor.TargetType, null));
                 continue;
             }
             _sourceBuilder.AppendIndentLine($"\"{descriptor.TypeFullName}\" => new global::{invokerSourceCode.TypeFullName}(GetRequiredService<{descriptor.TargetType.ToFullyQualifiedDisplayString()}>(), instanceId),");
@@ -182,32 +182,32 @@ return null;");
             ParameterPack = "typedMessage.ParameterPack!",
         };
 
-        if (!resources.TryGetRealObjectInvokerSourceCode(descriptor.TargetType, descriptor.InheritType, out var realObjectInvokerSourceCode)
+        if (!resources.TryGetRealObjectInvokerSourceCode(descriptor.TargetType, out var realObjectInvokerSourceCode)
             || realObjectInvokerSourceCode is null)
         {
-            Context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ExecutorGenerateCanNotFoundGeneratedRealObjectInvoker, null, descriptor.TargetType, descriptor.InheritType));
+            Context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ExecutorGenerateCanNotFoundGeneratedRealObjectInvoker, null, descriptor.TargetType, null));
             return;
         }
 
         var realObjectInvokerTypeFullName = realObjectInvokerSourceCode.TypeFullName;
 
-        foreach (var parameterPackSourceCode in resources.GetAllConstructorParameterPacks())
+        foreach (var constructorSymbol in resources.GetAllConstructors())
         {
-            var paramPackContext = resources.TypeSymbolAnalyzer.GetConstructorParamPackContext(parameterPackSourceCode.MethodSymbol, descriptor.TypeFullName);
+            var commandId = resources.GetCommandId(constructorSymbol);
 
-            var methodInvokeMessageTypeName = $"{TypeFullNames.Juxtapose.Messages.CreateObjectInstanceMessage}<{parameterPackSourceCode.TypeName}>";
-
-            _sourceBuilder.AppendIndentLine($"case {methodInvokeMessageTypeName}:");
+            _sourceBuilder.AppendIndentLine($"case (int){Context.GetCommandAccessExpression(commandId)}:");
 
             _sourceBuilder.Indent();
             _sourceBuilder.Scope(() =>
             {
+                var methodInvokeMessageTypeName = $"{TypeFullNames.Juxtapose.Messages.CreateObjectInstanceMessage}<{ArgumentsAndResultsHelper.GenerateArgumentTypeName(constructorSymbol, Context.TypeSymbolAnalyzer)}>";
+
                 _sourceBuilder.AppendIndentLine($"var typedMessage = ({methodInvokeMessageTypeName}){_vars.Message};");
                 _sourceBuilder.AppendIndentLine($"var instanceId = typedMessage.InstanceId;");
 
-                paramPackContext.GenParamUnPackCode(Context, _sourceBuilder, () =>
+                ArgumentsAndResultsHelper.GenerateMethodArgumentsUnpackCode(constructorSymbol, Context, resources, _sourceBuilder, () =>
                 {
-                    _sourceBuilder.AppendIndentLine($"var instance = new {parameterPackSourceCode.MethodSymbol.ContainingType.ToFullyQualifiedDisplayString()}({parameterPackSourceCode.MethodSymbol.GenerateMethodArgumentStringWithoutType()});");
+                    _sourceBuilder.AppendIndentLine($"var instance = new {constructorSymbol.ContainingType.ToFullyQualifiedDisplayString()}({constructorSymbol.GenerateMethodArgumentStringWithoutType()});");
 
                     _sourceBuilder.AppendIndentLine($"AddObjectInstance(instanceId, new global::{realObjectInvokerTypeFullName}(instance, instanceId));");
                     _sourceBuilder.AppendIndentLine("return null;");
@@ -227,7 +227,7 @@ return null;");
         var staticMethods = Context.Resources.GetAllMethods().Where(m => m.IsStatic).ToArray();
         foreach (var method in staticMethods)
         {
-            SourceCodeGenerateHelper.GenerateMethodInvokeThroughMessageCaseScopeCode(Context, _sourceBuilder, method, new VariableName(_vars) { RunningToken = "__cancellation__" });
+            SourceCodeGenerateHelper.GenerateMethodInvokeThroughMessageCaseScopeCode(Context, Context.Resources, _sourceBuilder, method, new VariableName(_vars) { RunningToken = "__cancellation__" });
         }
     }
 

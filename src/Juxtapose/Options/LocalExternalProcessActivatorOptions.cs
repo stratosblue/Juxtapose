@@ -1,7 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 
 namespace Juxtapose;
 
@@ -13,6 +10,7 @@ public class LocalExternalProcessActivatorOptions
     #region Private 字段
 
     private static string[]? s_commandLineArgs;
+
     private static string? s_mainModuleFileName;
 
     #endregion Private 字段

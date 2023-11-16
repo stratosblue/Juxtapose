@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Juxtapose;
+﻿namespace Juxtapose;
 
 /// <summary>
 /// 已检查Id的<see cref="IUniqueIdGenerator"/>
@@ -10,6 +8,7 @@ public class CheckedIdGenerator : IUniqueIdGenerator
     #region Private 字段
 
     private readonly Func<int, bool> _checkFunc;
+
     private readonly IncreasingIdGenerator _increasingIdGenerator = new();
 
     #endregion Private 字段

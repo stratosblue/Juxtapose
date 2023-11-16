@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
-using System.Threading.Tasks;
 
 using Juxtapose.Messages;
 using Juxtapose.Messages.ParameterPacks;
@@ -54,7 +51,10 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
     #region Public 构造函数
 
     /// <inheritdoc cref="JuxtaposeExecutor"/>
-    public JuxtaposeExecutor(IMessageExchanger messageExchanger, ILogger logger, Func<ValueTask<IIoCContainerHolder>>? iocContainerHolderGetter = null) : base(messageExchanger, logger)
+    public JuxtaposeExecutor(IMessageExchanger messageExchanger,
+                             ILogger logger,
+                             Func<ValueTask<IIoCContainerHolder>>? iocContainerHolderGetter = null)
+        : base(messageExchanger, logger)
     {
         messageExchanger.OnInvalid += OnMessageExchangerInvalid;
 
@@ -116,7 +116,7 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
     /// <returns></returns>
     public virtual void AddObjectInstance(int instanceId, object instance)
     {
-        Logger.LogTrace("Try add instance [{0}] for id [{1}]", instance, instanceId);
+        Logger.LogTrace("Try add instance [{Instance}] for id [{InstanceId}]", instance, instanceId);
         if (!ObjectInstances.TryAdd(instanceId, instance ?? throw new ArgumentNullException(nameof(instance))))
         {
             throw new InstanceDuplicateException(instanceId);
@@ -132,7 +132,7 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
     {
         Task.Run(async () =>
         {
-            Logger.LogTrace("Dispose object instance. Id [{0}]", instanceId);
+            Logger.LogTrace("Dispose object instance. Id [{InstanceId}]", instanceId);
             try
             {
                 await InvokeMessageAsync(new DisposeObjectInstanceMessage(instanceId), RunningToken);
@@ -141,7 +141,7 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
             {
                 if (!IsDisposed)
                 {
-                    Logger.LogWarning(ex, "Dispose object instance Fail. Id [{0}]", instanceId);
+                    Logger.LogWarning(ex, "Dispose object instance Fail. Id [{InstanceId}]", instanceId);
                 }
             }
         }, RunningToken);
@@ -154,7 +154,7 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
     /// <returns></returns>
     public object GetObjectInstance(int instanceId)
     {
-        Logger.LogTrace("Get instance by id [{0}]", instanceId);
+        Logger.LogTrace("Get instance by id [{InstanceId}]", instanceId);
         if (ObjectInstances.TryGetValue(instanceId, out var instance))
         {
             return instance;
@@ -188,7 +188,7 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
     /// <returns></returns>
     public void RemoveObjectInstance(int instanceId)
     {
-        Logger.LogTrace("Try remove instance by id [{0}]", instanceId);
+        Logger.LogTrace("Try remove instance by id [{InstanceId}]", instanceId);
         ObjectInstances.TryRemove(instanceId, out _);
     }
 
@@ -219,7 +219,7 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
         {
             if (ObjectInstances.TryRemove(disposeObjectInstanceMessage.InstanceId, out var storedObject))
             {
-                Logger.LogTrace("Dispose object instance. Id [{0}]", disposeObjectInstanceMessage.InstanceId);
+                Logger.LogTrace("Dispose object instance. Id [{InstanceId}]", disposeObjectInstanceMessage.InstanceId);
                 if (storedObject is IDisposable disposable)
                 {
                     disposable.Dispose();
@@ -227,7 +227,7 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
             }
             else
             {
-                Logger.LogWarning("Dispose object instance message received. But not found it in executor. Id [{0}]", disposeObjectInstanceMessage.InstanceId);
+                Logger.LogWarning("Dispose object instance message received. But not found it in executor. Id [{InstanceId}]", disposeObjectInstanceMessage.InstanceId);
             }
             return Task.FromResult<JuxtaposeMessage?>(null);
         }
@@ -241,13 +241,13 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
                 //TODO 当取消消息在执行消息之前到达时，将无法正确取消
                 if (ObjectInstances.TryRemove(cancelMessage.InstanceId, out var storedObject))
                 {
-                    Logger.LogTrace("CancellationTokenSource cancel message received. Id [{0}]", cancelMessage.InstanceId);
+                    Logger.LogTrace("CancellationTokenSource cancel message received. Id [{InstanceId}]", cancelMessage.InstanceId);
                     ((CancellationTokenSource)storedObject).Cancel();
                     return Task.FromResult<JuxtaposeMessage?>(null);
                 }
                 else
                 {
-                    Logger.LogWarning("CancellationTokenSource cancel message received. But not found it in executor. Id [{0}]", cancelMessage.InstanceId);
+                    Logger.LogWarning("CancellationTokenSource cancel message received. But not found it in executor. Id [{InstanceId}]", cancelMessage.InstanceId);
                     //如果在此处添加对象，可以保证取消，但需要一个恰当的锁定和移除机制
                     return Task.FromResult<JuxtaposeMessage?>(null);
                 }

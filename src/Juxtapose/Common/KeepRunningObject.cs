@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
+﻿using System.Diagnostics;
 
 namespace Juxtapose;
 
@@ -22,12 +20,12 @@ public abstract class KeepRunningObject : IDisposable
     /// <summary>
     /// 是否已释放
     /// </summary>
-    public bool IsDisposed { [DebuggerStepThrough]get => _isDisposed; [DebuggerStepThrough]private set => _isDisposed = value; }
+    public bool IsDisposed { [DebuggerStepThrough] get => _isDisposed; [DebuggerStepThrough] private set => _isDisposed = value; }
 
     /// <summary>
     /// 运行的Token
     /// </summary>
-    public CancellationToken RunningToken { [DebuggerStepThrough]get; }
+    public CancellationToken RunningToken { [DebuggerStepThrough] get; }
 
     #endregion Public 属性
 

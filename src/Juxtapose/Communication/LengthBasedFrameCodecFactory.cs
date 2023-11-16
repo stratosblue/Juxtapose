@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-
-using Juxtapose.Communication.Codec;
+﻿using Juxtapose.Communication.Codec;
 
 namespace Juxtapose;
 

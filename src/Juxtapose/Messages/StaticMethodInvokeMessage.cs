@@ -5,8 +5,16 @@
 /// </summary>
 public class StaticMethodInvokeMessage<TParameterPack>
     : MethodInvokeMessage<TParameterPack>
-    where TParameterPack : class
 {
+    #region Public 构造函数
+
+    /// <inheritdoc cref="StaticMethodInvokeMessage{TParameterPack}"/>
+    public StaticMethodInvokeMessage(int commandId) : base(commandId)
+    {
+    }
+
+    #endregion Public 构造函数
+
     #region Public 方法
 
     /// <inheritdoc/>

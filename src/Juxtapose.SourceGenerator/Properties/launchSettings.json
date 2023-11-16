@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "SourceGenerator.Test.Shared": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../../test/Juxtapose.Test.Shared/Juxtapose.Test.Shared.csproj",
+    },
+    "SourceGenerator.SampleLibrary": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../../sample/SampleLibrary/SampleLibrary.csproj"
+    }
+  }
+}

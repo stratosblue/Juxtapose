@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Juxtapose.SourceGenerator;
+﻿namespace Juxtapose.SourceGenerator;
 
 public class ClassStringBuilder : IndentStringBuilder
 {

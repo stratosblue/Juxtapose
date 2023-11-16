@@ -27,6 +27,7 @@ public enum GeneratedAccessibility
     /// <summary>
     /// 继承自基类型
     /// </summary>
+    [Obsolete("使用 partial 类来实现继承", true)]
     InheritBase,
 
     /// <summary>

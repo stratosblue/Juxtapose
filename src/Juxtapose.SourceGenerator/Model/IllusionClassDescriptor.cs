@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 namespace Juxtapose.SourceGenerator.Model;
 
@@ -83,15 +79,12 @@ public abstract class IllusionClassDescriptor : IEquatable<IllusionClassDescript
 
     protected virtual string GenerateTypeName(IllusionAttributeDefine attributeDefine, INamedTypeSymbol contextType)
     {
-        var inheritType = attributeDefine.InheritType;
         var targetTypeName = attributeDefine.TargetType.Name;
 
         if (attributeDefine.GeneratedTypeName is not string proxyTypeName
             || string.IsNullOrWhiteSpace(proxyTypeName))
         {
-            return inheritType is null
-                   ? $"{targetTypeName}Illusion"
-                   : $"{targetTypeName}As{inheritType.Name}Illusion";
+            return $"{targetTypeName}Illusion";
         }
         else
         {
@@ -106,7 +99,6 @@ public abstract class IllusionClassDescriptor : IEquatable<IllusionClassDescript
         return attributeDefine.Accessibility switch
         {
             GeneratedAccessibility.InheritContext => contextType.DeclaredAccessibility,
-            GeneratedAccessibility.InheritBase => attributeDefine.InheritType?.DeclaredAccessibility ?? Accessibility.Public,
             GeneratedAccessibility.Public => Accessibility.Public,
             GeneratedAccessibility.Internal => Accessibility.Internal,
             _ => attributeDefine.TargetType.DeclaredAccessibility,

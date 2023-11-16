@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace Juxtapose;
+﻿namespace Juxtapose;
 
 /// <summary>
 /// 传输通道

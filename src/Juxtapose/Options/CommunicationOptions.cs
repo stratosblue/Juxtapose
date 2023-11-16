@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Juxtapose;
+﻿namespace Juxtapose;
 
 /// <summary>
 /// 传输选项
@@ -10,7 +8,9 @@ public class CommunicationOptions
     #region Private 字段
 
     private ICommunicationChannelFactory _channelFactory;
+
     private ICommunicationFrameCodecFactory _frameCodecFactory;
+
     private ICommunicationMessageCodecFactory _messageCodecFactory;
 
     #endregion Private 字段

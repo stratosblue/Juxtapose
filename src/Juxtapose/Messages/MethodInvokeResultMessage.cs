@@ -5,7 +5,6 @@
 /// </summary>
 public abstract class MethodInvokeResultMessage<TResult>
     : JuxtaposeAckMessage
-    where TResult : class
 {
     #region Public 属性
 

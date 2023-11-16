@@ -12,7 +12,7 @@ public class JuxtaposeAckMessage : JuxtaposeMessage
     /// <summary>
     /// 确认的消息ID
     /// </summary>
-    public int AckId { [DebuggerStepThrough]get; [DebuggerStepThrough]set; }
+    public int AckId { [DebuggerStepThrough] get; [DebuggerStepThrough] set; }
 
     #endregion Public 属性
 

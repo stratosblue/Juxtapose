@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
+﻿using System.Collections.Immutable;
 using System.Text;
-using System.Threading;
 
 using Juxtapose.SourceGenerator.CodeGenerate;
+using Juxtapose.SourceGenerator.Internal;
 using Juxtapose.SourceGenerator.Model;
 
 using Microsoft.CodeAnalysis;
@@ -24,14 +20,22 @@ public class JuxtaposeIncrementalGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        //System.Diagnostics.Debugger.Launch();
+        var declarationsProvider = context.SyntaxProvider.CreateSyntaxProvider(FilterContextSyntaxNode, TransformContextSyntaxNode)
+                                                         .Where(m => !m.IsDefault)
+                                                         .WithComparer(JuxtaposeContextDeclaration.Default);
 
-        var declarationsProvider = context.SyntaxProvider.CreateSyntaxProvider(FilterContextSyntaxNode, TransformContextSyntaxNode).Where(m => !m.IsDefault);
+#if SAVE_GENERATED_CODE
 
-        var combinedDeclarationsProvider = context.AnalyzerConfigOptionsProvider.Combine(declarationsProvider.Collect());
-
-        context.RegisterSourceOutput(combinedDeclarationsProvider,
+        var analyzerConfigOptionsProvider = context.AnalyzerConfigOptionsProvider;
+        context.RegisterSourceOutput(analyzerConfigOptionsProvider.Combine(declarationsProvider.Collect()),
                                      (context, source) => GenerateSourceCodes(context, source.Left, source.Right));
+
+#else
+
+        context.RegisterSourceOutput(declarationsProvider.Collect(),
+                                      (context, source) => GenerateSourceCodes(context, null, source));
+
+#endif
     }
 
     #endregion Public 方法
@@ -66,7 +70,7 @@ public class JuxtaposeIncrementalGenerator : IIncrementalGenerator
     #endregion filter
 
     private static void GenerateSourceCodes(SourceProductionContext context,
-                                            AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider,
+                                            AnalyzerConfigOptionsProvider? analyzerConfigOptionsProvider,
                                             ImmutableArray<JuxtaposeContextDeclaration> contextDeclarations)
     {
         bool isSaveGeneratedCodeFile = false;
@@ -74,8 +78,6 @@ public class JuxtaposeIncrementalGenerator : IIncrementalGenerator
 
         try
         {
-            DebuggerLauncher.TryLaunch(analyzerConfigOptionsProvider);
-
             foreach (var item in contextDeclarations.Where(m => !m.HasPartialKeyword))
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NoPartialKeywordForContext, null, item.TypeSymbol.ToDisplayString()));
@@ -90,18 +92,15 @@ public class JuxtaposeIncrementalGenerator : IIncrementalGenerator
                 return;
             }
 
-            var currentAssembly = firstContextDeclaration.TypeSymbol.ContainingAssembly;
             var compilation = firstContextDeclaration.SemanticModel.Compilation;
 
             var typeSymbolChecker = new TypeSymbolAnalyzer(compilation);
 
-            var sourceGeneratorContext = new JuxtaposeSourceGeneratorContext(typeSymbolChecker, new SourceProductionContextDiagnosticReporter(context));
-
-            isSaveGeneratedCodeFile = analyzerConfigOptionsProvider.TryGetMSBuildProperty("SaveJuxtaposeGeneratedCode", out saveGeneratedCodePath);
+            isSaveGeneratedCodeFile = analyzerConfigOptionsProvider?.TryGetMSBuildProperty("SaveJuxtaposeGeneratedCode", out saveGeneratedCodePath) == true;
 
             if (isSaveGeneratedCodeFile)
             {
-                if (!analyzerConfigOptionsProvider.TryGetMSBuildProperty("ProjectDir", out var projectdir)
+                if (!analyzerConfigOptionsProvider!.TryGetMSBuildProperty("ProjectDir", out var projectdir)
                     || string.IsNullOrWhiteSpace(projectdir))
                 {
                     throw new InvalidOperationException("can not get ProjectDir.");
@@ -122,73 +121,28 @@ public class JuxtaposeIncrementalGenerator : IIncrementalGenerator
                 }
             }
 
-            var allGeneratedSources = contextDeclarations.Select(m => new JuxtaposeContextCodeGenerator(sourceGeneratorContext, m.TypeSymbol))
+            JuxtaposeContextCodeGenerator CreateContextGenerator(JuxtaposeContextDeclaration declaration)
+            {
+                var reproter = new SourceProductionContextDiagnosticReporter(context);
+                var generatorContext = new JuxtaposeContextSourceGeneratorContext(declaration, typeSymbolChecker, reproter);
+                return new JuxtaposeContextCodeGenerator(generatorContext).Preparation();
+            }
+
+            var allGeneratedSources = contextDeclarations.OrderBy(m => m.TypeSymbol.ToString(), PersistentStringComparer.Instance)
+                                                         .Select(CreateContextGenerator)
                                                          .SelectMany(m => m.GetSources())
                                                          .ToArray();
 
-            var partialSources = allGeneratedSources.OfType<PartialSourceCode>()
-                                                    .ToArray();
-
             var fullSources = allGeneratedSources.OfType<FullSourceCode>()
                                                  .ToArray();
-
-            var allPackTypeHashSet = new HashSet<string>();
-
-            var codeBuilder = new ClassStringBuilder(4096);
-
-            var aggregatedPartialSources = partialSources.GroupBy(m => m.HintName)
-                                                         .Select(m =>
-                                                         {
-                                                             var validItems = new List<PartialSourceCode>();
-                                                             foreach (var item in m)
-                                                             {
-                                                                 if (compilation.GetTypeByMetadataName(item.TypeFullName) is INamedTypeSymbol existedTypeSymbol
-                                                                     && existedTypeSymbol.ContainingAssembly.Equals(currentAssembly, SymbolEqualityComparer.Default))
-                                                                 {
-                                                                     continue;
-                                                                 }
-                                                                 if (allPackTypeHashSet.Contains(item.TypeFullName))
-                                                                 {
-                                                                     continue;
-                                                                 }
-                                                                 if (allPackTypeHashSet.Add(item.TypeFullName))
-                                                                 {
-                                                                     validItems.Add(item);
-                                                                 }
-                                                             }
-                                                             if (validItems.Count > 0)
-                                                             {
-                                                                 codeBuilder.Clear();
-                                                                 codeBuilder.AppendLine(Constants.JuxtaposeGenerateCodeHeader);
-                                                                 codeBuilder.AppendIndentLine("#nullable disable");
-                                                                 codeBuilder.AppendLine();
-
-                                                                 foreach (var namespaceGroup in validItems.GroupBy(m => m.Namespace))
-                                                                 {
-                                                                     codeBuilder.Namespace(() =>
-                                                                     {
-                                                                         foreach (var item in namespaceGroup)
-                                                                         {
-                                                                             codeBuilder.AppendLine();
-                                                                             codeBuilder.AppendLine(item.Source);
-                                                                         }
-                                                                     }
-                                                                     , namespaceGroup.Key);
-                                                                 }
-
-                                                                 return new FullSourceCode(m.Key, codeBuilder.ToString());
-                                                             }
-                                                             return null;
-                                                         })
-                                                         .OfType<SourceCode>()
-                                                         .ToArray();
-
-            AddSources(aggregatedPartialSources);
 
             AddSources(fullSources);
         }
         catch (Exception ex)
         {
+#if DEBUG
+            throw;
+#endif
             context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UnknownExceptionHasThrew, null, ex.GetType().FullName, OneLine(ex.ToString())));
         }
 

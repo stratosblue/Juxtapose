@@ -1,13 +1,11 @@
-﻿using System;
-using System.Threading;
-
-namespace Juxtapose.Internal;
+﻿namespace Juxtapose.Internal;
 
 internal sealed class ActionDisposer : IDisposable
 {
     #region Private 字段
 
     private readonly Action _action;
+
     private int _isDisposed = 0;
 
     #endregion Private 字段

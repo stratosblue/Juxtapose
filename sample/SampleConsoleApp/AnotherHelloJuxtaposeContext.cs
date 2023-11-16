@@ -5,8 +5,14 @@ using SampleLibrary;
 
 namespace SampleConsoleApp
 {
-    [Illusion(typeof(Hello), typeof(IHello), "AnotherHelloAsIHelloIllusion")]
+    [Illusion(typeof(Hello), "AnotherHelloAsIHelloIllusion")]
     public partial class AnotherHelloJuxtaposeContext : JuxtaposeContext
     {
     }
+}
+
+namespace SampleLibrary
+{
+    public sealed partial class AnotherHelloAsIHelloIllusion : IHello
+    { }
 }

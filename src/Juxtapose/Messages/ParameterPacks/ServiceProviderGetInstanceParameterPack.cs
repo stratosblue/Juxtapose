@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Juxtapose.Messages.ParameterPacks;
+﻿namespace Juxtapose.Messages.ParameterPacks;
 
 /// <summary>
 /// 从 <see cref="IServiceProvider"/> 获取对象实例消息

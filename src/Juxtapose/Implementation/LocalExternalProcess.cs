@@ -1,8 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 namespace Juxtapose;
 
@@ -21,10 +17,15 @@ public class LocalExternalProcess : KeepRunningObject, IExternalProcess
     #region Private 字段
 
     private readonly ProcessStartInfo _processStartInfo;
+
     private int? _exitCode;
+
     private volatile bool _isInitialized;
+
     private int _isInvalid;
+
     private int? _processId;
+
     private DateTime? _startTime;
 
     #endregion Private 字段

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-using Juxtapose.SourceGenerator.Model;
+﻿using Juxtapose.SourceGenerator.Model;
 
 using Microsoft.CodeAnalysis;
 
@@ -22,7 +18,7 @@ public class IllusionStaticClassCodeGenerator : ISourceCodeProvider<SourceCode>
 
     #region Public 属性
 
-    public JuxtaposeSourceGeneratorContext Context { get; }
+    public JuxtaposeContextSourceGeneratorContext Context { get; }
 
     public IllusionStaticClassDescriptor Descriptor { get; }
 
@@ -34,7 +30,7 @@ public class IllusionStaticClassCodeGenerator : ISourceCodeProvider<SourceCode>
 
     #region Public 构造函数
 
-    public IllusionStaticClassCodeGenerator(JuxtaposeSourceGeneratorContext context, IllusionStaticClassDescriptor descriptor, SubResourceCollection resources)
+    public IllusionStaticClassCodeGenerator(JuxtaposeContextSourceGeneratorContext context, IllusionStaticClassDescriptor descriptor, SubResourceCollection resources)
     {
         Context = context ?? throw new ArgumentNullException(nameof(context));
         Descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
@@ -60,7 +56,7 @@ public class IllusionStaticClassCodeGenerator : ISourceCodeProvider<SourceCode>
             {
                 _sourceBuilder.AppendIndentLine($"private static readonly {Descriptor.ContextType.ToFullyQualifiedDisplayString()} s_context = {Descriptor.ContextType.ToFullyQualifiedDisplayString()}.SharedInstance;", true);
 
-                new StaticProxyCodeGenerator(Context, _sourceBuilder, Descriptor.TargetType, _vars).GenerateMemberProxyCode();
+                new StaticProxyCodeGenerator(Context, Resources, _sourceBuilder, Descriptor.TargetType, _vars).GenerateMemberProxyCode();
             });
         }, Descriptor.Namespace);
     }
@@ -84,35 +80,6 @@ public class IllusionStaticClassCodeGenerator : ISourceCodeProvider<SourceCode>
 
     public IEnumerable<SourceCode> GetSources()
     {
-        var allProxyableMembers = Descriptor.TargetType.GetProxyableMembers(false).Where(m => m.DeclaredAccessibility == Accessibility.Public);
-
-        #region 委托
-
-        //HACK 暂不处理嵌套委托
-        var delegateSymbols = allProxyableMembers.OfType<IMethodSymbol>()
-                                                 .SelectMany(m => m.Parameters)
-                                                 .Where(m => m.Type.IsDelegate())
-                                                 .Select(m => m.Type)
-                                                 .OfType<INamedTypeSymbol>()
-                                                 .Select(m => m.DelegateInvokeMethod)
-                                                 .Distinct(SymbolEqualityComparer.Default)
-                                                 .OfType<IMethodSymbol>()
-                                                 .ToArray();
-
-        foreach (var item in MethodParameterPackCodeGenerateUtil.Generate(delegateSymbols, "Delegates.ParameterPack.g.cs", Context.TypeSymbolAnalyzer))
-        {
-            Resources.TryAddDelegateArgumentPackSourceCode(item);
-            yield return item;
-        }
-
-        #endregion 委托
-
-        foreach (var item in MethodParameterPackCodeGenerateUtil.Generate(allProxyableMembers, $"{Descriptor.TargetType.ToDisplayString()}.ParameterPack.g.cs", Context.TypeSymbolAnalyzer))
-        {
-            Resources.TryAddMethodArgumentPackSourceCode(item);
-            yield return item;
-        }
-
         yield return new FullSourceCode(SourceHintName, GenerateProxyTypeSource());
     }
 

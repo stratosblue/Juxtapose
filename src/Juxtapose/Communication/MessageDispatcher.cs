@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 
 using Juxtapose.Messages;
 
@@ -94,7 +89,7 @@ public abstract class MessageDispatcher : KeepRunningObject, IInitializationable
                     }
                     catch (Exception ex)
                     {
-                        Logger.LogDebug(ex, "Exection has threw at message process - {0}", message);
+                        Logger.LogDebug(ex, "Exection has threw at message process - {Message}", message);
                         var originExceptionType = ex is OperationCanceledException
                                                   ? Constants.OperationCanceledExceptionFullType
                                                   : ex.GetType().ToString();
@@ -153,7 +148,14 @@ public abstract class MessageDispatcher : KeepRunningObject, IInitializationable
             case JuxtaposeAckMessage juxtaposeAckMessage:
                 if (MessageTaskCompletionSources.TryGetValue(juxtaposeAckMessage.AckId, out var taskCompletionSource))
                 {
-                    taskCompletionSource.SetResult(juxtaposeAckMessage);
+                    if (!taskCompletionSource.TrySetResult(juxtaposeAckMessage))
+                    {
+                        Logger.LogWarning("Received ack message {AckId} - {Message}. But set result failed.", juxtaposeAckMessage.AckId, juxtaposeAckMessage);
+                    }
+                }
+                else
+                {
+                    Logger.LogWarning("Received ack message {AckId} - {Message}. But no waiter found.", juxtaposeAckMessage.AckId, juxtaposeAckMessage);
                 }
                 break;
 
@@ -198,7 +200,7 @@ public abstract class MessageDispatcher : KeepRunningObject, IInitializationable
 
         try
         {
-            Logger.LogTrace("Start invoke message : {1}", message);
+            Logger.LogTrace("Start invoke message : {Message}", message);
 
             var taskCompletionSource = new TaskCompletionSource<JuxtaposeAckMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
             MessageTaskCompletionSources.TryAdd(id, taskCompletionSource);
@@ -212,19 +214,19 @@ public abstract class MessageDispatcher : KeepRunningObject, IInitializationable
             {
                 localCts.Cancel();
 
-                var resultMessage = resultReceiveTask.IsCompletedSuccessfully
+                var resultMessage = resultReceiveTask.IsCompleted
                                     ? resultReceiveTask.Result
-                                    : resultReceiveTask.GetAwaiter().GetResult();
+                                    : await resultReceiveTask;
                 if (resultMessage is ExceptionMessage exceptionMessage)
                 {
                     if (Constants.OperationCanceledExceptionFullType.Equals(exceptionMessage.OriginExceptionType, StringComparison.Ordinal))
                     {
-                        Logger.LogTrace("Remote OperationCanceledException has been received for message id {0}.", message.Id);
+                        Logger.LogTrace("Remote OperationCanceledException has been received for message id {MessageId}.", message.Id);
                         throw new OperationCanceledException();
                     }
                     else
                     {
-                        Logger.LogTrace("ExceptionMessage has been received for message id {0}. OriginMessage: {1} . OriginStackTrace: {2}", message.Id, exceptionMessage.OriginMessage, exceptionMessage.OriginStackTrace);
+                        Logger.LogTrace("ExceptionMessage has been received for message id {MessageId}. OriginMessage: {OriginMessage} . OriginStackTrace: {OriginStackTrace}", message.Id, exceptionMessage.OriginMessage, exceptionMessage.OriginStackTrace);
                         throw new JuxtaposeRemoteException(originStackTrace: exceptionMessage.OriginStackTrace,
                                                            originMessage: exceptionMessage.OriginMessage,
                                                            originToStringValue: exceptionMessage.OriginToStringValue,

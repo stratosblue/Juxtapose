@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-using Juxtapose.SourceGenerator;
+﻿using Juxtapose.SourceGenerator;
 
 namespace Microsoft.CodeAnalysis;
 

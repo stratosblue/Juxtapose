@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Juxtapose;
@@ -12,7 +9,9 @@ public sealed class MessageExchangerFactory : IMessageExchangerFactory
     #region Private 字段
 
     private readonly ICommunicationChannelFactory _communicationChannelFactory;
+
     private readonly ICommunicationFrameCodecFactory _communicationFrameCodecFactory;
+
     private readonly ICommunicationMessageCodecFactory _communicationMessageCodecFactory;
 
     #endregion Private 字段

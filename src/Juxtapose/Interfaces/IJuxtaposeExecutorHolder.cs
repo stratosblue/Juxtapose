@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Juxtapose;
+﻿namespace Juxtapose;
 
 /// <summary>
 /// <see cref="JuxtaposeExecutor"/> 持有器

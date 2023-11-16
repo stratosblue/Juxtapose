@@ -14,9 +14,10 @@ using global::System.Threading;
 using global::System.Threading.Tasks;
 
 using global::Juxtapose;
+using global::Juxtapose.Communication.Codec;
 using global::Juxtapose.Messages;
 using global::Juxtapose.Messages.ParameterPacks;
-using global::Juxtapose.Messages.ParameterPacks.Generated;";
+";
 
     #endregion Public 字段
 }

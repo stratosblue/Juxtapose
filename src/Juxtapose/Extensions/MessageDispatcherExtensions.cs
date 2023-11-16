@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Juxtapose.Messages;
+﻿using Juxtapose.Messages;
 
 namespace Juxtapose;
 
@@ -53,15 +49,16 @@ public static class MessageDispatcherExtensions
     /// <param name="dispatcher"></param>
     /// <param name="parameterPack"></param>
     /// <param name="instanceId"></param>
+    /// <param name="commandId"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
     public static async Task<JuxtaposeAckMessage> InvokeInstanceMethodMessageAsync<TParameterPack>(this MessageDispatcher dispatcher,
                                                                                                    TParameterPack parameterPack,
                                                                                                    int instanceId,
+                                                                                                   int commandId,
                                                                                                    CancellationToken cancellation = default)
-        where TParameterPack : class
     {
-        var message = new InstanceMethodInvokeMessage<TParameterPack>(instanceId) { ParameterPack = parameterPack };
+        var message = new InstanceMethodInvokeMessage<TParameterPack>(instanceId, commandId) { ParameterPack = parameterPack };
         try
         {
             return await dispatcher.InvokeMessageAsync(message, cancellation);
@@ -82,16 +79,16 @@ public static class MessageDispatcherExtensions
     /// <param name="dispatcher"></param>
     /// <param name="parameterPack"></param>
     /// <param name="instanceId"></param>
+    /// <param name="commandId"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
     public static async Task<TResultPack> InvokeInstanceMethodMessageAsync<TParameterPack, TResultPack>(this MessageDispatcher dispatcher,
                                                                                                         TParameterPack parameterPack,
                                                                                                         int instanceId,
+                                                                                                        int commandId,
                                                                                                         CancellationToken cancellation = default)
-        where TParameterPack : class
-        where TResultPack : class
     {
-        var message = new InstanceMethodInvokeMessage<TParameterPack>(instanceId) { ParameterPack = parameterPack };
+        var message = new InstanceMethodInvokeMessage<TParameterPack>(instanceId, commandId) { ParameterPack = parameterPack };
         JuxtaposeAckMessage ackMessage;
 
         try
@@ -114,14 +111,15 @@ public static class MessageDispatcherExtensions
     /// <typeparam name="TParameterPack"></typeparam>
     /// <param name="dispatcher"></param>
     /// <param name="parameterPack"></param>
+    /// <param name="commandId"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
     public static async Task<JuxtaposeAckMessage> InvokeStaticMethodMessageAsync<TParameterPack>(this MessageDispatcher dispatcher,
                                                                                                  TParameterPack parameterPack,
+                                                                                                 int commandId,
                                                                                                  CancellationToken cancellation = default)
-        where TParameterPack : class
     {
-        var message = new StaticMethodInvokeMessage<TParameterPack>() { ParameterPack = parameterPack };
+        var message = new StaticMethodInvokeMessage<TParameterPack>(commandId) { ParameterPack = parameterPack };
         try
         {
             return await dispatcher.InvokeMessageAsync(message, cancellation);
@@ -141,15 +139,15 @@ public static class MessageDispatcherExtensions
     /// <typeparam name="TResultPack"></typeparam>
     /// <param name="dispatcher"></param>
     /// <param name="parameterPack"></param>
+    /// <param name="commandId"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
     public static async Task<TResultPack> InvokeStaticMethodMessageAsync<TParameterPack, TResultPack>(this MessageDispatcher dispatcher,
                                                                                                       TParameterPack parameterPack,
+                                                                                                      int commandId,
                                                                                                       CancellationToken cancellation = default)
-        where TParameterPack : class
-        where TResultPack : class
     {
-        var message = new StaticMethodInvokeMessage<TParameterPack>() { ParameterPack = parameterPack };
+        var message = new StaticMethodInvokeMessage<TParameterPack>(commandId) { ParameterPack = parameterPack };
         JuxtaposeAckMessage ackMessage;
         try
         {
@@ -181,15 +179,16 @@ public static class MessageDispatcherExtensions
     /// <param name="dispatcher"></param>
     /// <param name="parameterPack"></param>
     /// <param name="instanceId"></param>
+    /// <param name="commandId"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
     public static JuxtaposeAckMessage InvokeInstanceMethodMessage<TParameterPack>(this MessageDispatcher dispatcher,
                                                                                   TParameterPack parameterPack,
                                                                                   int instanceId,
+                                                                                  int commandId,
                                                                                   CancellationToken cancellation = default)
-        where TParameterPack : class
     {
-        return InvokeWithoutSyncContextAsync(() => dispatcher.InvokeInstanceMethodMessageAsync(parameterPack, instanceId, cancellation)).GetAwaiter().GetResult();
+        return InvokeWithoutSyncContextAsync(() => dispatcher.InvokeInstanceMethodMessageAsync(parameterPack, instanceId, commandId, cancellation)).GetAwaiter().GetResult();
     }
 
     /// <summary>
@@ -200,17 +199,17 @@ public static class MessageDispatcherExtensions
     /// <param name="dispatcher"></param>
     /// <param name="parameterPack"></param>
     /// <param name="instanceId"></param>
+    /// <param name="commandId"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
 
     public static TResultPack InvokeInstanceMethodMessage<TParameterPack, TResultPack>(this MessageDispatcher dispatcher,
                                                                                        TParameterPack parameterPack,
                                                                                        int instanceId,
+                                                                                       int commandId,
                                                                                        CancellationToken cancellation = default)
-        where TParameterPack : class
-        where TResultPack : class
     {
-        return InvokeWithoutSyncContextAsync(() => dispatcher.InvokeInstanceMethodMessageAsync<TParameterPack, TResultPack>(parameterPack, instanceId, cancellation)).GetAwaiter().GetResult();
+        return InvokeWithoutSyncContextAsync(() => dispatcher.InvokeInstanceMethodMessageAsync<TParameterPack, TResultPack>(parameterPack, instanceId, commandId, cancellation)).GetAwaiter().GetResult();
     }
 
     /// <summary>
@@ -219,14 +218,15 @@ public static class MessageDispatcherExtensions
     /// <typeparam name="TParameterPack"></typeparam>
     /// <param name="dispatcher"></param>
     /// <param name="parameterPack"></param>
+    /// <param name="commandId"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
     public static JuxtaposeAckMessage InvokeStaticMethodMessage<TParameterPack>(this MessageDispatcher dispatcher,
                                                                                 TParameterPack parameterPack,
+                                                                                int commandId,
                                                                                 CancellationToken cancellation = default)
-        where TParameterPack : class
     {
-        return InvokeWithoutSyncContextAsync(() => dispatcher.InvokeStaticMethodMessageAsync<TParameterPack>(parameterPack, cancellation)).GetAwaiter().GetResult();
+        return InvokeWithoutSyncContextAsync(() => dispatcher.InvokeStaticMethodMessageAsync<TParameterPack>(parameterPack, commandId, cancellation)).GetAwaiter().GetResult();
     }
 
     /// <summary>
@@ -236,15 +236,15 @@ public static class MessageDispatcherExtensions
     /// <typeparam name="TResultPack"></typeparam>
     /// <param name="dispatcher"></param>
     /// <param name="parameterPack"></param>
+    /// <param name="commandId"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
     public static TResultPack InvokeStaticMethodMessage<TParameterPack, TResultPack>(this MessageDispatcher dispatcher,
                                                                                      TParameterPack parameterPack,
+                                                                                     int commandId,
                                                                                      CancellationToken cancellation = default)
-        where TParameterPack : class
-        where TResultPack : class
     {
-        return InvokeWithoutSyncContextAsync(() => dispatcher.InvokeStaticMethodMessageAsync<TParameterPack, TResultPack>(parameterPack, cancellation)).GetAwaiter().GetResult();
+        return InvokeWithoutSyncContextAsync(() => dispatcher.InvokeStaticMethodMessageAsync<TParameterPack, TResultPack>(parameterPack, commandId, cancellation)).GetAwaiter().GetResult();
     }
 
     #endregion Sync

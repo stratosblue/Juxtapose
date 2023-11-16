@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 namespace Juxtapose.SourceGenerator.Model;
 
-public class SubResourceCollection : ResourceCollection
+public class SubResourceCollection : ContextResourceCollection
 {
     #region Private 字段
 
@@ -24,34 +21,45 @@ public class SubResourceCollection : ResourceCollection
 
     #region Public 方法
 
-    public override bool TryAddConstructorParameterPackSourceCode(ConstructorParameterPackSourceCode item)
+    public override void AddConstructors(IMethodSymbol methodSymbol)
     {
-        _contextResourceCollection.TryAddConstructorParameterPackSourceCode(item);
-        return base.TryAddConstructorParameterPackSourceCode(item);
+        _contextResourceCollection.AddConstructors(methodSymbol);
+        base.AddConstructors(methodSymbol);
     }
 
-    public override bool TryAddDelegateArgumentPackSourceCode(ArgumentPackSourceCode item)
+    public override void AddDelegates(IMethodSymbol methodSymbol)
     {
-        _contextResourceCollection.TryAddDelegateArgumentPackSourceCode(item);
-        return base.TryAddDelegateArgumentPackSourceCode(item);
+        _contextResourceCollection.AddDelegates(methodSymbol);
+        base.AddDelegates(methodSymbol);
     }
 
-    public override bool TryAddMethodArgumentPackSourceCode(ArgumentPackSourceCode item)
+    public override void AddMethods(IMethodSymbol methodSymbol)
     {
-        _contextResourceCollection.TryAddMethodArgumentPackSourceCode(item);
-        return base.TryAddMethodArgumentPackSourceCode(item);
+        _contextResourceCollection.AddMethods(methodSymbol);
+        base.AddMethods(methodSymbol);
     }
 
-    public override IEnumerable<ArgumentPackSourceCode> TryAddMethodArgumentPackSourceCode(IEnumerable<ArgumentPackSourceCode> items)
+    public override void AddSourceCode(SourceCode sourceCode)
     {
-        _contextResourceCollection.TryAddMethodArgumentPackSourceCode(items);
-        return base.TryAddMethodArgumentPackSourceCode(items);
+        _contextResourceCollection.AddSourceCode(sourceCode);
+        base.AddSourceCode(sourceCode);
     }
 
-    public override bool TryAddRealObjectInvokerSourceCode(INamedTypeSymbol targetTypeSymbol, INamedTypeSymbol? inheritTypeSymbol, RealObjectInvokerSourceCode invokerSourceCode)
+    public override int GetCommandId(ISymbol symbol)
     {
-        _contextResourceCollection.TryAddRealObjectInvokerSourceCode(targetTypeSymbol, inheritTypeSymbol, invokerSourceCode);
-        return base.TryAddRealObjectInvokerSourceCode(targetTypeSymbol, inheritTypeSymbol, invokerSourceCode);
+        return _contextResourceCollection.GetCommandId(symbol);
+    }
+
+    public override bool TryAddRealObjectInvokerSourceCode(INamedTypeSymbol targetTypeSymbol, RealObjectInvokerSourceCode invokerSourceCode)
+    {
+        _contextResourceCollection.TryAddRealObjectInvokerSourceCode(targetTypeSymbol, invokerSourceCode);
+        return base.TryAddRealObjectInvokerSourceCode(targetTypeSymbol, invokerSourceCode);
+    }
+
+    public override bool TryGetRealObjectInvokerSourceCode(INamedTypeSymbol targetTypeSymbol, out RealObjectInvokerSourceCode? invokerSourceCode)
+    {
+        _contextResourceCollection.TryGetRealObjectInvokerSourceCode(targetTypeSymbol, out invokerSourceCode);
+        return base.TryGetRealObjectInvokerSourceCode(targetTypeSymbol, out invokerSourceCode);
     }
 
     #endregion Public 方法

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Juxtapose;
+﻿namespace Juxtapose;
 
 /// <summary>
 /// 无持有限制的 <see cref="JuxtaposeExecutor"/> 持有器
@@ -12,7 +8,9 @@ public abstract class JuxtaposeExecutorHolder : IJuxtaposeExecutorHolder
     #region Private 字段
 
     private int _count = 0;
+
     private bool _isDisposed = false;
+
     private volatile bool _prepareDrop = false;
 
     #endregion Private 字段

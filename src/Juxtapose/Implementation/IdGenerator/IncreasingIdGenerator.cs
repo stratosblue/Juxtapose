@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace Juxtapose;
+﻿namespace Juxtapose;
 
 /// <summary>
 /// 递增的<see cref="IUniqueIdGenerator"/>
@@ -10,6 +8,7 @@ public class IncreasingIdGenerator : IUniqueIdGenerator
     #region Private 字段
 
     private readonly object _syncRoot = new();
+
     private int _id = 0;
 
     #endregion Private 字段

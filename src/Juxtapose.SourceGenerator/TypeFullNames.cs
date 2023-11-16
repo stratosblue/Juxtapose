@@ -9,15 +9,30 @@ public static class TypeFullNames
         #region Public 字段
 
         public const string ConstantMessageCodecFactory = "global::Juxtapose.ConstantMessageCodecFactory";
+
         public const string ExecutorCreationContext = "global::Juxtapose.ExecutorCreationContext";
+
         public const string ICommunicationMessageCodecFactory = "global::Juxtapose.ICommunicationMessageCodecFactory";
+
         public const string IJuxtaposeExecutorOwner = "global::Juxtapose.IJuxtaposeExecutorOwner";
+
         public const string IMessageExchanger = "global::Juxtapose.IMessageExchanger";
+
         public const string IMessageExecutor = "global::Juxtapose.IMessageExecutor";
+
+        public const string JuxtaposeCommandMessage = "global::Juxtapose.Messages.JuxtaposeCommandMessage";
+
         public const string JuxtaposeContext = "global::Juxtapose.JuxtaposeContext";
+
         public const string JuxtaposeContext_NoGlobal = "Juxtapose.JuxtaposeContext";
+
         public const string JuxtaposeExecutor = "global::Juxtapose.JuxtaposeExecutor";
+
         public const string MessageDispatcher = "global::Juxtapose.MessageDispatcher";
+
+        public const string ReferenceId = "global::Juxtapose.ReferenceId";
+
+        public const string SpecialCommand = "global::Juxtapose.SpecialCommand";
 
         #endregion Public 字段
 
@@ -28,12 +43,19 @@ public static class TypeFullNames
             #region Public 字段
 
             public const string CreateObjectInstanceMessage = "global::Juxtapose.Messages.CreateObjectInstanceMessage";
+
             public const string DisposeObjectInstanceMessage = "global::Juxtapose.Messages.DisposeObjectInstanceMessage";
+
             public const string ExceptionMessage = "global::Juxtapose.Messages.ExceptionMessage";
+
             public const string IInstanceMessage = "global::Juxtapose.Messages.IInstanceMessage";
+
             public const string InstanceMethodInvokeMessage = "global::Juxtapose.Messages.InstanceMethodInvokeMessage";
+
             public const string InstanceMethodInvokeResultMessage = "global::Juxtapose.Messages.InstanceMethodInvokeResultMessage";
+
             public const string JuxtaposeAckMessage = "global::Juxtapose.Messages.JuxtaposeAckMessage";
+
             public const string JuxtaposeMessage = "global::Juxtapose.Messages.JuxtaposeMessage";
 
             //public const string MethodInvokeMessage = "global::Juxtapose.Messages.MethodInvokeMessage";
@@ -86,6 +108,7 @@ public static class TypeFullNames
                 #region Public 字段
 
                 public const string Task = "global::System.Threading.Tasks.Task";
+
                 public const string ValueTask = "global::System.Threading.Tasks.ValueTask";
 
                 #endregion Public 字段

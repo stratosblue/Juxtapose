@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using System.IO.Pipes;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.IO.Pipes;
 using Juxtapose.Internal;
 
 namespace Juxtapose.Communication.Channel;
@@ -15,8 +11,11 @@ public abstract class NamedPipeCommunicationChannel : ICommunicationChannel
     #region Private 字段
 
     private readonly PipeStream _pipeStream;
+
     private bool _isDisposed;
+
     private volatile bool _isInitialized;
+
     private Action<Stream>? _onConnectedCallback;
 
     #endregion Private 字段

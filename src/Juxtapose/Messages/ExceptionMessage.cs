@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace Juxtapose.Messages;
 
@@ -14,22 +13,22 @@ public class ExceptionMessage
     /// <summary>
     /// 原始异常类型
     /// </summary>
-    public string OriginExceptionType { get; [DebuggerStepThrough]set; }
+    public string OriginExceptionType { get; [DebuggerStepThrough] set; }
 
     /// <summary>
     /// 异常的原始<see cref="Exception.Message"/>
     /// </summary>
-    public string OriginMessage { get; [DebuggerStepThrough]set; }
+    public string OriginMessage { get; [DebuggerStepThrough] set; }
 
     /// <summary>
     /// 异常的原始<see cref="Exception.StackTrace"/>
     /// </summary>
-    public string? OriginStackTrace { get; [DebuggerStepThrough]set; }
+    public string? OriginStackTrace { get; [DebuggerStepThrough] set; }
 
     /// <summary>
     /// 原始<see cref="Exception.ToString()"/>
     /// </summary>
-    public string OriginToStringValue { get; [DebuggerStepThrough]set; }
+    public string OriginToStringValue { get; [DebuggerStepThrough] set; }
 
     #endregion Public 属性
 

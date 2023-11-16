@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-using Juxtapose.Messages;
+﻿using Juxtapose.Messages;
 
 namespace Juxtapose;
 

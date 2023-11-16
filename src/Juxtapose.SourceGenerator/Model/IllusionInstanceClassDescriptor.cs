@@ -1,6 +1,4 @@
-﻿using System;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 namespace Juxtapose.SourceGenerator.Model;
 
@@ -12,11 +10,6 @@ public class IllusionInstanceClassDescriptor : IllusionClassDescriptor
     /// 从IoC容器中创建对象
     /// </summary>
     public bool FromIoCContainer { get; set; }
-
-    /// <summary>
-    /// 生成的代理需要继承的类型
-    /// </summary>
-    public INamedTypeSymbol? InheritType { get; }
 
     #endregion Public 属性
 
@@ -30,8 +23,6 @@ public class IllusionInstanceClassDescriptor : IllusionClassDescriptor
         }
 
         FromIoCContainer = attributeDefine.FromIoCContainer;
-
-        InheritType = attributeDefine.InheritType;
     }
 
     #endregion Public 构造函数
@@ -41,13 +32,7 @@ public class IllusionInstanceClassDescriptor : IllusionClassDescriptor
     public override bool Equals(IllusionClassDescriptor descriptor)
     {
         return descriptor is IllusionInstanceClassDescriptor instanceClassDescriptor
-               && base.Equals(descriptor)
-               && SymbolEqualityComparer.Default.Equals(InheritType, instanceClassDescriptor.InheritType);
-    }
-
-    public override int GetHashCode()
-    {
-        return base.GetHashCode() * -1521134295 + SymbolEqualityComparer.Default.GetHashCode(InheritType);
+               && base.Equals(descriptor);
     }
 
     #endregion Public 方法

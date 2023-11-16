@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-using Juxtapose.SourceGenerator.Model;
+﻿using Juxtapose.SourceGenerator.Model;
 
 using Microsoft.CodeAnalysis;
 
@@ -20,43 +17,40 @@ internal class SourceCodeGenerateHelper
     /// <param name="context"></param>
     /// <param name="method"></param>
     /// <param name="vars"></param>
-    public static void GenerateInstanceMethodProxyBodyCode(ClassStringBuilder builder, JuxtaposeSourceGeneratorContext context, IMethodSymbol method, VariableName vars)
+    public static void GenerateInstanceMethodProxyBodyCode(ClassStringBuilder builder, JuxtaposeContextSourceGeneratorContext context, ResourceCollection resources, IMethodSymbol method, VariableName vars)
     {
-        if (!context.TryGetMethodParameterPackWithDiagnostic(method, out var parameterPackSourceCode))
-        {
-            return;
-        }
-        ResultPackSourceCode? resultPackSourceCode = null;
-        if (context.TypeSymbolAnalyzer.GetReturnType(method) is not null
-            && !context.TryGetMethodResultPackWithDiagnostic(method, out resultPackSourceCode))
-        {
-            return;
-        }
-
-        var paramPackContext = context.TypeSymbolAnalyzer.GetParamPackContext(method);
         var isAwaitable = context.TypeSymbolAnalyzer.IsAwaitable(method.ReturnType);
+        var commandId = context.Resources.GetCommandId(method);
 
         builder.AppendLine(vars.MethodBodyPrefixSnippet);
 
         builder.AppendIndentLine($"{vars.RunningToken}.ThrowIfCancellationRequested();");
 
-        foreach (var parameter in paramPackContext.CancellationTokenParams)
+        var cancellationTokenParams = new List<CancellationTokenArgumentInfo>(1);
+        var delegateParams = new List<DelegateArgumentInfo>(1);
+
+        for (int index = 0; index < method.Parameters.Length; index++)
         {
-            builder.AppendIndentLine($"{parameter.Name}.ThrowIfCancellationRequested();");
-            builder.AppendIndentLine($"int? {parameter.Name}_RID = {parameter.Name}.CanBeCanceled ? {vars.Executor}.InstanceIdGenerator.Next() : null;");
-        }
+            var parameter = method.Parameters[index];
 
-        foreach (var parameter in paramPackContext.DelegateParams)
-        {
-            var callbackMethod = ((INamedTypeSymbol)parameter.Type).DelegateInvokeMethod!;
-            var callbackParamPackContext = context.TypeSymbolAnalyzer.GetParamPackContext(callbackMethod);
+            if (context.TypeSymbolAnalyzer.IsCancellationToken(parameter.Type))
+            {
+                cancellationTokenParams.Add(new(parameter, index + 1));
+                builder.AppendIndentLine($"{parameter.Name}.ThrowIfCancellationRequested();");
+                builder.AppendIndentLine($"{TypeFullNames.Juxtapose.ReferenceId}? {parameter.Name}_RID = {parameter.Name}.CanBeCanceled ? {vars.Executor}.InstanceIdGenerator.Next() : null;");
+            }
 
-            var callbackBodyBuilder = new ClassStringBuilder();
-            callbackBodyBuilder.Indent();
-            callbackBodyBuilder.Indent();
-            GenerateMethodInvokeThroughMessageCode(context, callbackBodyBuilder, callbackMethod, new VariableName(vars) { Instance = parameter.Name });
+            if (parameter.Type.IsDelegate())
+            {
+                delegateParams.Add(new(parameter, index + 1));
+                var callbackMethod = ((INamedTypeSymbol)parameter.Type).DelegateInvokeMethod!;
 
-            builder.AppendLine($@"int? {parameter.Name}_RID = null;
+                var callbackBodyBuilder = new ClassStringBuilder();
+                callbackBodyBuilder.Indent();
+                callbackBodyBuilder.Indent();
+                GenerateMethodInvokeThroughMessageCode(context, resources, callbackBodyBuilder, callbackMethod, new VariableName(vars) { Instance = parameter.Name });
+
+                builder.AppendLine($@"{TypeFullNames.Juxtapose.ReferenceId}? {parameter.Name}_RID = null;
 if ({parameter.Name} is not null)
 {{
     {parameter.Name}_RID = {vars.Executor}.InstanceIdGenerator.Next();
@@ -65,40 +59,38 @@ if ({parameter.Name} is not null)
 {callbackBodyBuilder.ToString().Trim('\r', '\n')}
     }}));
 }}");
+            }
         }
 
-        if (!paramPackContext.CancellationTokenParams.IsEmpty)
+        if (cancellationTokenParams.Count > 0)
         {
             builder.AppendIndentLine("bool shouldSendCancel = false;");
         }
 
-        if (!paramPackContext.CancellationTokenParams.IsEmpty
-            || !paramPackContext.DelegateParams.IsEmpty)
+        if (cancellationTokenParams.Count > 0
+            || delegateParams.Count > 0)
         {
             builder.AppendLine(@"try
 {");
             builder.Indent();
         }
 
-        paramPackContext.GenParamPackCode(builder, "parameterPack");
+        ArgumentsAndResultsHelper.GenerateMethodArgumentsPackCode(method, context.TypeSymbolAnalyzer, builder, "parameterPack");
 
-        if (!paramPackContext.CancellationTokenParams.IsEmpty)
+        if (cancellationTokenParams.Count > 0)
         {
-            builder.AppendIndentLine($"using var localCts = CancellationTokenSource.CreateLinkedTokenSource({vars.RunningToken}, {string.Join(", ", paramPackContext.CancellationTokenParams.Select(m => m.Name))});");
+            builder.AppendIndentLine($"using var localCts = CancellationTokenSource.CreateLinkedTokenSource({vars.RunningToken}, {string.Join(", ", cancellationTokenParams.Select(m => m.ParameterSymbol.Name))});");
             builder.AppendIndentLine("localCts.Token.ThrowIfCancellationRequested();");
             builder.AppendIndentLine("var localToken = localCts.Token;");
+            builder.AppendIndentLine("shouldSendCancel = true;");
         }
         else
         {
             builder.AppendIndentLine($"var localToken = {vars.RunningToken};");
         }
 
-        if (!paramPackContext.CancellationTokenParams.IsEmpty)
-        {
-            builder.AppendIndentLine("shouldSendCancel = true;");
-        }
-
-        if (resultPackSourceCode is not null)
+        var returnType = context.TypeSymbolAnalyzer.GetReturnType(method);
+        if (returnType is not null)
         {
             builder.AppendIndent("return (");
         }
@@ -116,16 +108,16 @@ if ({parameter.Name} is not null)
             builder.Append($"{vars.Executor}.InvokeInstanceMethodMessage");
         }
 
-        if (resultPackSourceCode is not null)
+        if (returnType is not null)
         {
-            builder.Append($"<{parameterPackSourceCode.TypeName}, {resultPackSourceCode.TypeName}>");
+            builder.Append($"<{ArgumentsAndResultsHelper.GenerateArgumentTypeName(method, context.TypeSymbolAnalyzer)}, {ArgumentsAndResultsHelper.GenerateValueTupleTypeName(new[] { returnType }, context.TypeSymbolAnalyzer)}>");
         }
 
-        builder.Append($"(parameterPack, {vars.InstanceId}, localToken)");
+        builder.Append($"(parameterPack, {vars.InstanceId}, (int){context.GetCommandAccessExpression(commandId)}, localToken)");
 
-        if (resultPackSourceCode is not null)
+        if (returnType is not null)
         {
-            builder.Append(").Result;");
+            builder.Append(").Item1;");
         }
         else
         {
@@ -134,8 +126,8 @@ if ({parameter.Name} is not null)
 
         builder.AppendLine();
 
-        if (!paramPackContext.CancellationTokenParams.IsEmpty
-            || !paramPackContext.DelegateParams.IsEmpty)
+        if (cancellationTokenParams.Count > 0
+            || delegateParams.Count > 0)
         {
             builder.Dedent();
 
@@ -144,19 +136,19 @@ finally
 {");
             builder.Indent();
 
-            foreach (var parameter in paramPackContext.DelegateParams)
+            foreach (var parameter in delegateParams)
             {
-                builder.AppendLine($@"if ({parameter.Name}_RID.HasValue)
+                builder.AppendLine($@"if ({parameter.ParameterSymbol.Name}_RID.HasValue)
 {{
-    {vars.Executor}.RemoveObjectInstance({parameter.Name}_RID.Value);
+    {vars.Executor}.RemoveObjectInstance({parameter.ParameterSymbol.Name}_RID.Value);
 }}");
             }
 
-            foreach (var parameter in paramPackContext.CancellationTokenParams)
+            foreach (var parameter in cancellationTokenParams)
             {
-                builder.AppendLine($@"if (shouldSendCancel && {parameter.Name}.IsCancellationRequested && !{vars.RunningToken}.IsCancellationRequested)
+                builder.AppendLine($@"if (shouldSendCancel && {parameter.ParameterSymbol.Name}.IsCancellationRequested && !{vars.RunningToken}.IsCancellationRequested)
 {{
-    {(isAwaitable ? "await " : string.Empty)}{vars.Executor}.InvokeInstanceMethodMessage{(isAwaitable ? "Async" : string.Empty)}(CancellationTokenSourceCancelParameterPack.Instance, {parameter.Name}_RID!.Value, {vars.RunningToken});
+    {(isAwaitable ? "await " : string.Empty)}{vars.Executor}.InvokeInstanceMethodMessage{(isAwaitable ? "Async" : string.Empty)}(CancellationTokenSourceCancelParameterPack.Instance, {parameter.ParameterSymbol.Name}_RID!.Value, (int){TypeFullNames.Juxtapose.SpecialCommand}.{nameof(SpecialCommand.CancelCancellationToken)},{vars.RunningToken});
 }}");
             }
 
@@ -173,20 +165,10 @@ finally
     /// <param name="context"></param>
     /// <param name="method"></param>
     /// <param name="vars"></param>
-    public static void GenerateStaticMethodProxyBodyCode(ClassStringBuilder builder, JuxtaposeSourceGeneratorContext context, IMethodSymbol method, VariableName vars)
+    public static void GenerateStaticMethodProxyBodyCode(ClassStringBuilder builder, JuxtaposeContextSourceGeneratorContext context, ResourceCollection resources, IMethodSymbol method, VariableName vars)
     {
-        if (!context.TryGetMethodParameterPackWithDiagnostic(method, out var parameterPackSourceCode))
-        {
-            return;
-        }
-        ResultPackSourceCode? resultPackSourceCode = null;
-        if (context.TypeSymbolAnalyzer.GetReturnType(method) is not null
-            && !context.TryGetMethodResultPackWithDiagnostic(method, out resultPackSourceCode))
-        {
-            return;
-        }
-        var paramPackContext = context.TypeSymbolAnalyzer.GetParamPackContext(method);
         var isAwaitable = context.TypeSymbolAnalyzer.IsAwaitable(method.ReturnType);
+        var commandId = context.Resources.GetCommandId(method);
 
         var awaitTag = isAwaitable ? "await " : string.Empty;
         var asyncTag = isAwaitable ? "Async" : string.Empty;
@@ -195,18 +177,28 @@ finally
 
         builder.AppendIndentLine($"IJuxtaposeExecutorOwner? executorOwner = null;");
 
-        foreach (var parameter in paramPackContext.CancellationTokenParams)
+        var cancellationTokenParams = new List<CancellationTokenArgumentInfo>(1);
+        var delegateParams = new List<DelegateArgumentInfo>(1);
+
+        for (int index = 0; index < method.Parameters.Length; index++)
         {
-            builder.AppendIndentLine($"{parameter.Name}.ThrowIfCancellationRequested();");
-            builder.AppendIndentLine($"int? {parameter.Name}_RID = null;");
+            var parameter = method.Parameters[index];
+
+            if (context.TypeSymbolAnalyzer.IsCancellationToken(parameter.Type))
+            {
+                cancellationTokenParams.Add(new(parameter, index + 1));
+                builder.AppendIndentLine($"{parameter.Name}.ThrowIfCancellationRequested();");
+                builder.AppendIndentLine($"{TypeFullNames.Juxtapose.ReferenceId}? {parameter.Name}_RID = null;");
+            }
+
+            if (parameter.Type.IsDelegate())
+            {
+                delegateParams.Add(new(parameter, index + 1));
+                builder.AppendIndentLine($"{TypeFullNames.Juxtapose.ReferenceId}? {parameter.Name}_RID = null;");
+            }
         }
 
-        foreach (var parameter in paramPackContext.DelegateParams)
-        {
-            builder.AppendIndentLine($"int? {parameter.Name}_RID = null;");
-        }
-
-        if (!paramPackContext.CancellationTokenParams.IsEmpty)
+        if (cancellationTokenParams.Count > 0)
         {
             builder.AppendIndentLine("bool shouldSendCancel = false;");
         }
@@ -215,9 +207,9 @@ finally
 {");
         builder.Indent();
 
-        if (!paramPackContext.CancellationTokenParams.IsEmpty)
+        if (cancellationTokenParams.Count > 0)
         {
-            builder.AppendIndentLine($"using var localCts = CancellationTokenSource.CreateLinkedTokenSource({vars.RunningToken}, {string.Join(", ", paramPackContext.CancellationTokenParams.Select(m => m.Name))});");
+            builder.AppendIndentLine($"using var localCts = CancellationTokenSource.CreateLinkedTokenSource({vars.RunningToken}, {string.Join(", ", cancellationTokenParams.Select(m => m.ParameterSymbol.Name))});");
             builder.AppendIndentLine("localCts.Token.ThrowIfCancellationRequested();");
             builder.AppendIndentLine("var localToken = localCts.Token;");
         }
@@ -228,38 +220,38 @@ finally
 
         builder.AppendIndentLine($"executorOwner = {awaitTag}s_context.GetExecutorOwner{asyncTag}({method.GetCreationContextVariableName()}, localToken);");
 
-        foreach (var parameter in paramPackContext.CancellationTokenParams)
+        foreach (var parameter in cancellationTokenParams)
         {
-            builder.AppendIndentLine($"{parameter.Name}_RID = {parameter.Name}.CanBeCanceled ? {vars.Executor}.InstanceIdGenerator.Next() : null;");
+            builder.AppendIndentLine($"{parameter.ParameterSymbol.Name}_RID = {parameter.ParameterSymbol.Name}.CanBeCanceled ? {vars.Executor}.InstanceIdGenerator.Next() : null;");
         }
 
-        foreach (var parameter in paramPackContext.DelegateParams)
+        foreach (var parameter in delegateParams)
         {
-            var callbackMethod = ((INamedTypeSymbol)parameter.Type).DelegateInvokeMethod!;
-            var callbackParamPackContext = context.TypeSymbolAnalyzer.GetParamPackContext(callbackMethod);
+            var callbackMethod = ((INamedTypeSymbol)parameter.ParameterSymbol.Type).DelegateInvokeMethod!;
 
             var callbackBodyBuilder = new ClassStringBuilder();
             callbackBodyBuilder.Indent();
             callbackBodyBuilder.Indent();
-            GenerateMethodInvokeThroughMessageCode(context, callbackBodyBuilder, callbackMethod, new VariableName(vars)
+            GenerateMethodInvokeThroughMessageCode(context, resources, callbackBodyBuilder, callbackMethod, new VariableName(vars)
             {
-                Instance = parameter.Name,
-                InstanceId = $"{parameter.Name}_RID.Value",
+                Instance = parameter.ParameterSymbol.Name,
+                InstanceId = $"{parameter.ParameterSymbol.Name}_RID.Value",
             });
 
-            builder.AppendLine($@"if ({parameter.Name} is not null)
+            builder.AppendLine($@"if ({parameter.ParameterSymbol.Name} is not null)
 {{
-    {parameter.Name}_RID = {vars.Executor}.InstanceIdGenerator.Next();
-    {vars.Executor}.AddObjectInstance({parameter.Name}_RID.Value, new {(isAwaitable ? "Async" : "Sync")}DelegateMessageExecutor({(isAwaitable ? "async " : string.Empty)}(exector, {vars.Message}) =>
+    {parameter.ParameterSymbol.Name}_RID = {vars.Executor}.InstanceIdGenerator.Next();
+    {vars.Executor}.AddObjectInstance({parameter.ParameterSymbol.Name}_RID.Value, new {(isAwaitable ? "Async" : "Sync")}DelegateMessageExecutor({(isAwaitable ? "async " : string.Empty)}(exector, {vars.Message}) =>
     {{
 {callbackBodyBuilder.ToString().Trim('\r', '\n')}
     }}));
 }}");
         }
 
-        paramPackContext.GenParamPackCode(builder, "parameterPack");
+        ArgumentsAndResultsHelper.GenerateMethodArgumentsPackCode(method, context.TypeSymbolAnalyzer, builder, "parameterPack");
 
-        if (resultPackSourceCode is not null)
+        var returnType = context.TypeSymbolAnalyzer.GetReturnType(method);
+        if (returnType is not null)
         {
             builder.AppendIndent("return (");
         }
@@ -277,16 +269,16 @@ finally
             builder.Append($"{vars.Executor}.InvokeStaticMethodMessage");
         }
 
-        if (resultPackSourceCode is not null)
+        if (returnType is not null)
         {
-            builder.Append($"<{parameterPackSourceCode.TypeName}, {resultPackSourceCode.TypeName}>");
+            builder.Append($"<{ArgumentsAndResultsHelper.GenerateArgumentTypeName(method, context.TypeSymbolAnalyzer)}, {ArgumentsAndResultsHelper.GenerateValueTupleTypeName(new[] { returnType }, context.TypeSymbolAnalyzer)}>");
         }
 
-        builder.Append($"(parameterPack, localToken)");
+        builder.Append($"(parameterPack, (int){context.GetCommandAccessExpression(commandId)}, localToken)");
 
-        if (resultPackSourceCode is not null)
+        if (returnType is not null)
         {
-            builder.Append(").Result;");
+            builder.Append(").Item1;");
         }
         else
         {
@@ -305,23 +297,20 @@ finally
         builder.AppendIndentLine("if (executorOwner is not null)");
         builder.Scope(() =>
         {
-            foreach (var parameter in paramPackContext.DelegateParams)
+            foreach (var parameter in delegateParams)
             {
-                builder.AppendLine($@"if ({parameter.Name}_RID.HasValue)
+                builder.AppendLine($@"if ({parameter.ParameterSymbol.Name}_RID.HasValue)
 {{
-    {vars.Executor}.RemoveObjectInstance({parameter.Name}_RID.Value);
+    {vars.Executor}.RemoveObjectInstance({parameter.ParameterSymbol.Name}_RID.Value);
 }}");
             }
 
-            if (!paramPackContext.CancellationTokenParams.IsEmpty)
+            foreach (var parameter in cancellationTokenParams)
             {
-                foreach (var parameter in paramPackContext.CancellationTokenParams)
-                {
-                    builder.AppendLine($@"if (shouldSendCancel && {parameter.Name}.IsCancellationRequested && !cancellation.IsCancellationRequested)
+                builder.AppendLine($@"if (shouldSendCancel && {parameter.ParameterSymbol.Name}.IsCancellationRequested && !cancellation.IsCancellationRequested)
 {{
-    {awaitTag}{vars.Executor}.InvokeStaticMethodMessage{asyncTag}(CancellationTokenSourceCancelParameterPack.Instance, {vars.Executor}.RunningToken);
+    {awaitTag}{vars.Executor}.InvokeStaticMethodMessage{asyncTag}(CancellationTokenSourceCancelParameterPack.Instance, (int){TypeFullNames.Juxtapose.SpecialCommand}.{nameof(SpecialCommand.CancelCancellationToken)}, {vars.Executor}.RunningToken);
 }}");
-                }
             }
             builder.AppendIndentLine("executorOwner.Dispose();");
         });
@@ -339,21 +328,19 @@ finally
     /// <param name="sourceBuilder"></param>
     /// <param name="method"></param>
     /// <param name="vars"></param>
-    public static void GenerateMethodInvokeThroughMessageCaseScopeCode(JuxtaposeSourceGeneratorContext context, ClassStringBuilder sourceBuilder, IMethodSymbol method, VariableName vars)
+    public static void GenerateMethodInvokeThroughMessageCaseScopeCode(JuxtaposeContextSourceGeneratorContext context, ResourceCollection resources, ClassStringBuilder sourceBuilder, IMethodSymbol method, VariableName vars)
     {
-        if (!context.TryGetMethodParameterPackWithDiagnostic(method, out var parameterPackSourceCode))
-        {
-            return;
-        }
-        var methodInvokeMessageTypeName = GetInvokeMessageFullTypeName(method, parameterPackSourceCode);
+        var methodInvokeMessageTypeName = GetInvokeMessageFullTypeName(method, context.TypeSymbolAnalyzer);
 
-        sourceBuilder.AppendIndentLine($"case {methodInvokeMessageTypeName}:");
+        var commandId = context.Resources.GetCommandId(method);
+
+        sourceBuilder.AppendIndentLine($"case (int){GeneratedCommandUtil.GetCommandAccessExpression(context, commandId)}:");
 
         sourceBuilder.Indent();
 
         sourceBuilder.Scope(() =>
         {
-            GenerateMethodInvokeThroughMessageCode(context, sourceBuilder, method, vars);
+            GenerateMethodInvokeThroughMessageCode(context, resources, sourceBuilder, method, vars);
         });
 
         sourceBuilder.Dedent();
@@ -366,26 +353,16 @@ finally
     /// <param name="sourceBuilder"></param>
     /// <param name="method"></param>
     /// <param name="vars"></param>
-    public static void GenerateMethodInvokeThroughMessageCode(JuxtaposeSourceGeneratorContext context, ClassStringBuilder sourceBuilder, IMethodSymbol method, VariableName vars)
+    public static void GenerateMethodInvokeThroughMessageCode(JuxtaposeContextSourceGeneratorContext context, ResourceCollection resources, ClassStringBuilder sourceBuilder, IMethodSymbol method, VariableName vars)
     {
-        if (!context.TryGetMethodParameterPackWithDiagnostic(method, out var parameterPackSourceCode))
-        {
-            return;
-        }
-        ResultPackSourceCode? resultPackSourceCode = null;
-        if (context.TypeSymbolAnalyzer.GetReturnType(method) is not null
-            && !context.TryGetMethodResultPackWithDiagnostic(method, out resultPackSourceCode))
-        {
-            return;
-        }
-        var paramPackContext = context.TypeSymbolAnalyzer.GetParamPackContext(method);
+        var methodInvokeMessageTypeName = GetInvokeMessageFullTypeName(method, context.TypeSymbolAnalyzer);
 
-        var methodInvokeMessageTypeName = GetInvokeMessageFullTypeName(method, parameterPackSourceCode);
-        var methodInvokeResultMessageTypeName = GetInvokeResultMessageFullTypeName(method, resultPackSourceCode);
+        var returnType = context.TypeSymbolAnalyzer.GetReturnType(method);
+        var methodInvokeResultMessageTypeName = GetInvokeResultMessageFullTypeName(method, context.TypeSymbolAnalyzer, returnType);
 
         sourceBuilder.AppendIndentLine($"var ___typedMessage__ = ({methodInvokeMessageTypeName}){vars.Message};");
 
-        paramPackContext.GenParamUnPackCode(context, sourceBuilder, () =>
+        ArgumentsAndResultsHelper.GenerateMethodArgumentsUnpackCode(method, context, resources, sourceBuilder, () =>
         {
             if (method.MethodKind == MethodKind.PropertyGet)
             {
@@ -463,22 +440,24 @@ finally
 
     #region Private 方法
 
-    private static string GetInvokeMessageFullTypeName(IMethodSymbol method, ParameterPackSourceCode parameterPackSourceCode)
+    private static string GetInvokeMessageFullTypeName(IMethodSymbol method, TypeSymbolAnalyzer typeSymbolAnalyzer)
     {
+        var valueTypeName = ArgumentsAndResultsHelper.GenerateArgumentTypeName(method, typeSymbolAnalyzer);
         return method.IsStatic
-               ? $"{TypeFullNames.Juxtapose.Messages.StaticMethodInvokeMessage}<{parameterPackSourceCode.TypeName}>"
-               : $"{TypeFullNames.Juxtapose.Messages.InstanceMethodInvokeMessage}<{parameterPackSourceCode.TypeName}>";
+               ? $"{TypeFullNames.Juxtapose.Messages.StaticMethodInvokeMessage}<{valueTypeName}>"
+               : $"{TypeFullNames.Juxtapose.Messages.InstanceMethodInvokeMessage}<{valueTypeName}>";
     }
 
-    private static string GetInvokeResultMessageFullTypeName(IMethodSymbol method, ResultPackSourceCode? resultPackSourceCode)
+    private static string GetInvokeResultMessageFullTypeName(IMethodSymbol method, TypeSymbolAnalyzer typeSymbolAnalyzer, ITypeSymbol? returnTypeSymbol)
     {
-        if (resultPackSourceCode == null)
+        if (returnTypeSymbol == null)
         {
             return string.Empty;
         }
+        var valueTypeName = ArgumentsAndResultsHelper.GenerateValueTupleTypeName(new[] { returnTypeSymbol }, typeSymbolAnalyzer);
         return method.IsStatic
-               ? $"{TypeFullNames.Juxtapose.Messages.StaticMethodInvokeResultMessage}<{resultPackSourceCode.TypeName}>"
-               : $"{TypeFullNames.Juxtapose.Messages.InstanceMethodInvokeResultMessage}<{resultPackSourceCode.TypeName}>";
+               ? $"{TypeFullNames.Juxtapose.Messages.StaticMethodInvokeResultMessage}<{valueTypeName}>"
+               : $"{TypeFullNames.Juxtapose.Messages.InstanceMethodInvokeResultMessage}<{valueTypeName}>";
     }
 
     #endregion Private 方法

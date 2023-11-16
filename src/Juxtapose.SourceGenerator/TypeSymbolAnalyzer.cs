@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
-
-using Juxtapose.SourceGenerator.Model;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -11,8 +7,6 @@ public class TypeSymbolAnalyzer
 {
     #region Private 字段
 
-    private readonly ConditionalWeakTable<IMethodSymbol, Dictionary<string, ConstructorParamPackContext>> _constructorParamPackContextCache = new();
-    private readonly ConditionalWeakTable<IMethodSymbol, MethodParamPackContext> _methodParamPackContextCache = new();
     private readonly ConcurrentDictionary<string, INamedTypeSymbol> _storedNamedTypeSymbol = new();
 
     #endregion Private 字段
@@ -20,11 +14,17 @@ public class TypeSymbolAnalyzer
     #region Public 属性
 
     public INamedTypeSymbol CancellationToken { get => GetNamedTypeSymbol(); private set => SetNamedTypeSymbol(value); }
+
     public INamedTypeSymbol DelegateSymbol { get => GetNamedTypeSymbol(); private set => SetNamedTypeSymbol(value); }
+
     public INamedTypeSymbol TaskSymbol { get => GetNamedTypeSymbol(); private set => SetNamedTypeSymbol(value); }
+
     public INamedTypeSymbol TaskTSymbol { get => GetNamedTypeSymbol(); private set => SetNamedTypeSymbol(value); }
+
     public INamedTypeSymbol ValueTaskSymbol { get => GetNamedTypeSymbol(); private set => SetNamedTypeSymbol(value); }
+
     public INamedTypeSymbol ValueTaskTSymbol { get => GetNamedTypeSymbol(); private set => SetNamedTypeSymbol(value); }
+
     public INamedTypeSymbol VoidSymbol { get => GetNamedTypeSymbol(); private set => SetNamedTypeSymbol(value); }
 
     #endregion Public 属性
@@ -56,63 +56,6 @@ public class TypeSymbolAnalyzer
     #endregion Private 方法
 
     #region Public 方法
-
-    #region GetParamPackContext
-
-    public ConstructorParamPackContext GetConstructorParamPackContext(IMethodSymbol methodSymbol, string generatedTypeName)
-    {
-        if (methodSymbol.MethodKind != MethodKind.Constructor)
-        {
-            throw new ArgumentException($"{methodSymbol.ToDisplayString()} not a constructor.", nameof(methodSymbol));
-        }
-
-        if (string.IsNullOrWhiteSpace(generatedTypeName))
-        {
-            throw new ArgumentException($"“{nameof(generatedTypeName)}”不能为 null 或空白。", nameof(generatedTypeName));
-        }
-
-        lock (_constructorParamPackContextCache)
-        {
-            if (_constructorParamPackContextCache.TryGetValue(methodSymbol, out var packContextMap))
-            {
-                if (!packContextMap.TryGetValue(generatedTypeName, out var packContext))
-                {
-                    packContext = new ConstructorParamPackContext(methodSymbol, generatedTypeName, this);
-                    packContextMap.Add(generatedTypeName, packContext);
-                }
-                return packContext;
-            }
-            else
-            {
-                var packContext = new ConstructorParamPackContext(methodSymbol, generatedTypeName, this);
-                _constructorParamPackContextCache.Add(methodSymbol, new() { { generatedTypeName, packContext } });
-                return packContext;
-            }
-        }
-    }
-
-    public MethodParamPackContext GetParamPackContext(IMethodSymbol methodSymbol)
-    {
-        if (methodSymbol.MethodKind == MethodKind.Constructor)
-        {
-            throw new ArgumentException($"{methodSymbol.ToDisplayString()} is a constructor.", nameof(methodSymbol));
-        }
-
-        lock (_methodParamPackContextCache)
-        {
-            if (!_methodParamPackContextCache.TryGetValue(methodSymbol, out var packContext))
-            {
-                if (!_methodParamPackContextCache.TryGetValue(methodSymbol, out packContext))
-                {
-                    packContext = new MethodParamPackContext(methodSymbol, this);
-                    _methodParamPackContextCache.Add(methodSymbol, packContext);
-                }
-            }
-            return packContext;
-        }
-    }
-
-    #endregion GetParamPackContext
 
     /// <summary>
     /// 获取方法的返回类型（当返回类型为Task`T`时，返回T的类型）当类型为 void 时，返回null

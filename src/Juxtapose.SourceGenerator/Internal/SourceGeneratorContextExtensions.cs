@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-using Microsoft.CodeAnalysis.Diagnostics;
+﻿using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis;
 

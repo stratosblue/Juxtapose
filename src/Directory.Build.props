@@ -1,40 +1,41 @@
 ﻿<Project>
-  <PropertyGroup>
-    <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+	<PropertyGroup>
+		<TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
 
-    <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>true</ImplicitUsings>
 
-    <NoWarn>$(NoWarn);CA2253</NoWarn>
-  </PropertyGroup>
+		<NoWarn>$(NoWarn);CA2253</NoWarn>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <Version>1.3.0</Version>
+	<PropertyGroup>
+		<Version>1.4.0</Version>
 
-    <Description>A multi process runtime library based on 'SourceGenerator'. 基于 `SourceGenerator` 的多`进程`运行库。</Description>
+		<Description>A multi process runtime library based on 'SourceGenerator'. 基于 `SourceGenerator` 的多`进程`运行库。</Description>
 
-    <PackageIdPrefix>Juxtapose</PackageIdPrefix>
-    <Authors>Stratos</Authors>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/stratosblue/Juxtapose</PackageProjectUrl>
+		<PackageIdPrefix>Juxtapose</PackageIdPrefix>
+		<Authors>Stratos</Authors>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/stratosblue/Juxtapose</PackageProjectUrl>
 
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
 
-    <PackageTags>subprocess multiprocess externalprocess outproc sub-process multi-process external-process dotnet6 source-generator</PackageTags>
-    
-    <PackageReadmeFile>readme.md</PackageReadmeFile>
-  </PropertyGroup>
+		<PackageTags>subprocess multiprocess externalprocess outproc sub-process multi-process external-process dotnet8 source-generator aot</PackageTags>
 
-  <ItemGroup>
-    <None Include="..\..\readme.md" Link="readme.md" Pack="true" PackagePath="/" />
-  </ItemGroup>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
+	</PropertyGroup>
 
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.*" PrivateAssets="All" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\..\readme.md" Link="readme.md" Pack="true" PackagePath="/" />
+	</ItemGroup>
 
-  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-  </PropertyGroup>
+	<ItemGroup Condition="'$(Configuration)' == 'Release'">
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.*" PrivateAssets="All" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+	</PropertyGroup>
 </Project>

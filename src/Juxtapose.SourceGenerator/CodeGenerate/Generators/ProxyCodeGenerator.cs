@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Juxtapose.SourceGenerator.Model;
 using Microsoft.CodeAnalysis;
 
 namespace Juxtapose.SourceGenerator.CodeGenerate;
@@ -13,7 +13,9 @@ public abstract class ProxyCodeGenerator
 
     #region Public 属性
 
-    public JuxtaposeSourceGeneratorContext Context { get; }
+    public JuxtaposeContextSourceGeneratorContext Context { get; }
+
+    public ResourceCollection Resources { get; }
 
     public INamedTypeSymbol TypeSymbol { get; }
 
@@ -23,9 +25,10 @@ public abstract class ProxyCodeGenerator
 
     #region Public 构造函数
 
-    public ProxyCodeGenerator(JuxtaposeSourceGeneratorContext context, ClassStringBuilder sourceBuilder, INamedTypeSymbol typeSymbol)
+    public ProxyCodeGenerator(JuxtaposeContextSourceGeneratorContext context, ResourceCollection resources, ClassStringBuilder sourceBuilder, INamedTypeSymbol typeSymbol)
     {
         Context = context ?? throw new ArgumentNullException(nameof(context));
+        Resources = resources ?? throw new ArgumentNullException(nameof(resources));
         Builder = sourceBuilder ?? throw new ArgumentNullException(nameof(sourceBuilder));
         TypeSymbol = typeSymbol ?? throw new ArgumentNullException(nameof(typeSymbol));
     }
@@ -46,33 +49,20 @@ public abstract class ProxyCodeGenerator
 
     public virtual void GenerateMemberProxyCode()
     {
-        var typeMembers = TypeSymbol.GetProxyableMembers(false);
-
-        foreach (var typeMember in typeMembers)
+        foreach (var propertySymbol in Resources.GetAllProperties())
         {
-            switch (typeMember.Kind)
+            Builder.AppendLine();
+            Builder.AppendLine(GeneratePropertyProxyCode(propertySymbol));
+        }
+
+        foreach (var methodSymbol in Resources.GetAllMethods())
+        {
+            if (methodSymbol.IsPropertyAccessor())
             {
-                case SymbolKind.Property:
-                    Builder.AppendLine();
-                    Builder.AppendLine(GeneratePropertyProxyCode((IPropertySymbol)typeMember));
-                    break;
-
-                case SymbolKind.Method:
-                    var methodSymbol = (IMethodSymbol)typeMember;
-                    if (methodSymbol.MethodKind == MethodKind.PropertyGet
-                        || methodSymbol.MethodKind == MethodKind.PropertySet)
-                    {
-                        continue;
-                    }
-                    Builder.AppendLine();
-                    Builder.AppendLine(GenerateMethodProxyCode(methodSymbol));
-                    break;
-
-                case SymbolKind.Event:   //暂时先不支持
-                    throw new NotImplementedException();
-                default:
-                    throw new NotImplementedException();
+                continue;
             }
+            Builder.AppendLine();
+            Builder.AppendLine(GenerateMethodProxyCode(methodSymbol));
         }
     }
 

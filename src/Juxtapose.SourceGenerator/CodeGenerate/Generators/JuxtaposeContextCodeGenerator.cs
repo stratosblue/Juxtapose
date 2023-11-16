@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+﻿using System.Text;
+using Juxtapose.SourceGenerator.Internal;
 using Juxtapose.SourceGenerator.Model;
 
 using Microsoft.CodeAnalysis;
@@ -21,7 +18,9 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
 
     #region Public 属性
 
-    public JuxtaposeSourceGeneratorContext Context { get; }
+    public JuxtaposeContextSourceGeneratorContext Context { get; }
+
+    public JuxtaposeContextDeclaration ContextDeclaration { get; }
 
     /// <summary>
     /// 上下文类型符号
@@ -48,16 +47,17 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
 
     #region Public 构造函数
 
-    public JuxtaposeContextCodeGenerator(JuxtaposeSourceGeneratorContext context, INamedTypeSymbol contextTypeSymbol)
+    public JuxtaposeContextCodeGenerator(JuxtaposeContextSourceGeneratorContext context)
     {
         Context = context ?? throw new ArgumentNullException(nameof(context));
-        ContextTypeSymbol = contextTypeSymbol ?? throw new ArgumentNullException(nameof(contextTypeSymbol));
+        ContextDeclaration = context.ContextDeclaration;
+        ContextTypeSymbol = ContextDeclaration.TypeSymbol ?? throw new ArgumentNullException(nameof(context.ContextDeclaration.TypeSymbol));
 
-        TypeFullName = contextTypeSymbol.ToDisplayString();
+        TypeFullName = ContextTypeSymbol.ToDisplayString();
 
-        Namespace = contextTypeSymbol.ContainingNamespace.GetNamespaceName();
+        Namespace = ContextTypeSymbol.ContainingNamespace.GetNamespaceName();
 
-        var allIllusionAttributes = contextTypeSymbol.GetAttributes()
+        var allIllusionAttributes = ContextTypeSymbol.GetAttributes()
                                                      .Where(m => m.IsIllusionAttribute())
                                                      .Select(m => new IllusionAttributeDefine(m))
                                                      .ToArray();
@@ -77,6 +77,48 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
         _sourceBuilder.AppendIndentLine($"typeof({messageType}),");
     }
 
+    private string GenerateCommandPartialContextSource()
+    {
+        var sourceBuilder = new ClassStringBuilder(10240);
+
+        sourceBuilder.AppendLine(Constants.JuxtaposeGenerateCodeHeader);
+        sourceBuilder.AppendLine();
+
+        sourceBuilder.Namespace(() =>
+        {
+            sourceBuilder.AppendIndentLine($"partial class {ContextTypeSymbol.Name}");
+            sourceBuilder.Scope(() =>
+            {
+                sourceBuilder.AppendIndentLine("public enum JuxtaposeGeneratedCommand : int");
+                sourceBuilder.AppendIndentLine("{");
+                sourceBuilder.Indent();
+
+                var items = new List<(int, string)>();
+                foreach (var symbol in Context.Resources.GetAllCommandedSymbol())
+                {
+                    var commandId = Context.Resources.GetCommandId(symbol);
+                    var code = @$"/// <summary>
+/// Command for <see cref=""{symbol.ToInheritDocCrefString()}""/>
+/// </summary>
+Command_{commandId} = {commandId},";
+
+                    items.Add((commandId, code));
+                }
+
+                foreach (var item in items.OrderBy(m => m.Item1))
+                {
+                    sourceBuilder.AppendLine(item.Item2);
+                    sourceBuilder.AppendLine();
+                }
+
+                sourceBuilder.Dedent();
+                sourceBuilder.AppendIndentLine("}");
+            });
+        }, Namespace);
+
+        return sourceBuilder.ToString();
+    }
+
     private string GeneratePartialContextSource(string hash)
     {
         if (_generatedSource != null)
@@ -91,11 +133,8 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
 
         _sourceBuilder.Namespace(() =>
         {
-            _sourceBuilder.AppendIndentLine($"partial class {ContextTypeSymbol.Name} : {TypeFullNames.Juxtapose.JuxtaposeContext}{(anyTypeFromIoCContainer ? ", global::Juxtapose.IIoCContainerProvider" : string.Empty)}");
-            _sourceBuilder.Scope(() =>
-            {
-                //TODO 框架调整时，如果有默认消息添加，则在此添加默认的消息
-                var allDefaultMessageTypes = new[] {
+            //TODO 框架调整时，如果有默认消息添加，则在此添加默认的消息
+            var allDefaultMessageTypes = new[] {
                     TypeFullNames.Juxtapose.Messages.JuxtaposeAckMessage,
                     TypeFullNames.Juxtapose.Messages.ExceptionMessage,
                     $"{TypeFullNames.Juxtapose.Messages.InstanceMethodInvokeMessage}<global::Juxtapose.Messages.ParameterPacks.CancellationTokenSourceCancelParameterPack>",
@@ -103,37 +142,50 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
                     $"{TypeFullNames.Juxtapose.Messages.CreateObjectInstanceMessage}<global::Juxtapose.Messages.ParameterPacks.ServiceProviderGetInstanceParameterPack>",
                 };
 
-                var allConstructorMessageTypes = Context.Resources.GetAllConstructorParameterPacks().Select(GetParameterPackMessageTypeName).OrderBy(m => m).ToArray();
+            var allConstructorMessageTypes = Context.Resources.GetAllConstructors().Select(GetParameterPackMessageTypeName).OrderBy(m => m, PersistentStringComparer.Instance).ToArray();
 
-                var allDelegateInvokeMessageTypes = Context.Resources.GetAllDelegateParameterPacks().Select(GetParameterPackMessageTypeName).OrderBy(m => m).ToArray();
-                var allDelegateResultMessageTypes = Context.Resources.GetAllDelegateResultPacks().Select(GetResultPackMessageTypeName).OrderBy(m => m).ToArray();
+            var allDelegateInvokeMessageTypes = Context.Resources.GetAllDelegates().Select(GetParameterPackMessageTypeName).OrderBy(m => m, PersistentStringComparer.Instance).ToArray();
+            var allDelegateResultMessageTypes = Context.Resources.GetAllDelegates().Select(GetResultPackMessageTypeName).OrderBy(m => m, PersistentStringComparer.Instance).ToArray();
 
-                var allMethodInvokeMessageTypes = Context.Resources.GetAllMethodParameterPacks().Select(GetParameterPackMessageTypeName).OrderBy(m => m).ToArray();
-                var allMethodResultMessageTypes = Context.Resources.GetAllMethodResultPacks().Select(GetResultPackMessageTypeName).OrderBy(m => m).ToArray();
+            var allMethodInvokeMessageTypes = Context.Resources.GetAllMethods().Select(GetParameterPackMessageTypeName).OrderBy(m => m, PersistentStringComparer.Instance).ToArray();
+            var allMethodResultMessageTypes = Context.Resources.GetAllMethods().Select(GetResultPackMessageTypeName).OrderBy(m => m, PersistentStringComparer.Instance).ToArray();
 
-                var allMessageTypes = allDefaultMessageTypes.Concat(allConstructorMessageTypes)
-                                                            .Concat(allDelegateInvokeMessageTypes)
+            var allMessageTypes = allConstructorMessageTypes.Concat(allDelegateInvokeMessageTypes)
                                                             .Concat(allDelegateResultMessageTypes)
                                                             .Concat(allMethodInvokeMessageTypes)
-                                                            .Concat(allMethodResultMessageTypes);
+                                                            .Concat(allMethodResultMessageTypes)
+                                                            .OrderBy(m => m, PersistentStringComparer.Instance)
+                                                            .Distinct();
+            allMessageTypes = allDefaultMessageTypes.Concat(allMessageTypes).ToList();
+            var newHashString = hash + string.Join(", ", allMessageTypes);
 
-                var newHashString = hash + string.Join(", ", allMessageTypes);
+            _sourceBuilder.AppendIndentLine($"//.net8+ 使用此代码支持aot");
+            foreach (var item in allMessageTypes)
+            {
+                _sourceBuilder.AppendIndentLine($"//[JsonSerializable(typeof({item}))]");
+            }
 
-                //_sourceBuilder.AppendIndentLine($"// {newHashString}");
+            _sourceBuilder.AppendIndentLine("//[JsonSourceGenerationOptions(IgnoreReadOnlyProperties = false, IgnoreReadOnlyFields = false, IncludeFields = true, WriteIndented = false)]");
+            _sourceBuilder.AppendLine($"//partial class {ContextTypeSymbol.Name}JsonSerializerContext : JsonSerializerContext {{}}");
 
-                hash = newHashString.CalculateMd5();
+            _sourceBuilder.AppendLine();
 
+            //_sourceBuilder.AppendIndentLine($"// {newHashString}");
+
+            hash = newHashString.CalculateMd5();
+
+            _sourceBuilder.AppendIndentLine($"partial class {ContextTypeSymbol.Name} : {TypeFullNames.Juxtapose.JuxtaposeContext}{(anyTypeFromIoCContainer ? ", global::Juxtapose.IIoCContainerProvider" : string.Empty)}");
+            _sourceBuilder.Scope(() =>
+            {
                 var contextIdentifier = $"{TypeFullName}_{hash}";
 
                 _sourceBuilder.AppendIndentLine($"private static readonly global::System.Lazy<{ContextTypeSymbol.Name}> s_lazySharedInstance = new global::System.Lazy<{ContextTypeSymbol.Name}>(() => new {ContextTypeSymbol.Name}(), global::System.Threading.LazyThreadSafetyMode.ExecutionAndPublication);", true);
 
                 _sourceBuilder.AppendIndentLine($"public static {ContextTypeSymbol.Name} SharedInstance => s_lazySharedInstance.Value;", true);
 
-                _sourceBuilder.AppendIndentLine($"public override global::Juxtapose.CommunicationOptions CommunicationOptions => new(global::Juxtapose.Communication.Channel.NamedPipeCommunicationChannelFactory.Shared, global::Juxtapose.LengthBasedFrameCodecFactory.Shared, new {TypeFullNames.Juxtapose.ConstantMessageCodecFactory}(MessageTypes, LoggerFactory));", true);
+                _sourceBuilder.AppendIndentLine($"public sealed override string Identifier => \"{contextIdentifier}\";", true);
 
-                _sourceBuilder.AppendIndentLine($"public override string Identifier => \"{contextIdentifier}\";", true);
-
-                _sourceBuilder.AppendIndentLine($"public override global::Juxtapose.IReadOnlySettingCollection Options {{ get; }} = new global::Juxtapose.JuxtaposeOptions()");
+                _sourceBuilder.AppendIndentLine($"public sealed override global::Juxtapose.IReadOnlySettingCollection Options {{ get; }} = new global::Juxtapose.JuxtaposeOptions()");
                 _sourceBuilder.Scope(() =>
                 {
                     _sourceBuilder.AppendIndentLine($"ContextIdentifier = \"{contextIdentifier}\",");
@@ -141,7 +193,7 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
                 });
                 _sourceBuilder.AppendIndentLine(";", true);
 
-                _sourceBuilder.AppendIndentLine($"public override int Version => {Juxtapose.Constants.Version};", true);
+                _sourceBuilder.AppendIndentLine($"public sealed override int Version => {Juxtapose.Constants.Version};", true);
 
                 _sourceBuilder.AppendIndentLine($"public override {TypeFullNames.Juxtapose.JuxtaposeExecutor} CreateExecutor({TypeFullNames.Juxtapose.IMessageExchanger} messageExchanger)");
                 _sourceBuilder.Scope(() =>
@@ -151,6 +203,8 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
                 });
 
                 _sourceBuilder.AppendLine();
+
+                _sourceBuilder.AppendIndentLine($"protected override global::System.Collections.Generic.IEnumerable<Type> GetMessageTypes() => MessageTypes;", true);
 
                 _sourceBuilder.AppendIndentLine($"public static global::System.Collections.Generic.IReadOnlyList<global::System.Type> MessageTypes {{ get; }} = new global::System.Collections.Generic.List<global::System.Type>()");
 
@@ -162,6 +216,19 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
                     }
                 });
                 _sourceBuilder.AppendIndentLine(".AsReadOnly();");
+
+                _sourceBuilder.AppendLine();
+
+                _sourceBuilder.AppendIndentLine($"//.net8+ 使用此代码支持aot");
+                _sourceBuilder.AppendLine($@"//protected override ICommunicationMessageCodecFactory CreateCommunicationMessageCodecFactory()
+//{{
+//#if NET8_0_OR_GREATER
+//    var communicationMessageCodec = new DefaultJsonBasedMessageCodec(GetMessageTypes(), LoggerFactory, {ContextTypeSymbol.Name}JsonSerializerContext.Default.Options);
+//    return new GenericSharedMessageCodecFactory(communicationMessageCodec);
+//#else
+//    return base.CreateCommunicationMessageCodecFactory();
+//#endif
+//}}");
             });
         }, Namespace);
 
@@ -169,20 +236,25 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
 
         return _generatedSource;
 
-        static string GetParameterPackMessageTypeName(ParameterPackSourceCode invokeMessageType)
+        string GetParameterPackMessageTypeName(IMethodSymbol methodSymbol)
         {
-            return invokeMessageType.MethodSymbol.IsStatic
-                    ? $"{TypeFullNames.Juxtapose.Messages.StaticMethodInvokeMessage}<{invokeMessageType.TypeName}>"
-                    : invokeMessageType.MethodSymbol.MethodKind != MethodKind.Constructor
-                        ? $"{TypeFullNames.Juxtapose.Messages.InstanceMethodInvokeMessage}<{invokeMessageType.TypeName}>"
-                        : $"{TypeFullNames.Juxtapose.Messages.CreateObjectInstanceMessage}<{invokeMessageType.TypeName}>";
+            var typeName = ArgumentsAndResultsHelper.GenerateValueTupleTypeName(methodSymbol.Parameters.Select(m => m.Type.WithNullableAnnotation(NullableAnnotation.None)), Context.TypeSymbolAnalyzer);
+            return methodSymbol.IsStatic
+                    ? $"{TypeFullNames.Juxtapose.Messages.StaticMethodInvokeMessage}<{typeName}>"
+                    : methodSymbol.MethodKind != MethodKind.Constructor
+                        ? $"{TypeFullNames.Juxtapose.Messages.InstanceMethodInvokeMessage}<{typeName}>"
+                        : $"{TypeFullNames.Juxtapose.Messages.CreateObjectInstanceMessage}<{typeName}>";
         }
 
-        static string GetResultPackMessageTypeName(ResultPackSourceCode resultMessageType)
+        string GetResultPackMessageTypeName(IMethodSymbol methodSymbol)
         {
-            return resultMessageType.MethodSymbol.IsStatic
-                    ? $"{TypeFullNames.Juxtapose.Messages.StaticMethodInvokeResultMessage}<{resultMessageType.TypeName}>"
-                    : $"{TypeFullNames.Juxtapose.Messages.InstanceMethodInvokeResultMessage}<{resultMessageType.TypeName}>";
+            var types = Context.TypeSymbolAnalyzer.GetReturnType(methodSymbol)?.WithNullableAnnotation(NullableAnnotation.None) is ITypeSymbol returnType
+                        ? [returnType]
+                        : Array.Empty<ITypeSymbol>();
+            var typeName = ArgumentsAndResultsHelper.GenerateValueTupleTypeName(types, Context.TypeSymbolAnalyzer);
+            return methodSymbol.IsStatic
+                    ? $"{TypeFullNames.Juxtapose.Messages.StaticMethodInvokeResultMessage}<{typeName}>"
+                    : $"{TypeFullNames.Juxtapose.Messages.InstanceMethodInvokeResultMessage}<{typeName}>";
         }
     }
 
@@ -192,58 +264,29 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
 
     public IEnumerable<SourceCode> GetSources()
     {
-        Context.Clear();
-
         var contextHashBuilder = new ContextHashBuilder();
 
-        foreach (var illusionAttributeDefine in IllusionAttributeDefines)
+        foreach (var illusionInstanceClassesKV in Context.IllusionInstanceClasses)
         {
-            var descriptor = new IllusionInstanceClassDescriptor(illusionAttributeDefine, ContextTypeSymbol);
-            var resources = new SubResourceCollection(Context.Resources);
-
-            if (Context.IllusionInstanceClasses.ContainsKey(descriptor))
-            {
-                Context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleIllusionClassDefine, null, descriptor.TargetType, descriptor.InheritType));
-                continue;
-            }
-
-            Context.IllusionInstanceClasses.TryAdd(descriptor, resources);
+            var descriptor = illusionInstanceClassesKV.Key;
+            var resources = illusionInstanceClassesKV.Value;
 
             contextHashBuilder.AddIllusionInstanceClassDescriptor(descriptor);
 
-            var illusionClassCodeGenerator = new IllusionClassCodeGenerator(Context, descriptor, resources);
+            var illusionClassSources = new IllusionClassCodeGenerator(Context, descriptor, resources).GetSources();
+            var realObjectInvokerSources = new RealObjectInvokerCodeGenerator(Context, descriptor, resources).GetSources();
 
-            foreach (var sourceInfo in illusionClassCodeGenerator.GetSources())
-            {
-                resources.AddSourceCode(sourceInfo);
-                yield return sourceInfo;
-            }
-
-            var realObjectInvokerCodeGenerator = new RealObjectInvokerCodeGenerator(Context, descriptor, resources);
-            foreach (var sourceInfo in realObjectInvokerCodeGenerator.GetSources())
+            foreach (var sourceInfo in illusionClassSources.Concat(realObjectInvokerSources))
             {
                 resources.AddSourceCode(sourceInfo);
                 yield return sourceInfo;
             }
         }
 
-        foreach (var illusionStaticAttributeDefine in IllusionStaticAttributeDefines)
+        foreach (var illusionStaticClassesKV in Context.IllusionStaticClasses)
         {
-            if (illusionStaticAttributeDefine.FromIoCContainer)
-            {
-                Context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.StaticTypeCanNotProvidedByServiceProvider, null, illusionStaticAttributeDefine.TargetType.ToDisplayString()));
-            }
-
-            var descriptor = new IllusionStaticClassDescriptor(illusionStaticAttributeDefine, ContextTypeSymbol);
-            var resources = new SubResourceCollection(Context.Resources);
-
-            if (Context.IllusionStaticClasses.ContainsKey(descriptor))
-            {
-                Context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleIllusionStaticClassDefine, null, descriptor.TargetType));
-                continue;
-            }
-
-            Context.IllusionStaticClasses.TryAdd(descriptor, resources);
+            var descriptor = illusionStaticClassesKV.Key;
+            var resources = illusionStaticClassesKV.Value;
 
             var illusionStaticClassCodeGenerator = new IllusionStaticClassCodeGenerator(Context, descriptor, resources);
 
@@ -262,9 +305,123 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
             yield return item;
         }
 
+        var commandPartialContextSource = GenerateCommandPartialContextSource();
+
+        contextHashBuilder.AppendString(commandPartialContextSource);
+
         var hash = contextHashBuilder.GetHash();
 
         yield return new FullSourceCode(SourceHintName, GeneratePartialContextSource(hash));
+        yield return new FullSourceCode($"{TypeFullName}.Command.g.cs", commandPartialContextSource);
+    }
+
+    public JuxtaposeContextCodeGenerator Preparation()
+    {
+        //准备数据，有序定义所有支持的指令
+        var orderedIllusionAttributeDefines = IllusionAttributeDefines.OrderBy(m => m.TargetType.Name, PersistentStringComparer.Instance)
+                                                                      .ThenBy(m => m.GeneratedTypeName ?? string.Empty, PersistentStringComparer.Instance)
+                                                                      .ThenBy(m => m.FromIoCContainer)
+                                                                      .ThenBy(m => m.Accessibility);
+
+        foreach (var illusionAttributeDefine in orderedIllusionAttributeDefines)
+        {
+            var descriptor = new IllusionInstanceClassDescriptor(illusionAttributeDefine, ContextTypeSymbol);
+
+            if (Context.IllusionInstanceClasses.ContainsKey(descriptor))
+            {
+                Context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleIllusionClassDefine, null, descriptor.TargetType, null));
+                continue;
+            }
+
+            var resources = new SubResourceCollection(Context.Resources);
+            Context.IllusionInstanceClasses.TryAdd(descriptor, resources);
+
+            foreach (var constructor in descriptor.TargetType.Constructors.Where(m => m.NotStatic()).OrderBy(m => m.ToString(), PersistentStringComparer.Instance))
+            {
+                resources.AddConstructors(constructor);
+            }
+
+            var typeMembers = descriptor.TargetType.GetProxyableMembers(false)
+                                                   .OrderBy(m => m.Name, PersistentStringComparer.Instance);
+
+            AppendProxyableMembers(resources, typeMembers);
+        }
+
+        var orderedIllusionStaticAttributeDefines = IllusionStaticAttributeDefines.OrderBy(m => m.TargetType.Name, PersistentStringComparer.Instance)
+                                                                                  .ThenBy(m => m.GeneratedTypeName ?? string.Empty, PersistentStringComparer.Instance)
+                                                                                  .ThenBy(m => m.FromIoCContainer)
+                                                                                  .ThenBy(m => m.Accessibility);
+
+        foreach (var illusionStaticAttributeDefine in orderedIllusionStaticAttributeDefines)
+        {
+            if (illusionStaticAttributeDefine.FromIoCContainer)
+            {
+                Context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.StaticTypeCanNotProvidedByServiceProvider, null, illusionStaticAttributeDefine.TargetType.ToDisplayString()));
+                continue;
+            }
+
+            var descriptor = new IllusionStaticClassDescriptor(illusionStaticAttributeDefine, ContextTypeSymbol);
+
+            if (Context.IllusionStaticClasses.ContainsKey(descriptor))
+            {
+                Context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleIllusionStaticClassDefine, null, descriptor.TargetType));
+                continue;
+            }
+
+            var resources = new SubResourceCollection(Context.Resources);
+            Context.IllusionStaticClasses.TryAdd(descriptor, resources);
+
+            var typeMembers = descriptor.TargetType.GetProxyableMembers(false)
+                                                   .Where(m => m.DeclaredAccessibility == Accessibility.Public)
+                                                   .OrderBy(m => m.Name, PersistentStringComparer.Instance);
+
+            AppendProxyableMembers(resources, typeMembers);
+        }
+
+        return this;
+
+        static void AppendMethod(ResourceCollection resources, IMethodSymbol? methodSymbol)
+        {
+            if (methodSymbol is null)
+            {
+                return;
+            }
+            resources.AddMethods(methodSymbol);
+
+            foreach (var delegateParameter in methodSymbol.Parameters.Where(m => m.Type.IsDelegate()).OrderBy(m => m.Name, PersistentStringComparer.Instance))
+            {
+                var callbackMethod = ((INamedTypeSymbol)delegateParameter.Type).DelegateInvokeMethod!;
+                resources.AddDelegates(callbackMethod);
+            }
+        }
+
+        static void AppendProxyableMembers(SubResourceCollection resources, IOrderedEnumerable<ISymbol> typeMembers)
+        {
+            foreach (var typeMember in typeMembers)
+            {
+                switch (typeMember.Kind)
+                {
+                    case SymbolKind.Property:
+                        var propertySymbol = (IPropertySymbol)typeMember;
+                        AppendMethod(resources, propertySymbol.GetMethod);
+                        AppendMethod(resources, propertySymbol.SetMethod);
+                        resources.AddProperties(propertySymbol);
+                        break;
+
+                    case SymbolKind.Method:
+                        var methodSymbol = (IMethodSymbol)typeMember;
+                        if (methodSymbol.IsPropertyAccessor())
+                        {
+                            continue;
+                        }
+                        AppendMethod(resources, methodSymbol);
+                        break;
+
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+        }
     }
 
     #endregion Public 方法
@@ -303,11 +460,6 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
             _builder.Append(descriptor.FromIoCContainer);
             _builder.Append('@');
 
-            if (descriptor.InheritType is not null)
-            {
-                AppendProxyableMembers(descriptor.InheritType, false);
-            }
-
             AppendProxyableMembers(descriptor.TargetType, true);
         }
 
@@ -319,6 +471,11 @@ public class JuxtaposeContextCodeGenerator : ISourceCodeProvider<SourceCode>
             _builder.Append('@');
 
             AppendProxyableMembers(descriptor.TargetType, false);
+        }
+
+        public void AppendString(string value)
+        {
+            _builder.Append(value);
         }
 
         public string GetHash()

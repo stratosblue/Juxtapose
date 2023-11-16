@@ -1,9 +1,7 @@
-﻿using System;
-using System.Linq;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
-
+using Juxtapose.SourceGenerator.Internal;
 using Juxtapose.SourceGenerator.Model;
 
 using Microsoft.CodeAnalysis;
@@ -12,11 +10,28 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Juxtapose.SourceGenerator;
 
-public struct JuxtaposeContextDeclaration : IEquatable<JuxtaposeContextDeclaration>
+public struct JuxtaposeContextDeclaration : IEquatable<JuxtaposeContextDeclaration>, IEqualityComparer<JuxtaposeContextDeclaration>
 {
-    #region Public 字段
+    #region Private 字段
+
+    private static readonly SymbolDisplayFormat s_minimallyQualifiedFormat = new(SymbolDisplayGlobalNamespaceStyle.Omitted,
+                                                                                 SymbolDisplayTypeQualificationStyle.NameOnly,
+                                                                                 SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                                                                                 SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeRef,
+                                                                                 SymbolDisplayDelegateStyle.NameOnly,
+                                                                                 SymbolDisplayExtensionMethodStyle.Default,
+                                                                                 SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeDefaultValue,
+                                                                                 SymbolDisplayPropertyStyle.NameOnly,
+                                                                                 SymbolDisplayLocalOptions.IncludeType,
+                                                                                 SymbolDisplayKindOptions.IncludeMemberKeyword,
+                                                                                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
     private readonly string _hash;
+
+    #endregion Private 字段
+
+    #region Public 字段
+
     public static readonly JuxtaposeContextDeclaration Default = new();
 
     #endregion Public 字段
@@ -58,11 +73,10 @@ public struct JuxtaposeContextDeclaration : IEquatable<JuxtaposeContextDeclarati
         var allIllusionAttributes = typeSymbol.GetAttributes()
                                               .Where(m => m.IsIllusionAttribute())
                                               .Select(m => new IllusionAttributeDefine(m))
-                                              .OrderBy(m => m.TargetType.Name)
-                                              .ThenBy(m => m.GeneratedTypeName ?? string.Empty)
-                                              .ThenBy(m => m.InheritType?.Name ?? string.Empty)
+                                              .OrderBy(m => m.TargetType.Name, PersistentStringComparer.Instance)
                                               .ThenBy(m => m.FromIoCContainer)
                                               .ThenBy(m => m.Accessibility)
+                                              .ThenBy(m => m.GeneratedTypeName ?? m.TargetType.Name, PersistentStringComparer.Instance)
                                               .ToArray();
 
         //计算上下文Hash，减少代码生成次数
@@ -74,7 +88,6 @@ public struct JuxtaposeContextDeclaration : IEquatable<JuxtaposeContextDeclarati
             Append(BitConverter.GetBytes(attribute.FromIoCContainer));
             Append(BitConverter.GetBytes((int)attribute.Accessibility));
             AppendString(attribute.GeneratedTypeName);
-            AppendTypeSymbol(attribute.InheritType);
             AppendTypeSymbol(attribute.TargetType);
         }
 
@@ -89,6 +102,7 @@ public struct JuxtaposeContextDeclaration : IEquatable<JuxtaposeContextDeclarati
             {
                 return;
             }
+
             hashAlgorithm.TransformBlock(inputBuffer: buffer, 0, buffer.Length, null, 0);
         }
 
@@ -116,48 +130,42 @@ public struct JuxtaposeContextDeclaration : IEquatable<JuxtaposeContextDeclarati
                 return;
             }
 
-            AppendString(typeSymbol.ContainingNamespace?.Name);
-            AppendString(typeSymbol.Name);
+            AppendString(typeSymbol.ToDisplayString(s_minimallyQualifiedFormat));
 
-            foreach (var item in typeSymbol.GetMembers().OrderBy(m => m.Name))
+            var members = typeSymbol.GetMembers()
+                                    .Select(m => m.ToDisplayString(s_minimallyQualifiedFormat))
+                                    .OrderBy(m => m, PersistentStringComparer.Instance);
+
+            foreach (var item in members)
             {
-                AppendString(item.Name);
-                switch (item)
-                {
-                    case IMethodSymbol methodSymbol:
-                        {
-                            AppendInt32((int)methodSymbol.DeclaredAccessibility);
-
-                            foreach (var parameter in methodSymbol.Parameters)
-                            {
-                                AppendString(parameter.Type.ContainingNamespace?.Name);
-                                AppendString(parameter.Type.Name);
-                                AppendString(parameter.Name);
-                            }
-                            AppendString(methodSymbol.ReturnType.ContainingNamespace?.Name);
-                            AppendString(methodSymbol.ReturnType.Name);
-                            break;
-                        }
-                    default:
-                        break;
-                }
+                AppendString(item);
             }
         }
     }
 
     #region Equals
 
-    public static bool operator !=(JuxtaposeContextDeclaration a, JuxtaposeContextDeclaration b) => a._hash != b._hash;
+    public static bool operator !=(JuxtaposeContextDeclaration a, JuxtaposeContextDeclaration b) => !PersistentStringComparer.Instance.Equals(a._hash, b._hash);
 
-    public static bool operator ==(JuxtaposeContextDeclaration a, JuxtaposeContextDeclaration b) => a._hash == b._hash;
+    public static bool operator ==(JuxtaposeContextDeclaration a, JuxtaposeContextDeclaration b) => PersistentStringComparer.Instance.Equals(a._hash, b._hash);
 
-    public bool Equals(JuxtaposeContextDeclaration other) => _hash == other._hash;
+    public bool Equals(JuxtaposeContextDeclaration other) => PersistentStringComparer.Instance.Equals(_hash, other._hash);
 
-    public override bool Equals(object obj) => obj is JuxtaposeContextDeclaration other && _hash == other._hash;
+    public override bool Equals(object obj) => obj is JuxtaposeContextDeclaration other && PersistentStringComparer.Instance.Equals(_hash, other._hash);
 
-    public override int GetHashCode() => _hash.GetHashCode();
+    public override int GetHashCode() => PersistentStringComparer.Instance.GetHashCode(_hash);
 
     #endregion Equals
+
+    public bool Equals(JuxtaposeContextDeclaration x, JuxtaposeContextDeclaration y)
+    {
+        return x.GetHashCode() == y.GetHashCode();
+    }
+
+    public int GetHashCode(JuxtaposeContextDeclaration obj)
+    {
+        return obj.GetHashCode();
+    }
 
     #endregion Public 方法
 }

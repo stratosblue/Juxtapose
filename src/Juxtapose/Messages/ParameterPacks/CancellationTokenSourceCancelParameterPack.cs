@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace Juxtapose.Messages.ParameterPacks
+﻿namespace Juxtapose.Messages.ParameterPacks
 {
     /// <summary>
     /// <see cref="CancellationTokenSource"/> 取消消息
