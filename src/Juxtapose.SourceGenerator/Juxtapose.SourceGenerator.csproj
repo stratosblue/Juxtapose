@@ -7,25 +7,25 @@
 
     <IsPackable>false</IsPackable>
 
-		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
-		<IsRoslynComponent>true</IsRoslynComponent>
-		
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+    <IsRoslynComponent>true</IsRoslynComponent>
+
     <DefineConstants>$(DefineConstants);JUXTAPOSE_SOURCE_GENERATOR</DefineConstants>
   </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)' == 'DEBUG'">
-		<DefineConstants>$(DefineConstants);SAVE_GENERATED_CODE</DefineConstants>
-	</PropertyGroup>
-	
+  <PropertyGroup Condition="'$(Configuration)' == 'DEBUG'">
+    <DefineConstants>$(DefineConstants);SAVE_GENERATED_CODE</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Include="$(OutputPath)\netstandard2.0\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\Juxtapose\SourceGenerator\GeneratedAccessibility.cs" Link="ref/GeneratedAccessibility.cs" />
-		<Compile Include="..\Juxtapose\Constants.cs" Link="ref/Juxtapose.Constants.cs" />
-		<Compile Include="..\Juxtapose\SpecialCommand.cs" Link="ref/Juxtapose.SpecialCommand.cs" />
+    <Compile Include="..\Juxtapose\Constants.cs" Link="ref/Juxtapose.Constants.cs" />
+    <Compile Include="..\Juxtapose\SpecialCommand.cs" Link="ref/Juxtapose.SpecialCommand.cs" />
   </ItemGroup>
 
   <ItemGroup>

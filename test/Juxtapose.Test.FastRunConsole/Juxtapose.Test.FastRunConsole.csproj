@@ -5,10 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-		<ProjectReference Include="..\Juxtapose.Test.RunningHost\Juxtapose.Test.RunningHost.csproj" />
-		<ProjectReference Include="..\Juxtapose.Test.Shared\Juxtapose.Test.Shared.csproj" />
+    <ProjectReference Include="..\Juxtapose.Test.RunningHost\Juxtapose.Test.RunningHost.csproj" />
+    <ProjectReference Include="..\Juxtapose.Test.Shared\Juxtapose.Test.Shared.csproj" />
 
-		<ProjectReference Include="..\..\src\Juxtapose.VsDebugger\Juxtapose.VsDebugger.csproj" />
-		<Content Include="..\..\src\Juxtapose.VsDebugger\bin\$(Configuration)\$(TargetFramework)\**\*" Link="/vsdebugger/$(TargetFramework)/%(RecursiveDir)%(FileName)%(Extension)" />
-	</ItemGroup>
+    <ProjectReference Include="..\..\src\Juxtapose.VsDebugger\Juxtapose.VsDebugger.csproj" />
+    <Content Include="..\..\src\Juxtapose.VsDebugger\bin\$(Configuration)\$(TargetFramework)\**\*" Link="/vsdebugger/$(TargetFramework)/%(RecursiveDir)%(FileName)%(Extension)" />
+  </ItemGroup>
 </Project>
