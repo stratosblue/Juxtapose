@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
 
+using Juxtapose.SourceGenerator;
 using Juxtapose.SourceGenerator.CodeGenerate;
 using Juxtapose.SourceGenerator.Internal;
 using Juxtapose.SourceGenerator.Model;
@@ -11,10 +12,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Juxtapose.SourceGenerator;
+namespace Juxtapose;
 
 [Generator(LanguageNames.CSharp)]
-public class JuxtaposeIncrementalGenerator : IIncrementalGenerator
+public class JuxtaposeSourceGenerator : IIncrementalGenerator
 {
     #region Public 方法
 
