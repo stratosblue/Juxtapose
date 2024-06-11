@@ -19,10 +19,29 @@ internal static class ArgumentsAndResultsHelper
         if (methodSymbol.Parameters.IsEmpty)
         {
             builder.AppendIndentLine($"var {variableName} = new {typeName}();");
+            builder.AppendLine();
+            return;
+        }
+        else if (methodSymbol.Parameters.Length == 1)   //一个参数无法使用语法
+        {
+            builder.AppendIndent($"var {variableName} = new {typeName}(");
+            var parameter = methodSymbol.Parameters[0];
+            if (typeSymbolAnalyzer.IsCancellationToken(parameter.Type)
+                || parameter.Type.IsDelegate())
+            {
+                builder.Append($"{parameter.Name}_RID");
+            }
+            else
+            {
+                builder.Append($"{parameter.Name}");
+            }
+
+            builder.Append(");");
+            builder.AppendLine();
             return;
         }
 
-        builder.AppendIndent($"var {variableName} = new {typeName}(");
+        builder.AppendIndent($"{typeName} {variableName} = (");
 
         for (int index = 0; index < methodSymbol.Parameters.Length; index++)
         {
@@ -61,22 +80,24 @@ internal static class ArgumentsAndResultsHelper
 
         var cancellationTokenParams = new List<CancellationTokenArgumentInfo>(1);
 
+        var valueTupleRestString = string.Empty;
+
         for (int index = 0; index < methodSymbol.Parameters.Length; index++)
         {
             var parameter = methodSymbol.Parameters[index];
 
-            var currentParameterValueAccessExpression = $"{LocalParamPackVariableName}.Item{index + 1}";
+            var currentParameterValueAccessExpression = $"{LocalParamPackVariableName}.{GenerateValueTupleAccessExpressionByIndex(index)}";
 
             if (context.TypeSymbolAnalyzer.IsCancellationToken(parameter.Type))
             {
-                cancellationTokenParams.Add(new(parameter, index + 1));
+                cancellationTokenParams.Add(new(parameter, index));
                 builder.AppendIndentLine($"global::Juxtapose.Utils.CancellationTokenInvokeUtil.TryRebuildCancellationTokenSource({currentParameterValueAccessExpression}, {vars.Executor}, out var {parameter.Name}_CTS, out var {parameter.Name});", true);
             }
             else if (parameter.Type.IsDelegate())
             {
                 var delegateVars = new VariableName(vars)
                 {
-                    InstanceId = $"{LocalParamPackVariableName}.Item{index + 1}.Value",
+                    InstanceId = $"{LocalParamPackVariableName}.{GenerateValueTupleAccessExpressionByIndex(index)}.Value",
                 };
 
                 var callbackMethod = ((INamedTypeSymbol)parameter.Type).DelegateInvokeMethod!;
@@ -87,7 +108,7 @@ internal static class ArgumentsAndResultsHelper
                 SourceCodeGenerateHelper.GenerateInstanceMethodProxyBodyCode(callbackBodyBuilder, context, resources, callbackMethod, delegateVars);
 
                 builder.AppendLine($@"{parameter.Type.ToFullyQualifiedDisplayString()} {parameter.Name} = null!;
-if ({LocalParamPackVariableName}.Item{index + 1}.HasValue)
+if ({LocalParamPackVariableName}.{GenerateValueTupleAccessExpressionByIndex(index)}.HasValue)
 {{
     {parameter.Name} = {(context.TypeSymbolAnalyzer.IsAwaitable(callbackMethod.ReturnType) ? "async " : string.Empty)}({callbackMethod.GenerateMethodArgumentStringWithoutType()}) =>
     {{
@@ -120,7 +141,7 @@ if ({LocalParamPackVariableName}.Item{index + 1}.HasValue)
             {
                 foreach (var argumentInfo in cancellationTokenParams)
                 {
-                    var currentParameterValueAccessExpression = $"{LocalParamPackVariableName}.Item{argumentInfo.ArgumentIndex}";
+                    var currentParameterValueAccessExpression = $"{LocalParamPackVariableName}.{GenerateValueTupleAccessExpressionByIndex(argumentInfo.ArgumentIndex)}";
 
                     builder.AppendLine($@"if ({currentParameterValueAccessExpression}.HasValue)
 {{
@@ -137,11 +158,22 @@ if ({LocalParamPackVariableName}.Item{index + 1}.HasValue)
         var count = types.Count();
         if (count > 0)
         {
+            var typesEnumerator = types.GetEnumerator();
+            return InnerGenerateValueTupleTypeName(typesEnumerator, typeSymbolAnalyzer);
+        }
+
+        return "global::System.ValueTuple";
+
+        static string InnerGenerateValueTupleTypeName(IEnumerator<ITypeSymbol> typesEnumerator, TypeSymbolAnalyzer typeSymbolAnalyzer)
+        {
             var builder = new StringBuilder("global::System.ValueTuple<", 128);
 
-            var index = 0;
-            foreach (var parameter in types)
+            var count = 0;
+
+            while (typesEnumerator.MoveNext())
             {
+                var parameter = typesEnumerator.Current;
+
                 if (typeSymbolAnalyzer.IsCancellationToken(parameter) || parameter.IsDelegate())
                 {
                     builder.Append(TypeFullNames.Juxtapose.ReferenceId);
@@ -151,18 +183,55 @@ if ({LocalParamPackVariableName}.Item{index + 1}.HasValue)
                 {
                     builder.Append(parameter.ToFullyQualifiedDisplayString());
                 }
-                if (++index < count)
+
+                builder.Append(", ");
+
+                if (++count >= 7)
                 {
-                    builder.Append(", ");
+                    builder.Append(InnerGenerateValueTupleTypeName(typesEnumerator, typeSymbolAnalyzer));
+                    break;
                 }
             }
 
+            if (count == 0)
+            {
+                return string.Empty;
+            }
+
+            if (builder[builder.Length - 2] == ',')
+            {
+                builder.Remove(builder.Length - 2, 2);
+            }
             builder.Append('>');
+
             return builder.ToString();
         }
-
-        return "global::System.ValueTuple";
     }
 
     #endregion Public 方法
+
+    #region Private 方法
+
+    private static string GenerateValueTupleAccessExpressionByIndex(int index)
+    {
+        index += 1;
+        var restCount = index / 8;
+        var accessIndex = index - restCount * 7;
+
+        if (restCount == 0)
+        {
+            return $"Item{accessIndex}";
+        }
+        var builder = new StringBuilder();
+        for (var i = 0; i < restCount; i++)
+        {
+            builder.Append("Rest.");
+        }
+
+        builder.Append($"Item{accessIndex}");
+
+        return builder.ToString();
+    }
+
+    #endregion Private 方法
 }

@@ -215,6 +215,18 @@ public class GreeterFromServiceProviderTest
         await Task.WhenAll(tasks);
     }
 
+    [TestMethod]
+    public void ShouldSuccessWithTooManyArguments()
+    {
+        using var illusion = CreateObject(out var origin);
+
+        var expected = origin.TooManyArguments("value:arg1", "value:arg2", "value:arg3", "value:arg4", "value:arg5", "value:arg6", "value:arg7", "value:arg8", "value:arg9", "value:arg10", "value:arg11", "value:arg12", "value:arg13", "value:arg14", "value:arg15", "value:arg16", "value:arg17", "value:arg18", "value:arg19", "value:arg20", "value:arg21", "value:arg22", "value:arg23", "value:arg24");
+        var actual = illusion.TooManyArguments("value:arg1", "value:arg2", "value:arg3", "value:arg4", "value:arg5", "value:arg6", "value:arg7", "value:arg8", "value:arg9", "value:arg10", "value:arg11", "value:arg12", "value:arg13", "value:arg14", "value:arg15", "value:arg16", "value:arg17", "value:arg18", "value:arg19", "value:arg20", "value:arg21", "value:arg22", "value:arg23", "value:arg24");
+
+        Assert.IsNotNull(expected);
+        Assert.AreEqual(expected, actual);
+    }
+
     #endregion Public 方法
 
     #region Protected 方法

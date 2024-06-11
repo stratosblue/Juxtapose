@@ -1,0 +1,8 @@
+﻿{
+  "profiles": {
+    "Juxtapose.Test.RunningHost": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    }
+  }
+}

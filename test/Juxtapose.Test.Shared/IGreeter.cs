@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Intrinsics.X86;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -63,6 +64,8 @@ public interface IGreeter
     Task<string> MethodWithFuncAsync(Func<string, string, Task<string>> callback, string input);
 
     void MethodWithoutReturn(string input);
+
+    string TooManyArguments(string arg1, string arg2, string arg3, string arg4, string arg5, string arg6, string arg7, string arg8, string arg9, string arg10, string arg11, string arg12, string arg13, string arg14, string arg15, string arg16, string arg17, string arg18, string arg19, string arg20, string arg21, string arg22, string arg23, string arg24);
 
     ValueTask<string> ValueTaskAsyncMethod(string input);
 
