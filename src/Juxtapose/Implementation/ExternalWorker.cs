@@ -89,18 +89,20 @@ public class ExternalWorker : KeepRunningObject, IExternalWorker
         {
             if (!ExternalProcess.IsAlive)
             {
+                int exitCode;
+                string exitDescription;
                 try
                 {
-                    var exitCode = ExternalProcess.ExitCode;
-                    var exitDescription = ExternalProcessExitCodeUtil.GetExitCodeDescription(exitCode);
-                    throw new ExternalProcessExitedException(ExternalProcess.Id, exitCode, $"ExternalWorker Initialization Fail: {exitDescription}", ex);
+                    exitCode = ExternalProcess.ExitCode;
+                    exitDescription = ExternalProcessExitCodeUtil.GetExitCodeDescription(exitCode);
                 }
                 catch (Exception iex)
                 {
-                    var newException = new ExternalProcessExitedException(ExternalProcess.Id, -1, $"ExternalWorker Initialization Fail And Get ExitCode Fail.", iex);
+                    var newException = new ExternalProcessExitedException(ExternalProcess.Id, -1, "ExternalWorker Initialization Fail And Get ExitCode Fail.", iex);
                     newException.Data.Add("RawException", ex);
                     throw newException;
                 }
+                throw new ExternalProcessExitedException(ExternalProcess.Id, exitCode, $"ExternalWorker Initialization Fail: {exitDescription}", ex);
             }
             throw;
         }

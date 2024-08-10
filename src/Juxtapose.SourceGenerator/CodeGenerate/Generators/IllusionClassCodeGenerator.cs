@@ -252,7 +252,6 @@ public void Dispose()
     _runningTokenSource.Dispose();
     _executorOwner.Dispose();
     _runningTokenRegistration?.Dispose();
-    _executorOwner = null!;
     _runningTokenSource = null!;
     _runningTokenRegistration = null;
     global::System.GC.SuppressFinalize(this);
