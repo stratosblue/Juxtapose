@@ -23,7 +23,7 @@ public class JuxtaposeSourceGenerator : IIncrementalGenerator
     {
         var declarationsProvider = context.SyntaxProvider.CreateSyntaxProvider(FilterContextSyntaxNode, TransformContextSyntaxNode)
                                                          .Where(m => !m.IsDefault)
-                                                         .WithComparer(JuxtaposeContextDeclaration.Default);
+                                                         .WithComparer(JuxtaposeContextDeclarationEqualityComparer.Default);
 
 #if SAVE_GENERATED_CODE
 
@@ -48,6 +48,7 @@ public class JuxtaposeSourceGenerator : IIncrementalGenerator
     private static bool FilterContextSyntaxNode(SyntaxNode syntaxNode, CancellationToken cancellationToken)
     {
         if (syntaxNode is ClassDeclarationSyntax classDeclarationSyntax
+            && classDeclarationSyntax.Modifiers.Any(SyntaxKind.PartialKeyword)
             && classDeclarationSyntax.AttributeLists.Count > 0
             && !classDeclarationSyntax.Modifiers.Any(SyntaxKind.AbstractKeyword))
         {

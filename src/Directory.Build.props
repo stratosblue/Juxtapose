@@ -1,41 +1,47 @@
 ﻿<Project>
-	<PropertyGroup>
-		<TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
 
-		<LangVersion>latest</LangVersion>
-		<Nullable>enable</Nullable>
-		<ImplicitUsings>true</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>true</ImplicitUsings>
 
-		<NoWarn>$(NoWarn);CA2253</NoWarn>
-	</PropertyGroup>
+    <NoWarn>$(NoWarn);CA2253</NoWarn>
 
-	<PropertyGroup>
-		<Version>1.4.3</Version>
+    <McrVersion>8.0.0</McrVersion>
+  </PropertyGroup>
 
-		<Description>A multi process runtime library based on 'SourceGenerator'. 基于 `SourceGenerator` 的多`进程`运行库。</Description>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <McrVersion>9.0.0</McrVersion>
+  </PropertyGroup>
 
-		<PackageIdPrefix>Juxtapose</PackageIdPrefix>
-		<Authors>Stratos</Authors>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageProjectUrl>https://github.com/stratosblue/Juxtapose</PackageProjectUrl>
+  <PropertyGroup>
+    <Version>1.4.4</Version>
 
-		<RepositoryType>git</RepositoryType>
-		<RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
+    <Description>A multi process runtime library based on 'SourceGenerator'. 基于 `SourceGenerator` 的多`进程`运行库。</Description>
 
-		<PackageTags>subprocess multiprocess externalprocess outproc sub-process multi-process external-process dotnet8 source-generator aot</PackageTags>
+    <PackageIdPrefix>Juxtapose</PackageIdPrefix>
+    <Authors>Stratos</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/stratosblue/Juxtapose</PackageProjectUrl>
 
-		<PackageReadmeFile>readme.md</PackageReadmeFile>
-	</PropertyGroup>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
 
-	<ItemGroup>
-		<None Include="..\..\readme.md" Link="readme.md" Pack="true" PackagePath="/" />
-	</ItemGroup>
+    <PackageTags>subprocess multiprocess externalprocess outproc sub-process multi-process external-process dotnet8 source-generator aot</PackageTags>
 
-	<ItemGroup Condition="'$(Configuration)' == 'Release'">
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.*" PrivateAssets="All" />
-	</ItemGroup>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+  </PropertyGroup>
 
-	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
-		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-	</PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\readme.md" Link="readme.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.*" PrivateAssets="All" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
 </Project>

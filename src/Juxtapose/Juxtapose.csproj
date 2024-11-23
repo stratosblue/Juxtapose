@@ -3,12 +3,11 @@
   <PropertyGroup>
     <RootNamespace>Juxtapose</RootNamespace>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <WarningLevel>5</WarningLevel>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
-    <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(McrVersion)" />
+    <PackageReference Include="System.IO.Pipelines" Version="$(McrVersion)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,7 +27,7 @@
     <Content Include="..\Juxtapose.VsDebugger\bin\$(Configuration)\$(TargetFramework)\**\*" Link="tools/vsdebugger/$(TargetFramework)/%(RecursiveDir)%(FileName)%(Extension)" PackagePath="tools/any/vsdebugger/%(RecursiveDir)%(FileName)%(Extension)" />
   </ItemGroup>
 
-  <Target Name="_IncludeSourceGenerator" BeforeTargets="_GetPackageFiles">
+  <Target Name="_IncludeJuxtaposeSourceGenerator" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
       <None Include="..\Juxtapose.SourceGenerator\bin\$(Configuration)\**\*.dll" Pack="True" PackagePath="analyzers\dotnet\cs" />
     </ItemGroup>

@@ -1,6 +1,17 @@
 ﻿<Project>
   <PropertyGroup>
+    <TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
+
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
     <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
+
+    <McrVersion>8.0.0</McrVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <McrVersion>9.0.0</McrVersion>
   </PropertyGroup>
 </Project>
