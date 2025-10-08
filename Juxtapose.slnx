@@ -1,0 +1,40 @@
+<Solution>
+  <Folder Name="/sample/">
+    <Project Path="sample/ResourceBasedObjectPool/ResourceBasedObjectPool.csproj" />
+    <Project Path="sample/SampleConsoleApp/SampleConsoleApp.csproj" />
+    <Project Path="sample/SampleLibrary/SampleLibrary.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="global.json" />
+    <File Path="readme.md" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/" />
+  <Folder Name="/Solution Items/.github/workflows/">
+    <File Path=".github/workflows/PublishNugetPackage.yml" />
+  </Folder>
+  <Folder Name="/Solution Items/sample/">
+    <File Path="sample/Directory.Build.props" />
+  </Folder>
+  <Folder Name="/Solution Items/src/">
+    <File Path="src/Directory.Build.props" />
+  </Folder>
+  <Folder Name="/Solution Items/test/">
+    <File Path="test/Directory.Build.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Juxtapose.SourceGenerator/Juxtapose.SourceGenerator.csproj" />
+    <Project Path="src/Juxtapose.VsDebugger/Juxtapose.VsDebugger.csproj" />
+    <Project Path="src/Juxtapose/Juxtapose.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Juxtapose.Test.FastRunConsole/Juxtapose.Test.FastRunConsole.csproj" />
+    <Project Path="test/Juxtapose.Test.RunningHost/Juxtapose.Test.RunningHost.csproj" />
+    <Project Path="test/Juxtapose.Test.Shared/Juxtapose.Test.Shared.CodeReview.csproj">
+      <Build Project="false" />
+    </Project>
+    <Project Path="test/Juxtapose.Test.Shared/Juxtapose.Test.Shared.csproj" />
+    <Project Path="test/Juxtapose.Test/Juxtapose.Test.csproj" />
+  </Folder>
+</Solution>

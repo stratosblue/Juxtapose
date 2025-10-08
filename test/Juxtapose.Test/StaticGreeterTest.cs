@@ -36,7 +36,7 @@ public class StaticGreeterTest
             var stopwatch = Stopwatch.StartNew();
             using var cts = new CancellationTokenSource(CancelTime);
 
-            await Assert.ThrowsExceptionAsync<TException>(() => action(cts.Token));
+            await Assert.ThrowsExactlyAsync<TException>(() => action(cts.Token));
 
             stopwatch.Stop();
 
@@ -62,7 +62,7 @@ public class StaticGreeterTest
             using var cts = new CancellationTokenSource(CancelTime2);
             using var cts2 = new CancellationTokenSource(CancelTime);
 
-            await Assert.ThrowsExceptionAsync<TException>(() => action(cts.Token, cts2.Token));
+            await Assert.ThrowsExactlyAsync<TException>(() => action(cts.Token, cts2.Token));
 
             stopwatch.Stop();
 

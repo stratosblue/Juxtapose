@@ -40,7 +40,7 @@ public class ExternalProcessExitedExceptionTest
         }
         var process = Process.GetProcessById(externalProcess.Id);
 
-        var assertTask = Assert.ThrowsExceptionAsync<ExternalProcessExitedException>(async () => await _illusion.AsyncMethodCancelable(2000, CancellationToken.None));
+        var assertTask = Assert.ThrowsExactlyAsync<ExternalProcessExitedException>(async () => await _illusion.AsyncMethodCancelable(2000, CancellationToken.None));
 
         Console.WriteLine($"Kill process {externalProcess.Id}");
 
