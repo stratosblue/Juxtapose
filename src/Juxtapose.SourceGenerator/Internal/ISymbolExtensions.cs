@@ -38,7 +38,8 @@ internal static class ISymbolExtensions
                 default:
                     //TODO 支持其他的属性
                     continue;
-            };
+            }
+            ;
         }
     }
 

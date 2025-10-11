@@ -1,9 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-//批量替换
+﻿//批量替换
 //(private|public|protected|internal)
 //->
 //$1 static

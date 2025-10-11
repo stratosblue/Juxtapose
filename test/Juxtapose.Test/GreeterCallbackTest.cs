@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using GreeterOrigin = global::Juxtapose.Test.Greeter;
+﻿using GreeterOrigin = global::Juxtapose.Test.Greeter;
 
 namespace Juxtapose.Test;
 

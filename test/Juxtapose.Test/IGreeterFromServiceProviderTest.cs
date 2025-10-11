@@ -1,11 +1,6 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using GreeterIllusionGen = global::Juxtapose.Test.IGreeterIllusionFromIoCContainer;
 

@@ -1,6 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-namespace Juxtapose.Test;
+﻿namespace Juxtapose.Test;
 
 [TestClass]
 public class DynamicObjectPoolTest

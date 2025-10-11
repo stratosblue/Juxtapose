@@ -1,8 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Juxtapose.Test;
 
 internal static class AssertUtil

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 using Microsoft.Extensions.Logging;
 
@@ -22,7 +18,7 @@ internal class Program
 
     private static async Task Main(string[] args)
     {
-        s_logger.LogInformation("Current ProcessId: {0}", Environment.ProcessId);
+        s_logger.LogInformation("Current ProcessId: {ProcessId}", Environment.ProcessId);
 
         await TestRunAsync();
 
@@ -162,7 +158,7 @@ internal class Program
 
     private static async Task TestRunAsync()
     {
-        s_logger.LogInformation($"Static.AsyncMethod: {await StaticGreeterIllusion.AsyncMethod("李四")}");
+        s_logger.LogInformation("Static.AsyncMethod: {Value}", await StaticGreeterIllusion.AsyncMethod("李四"));
 
         var instance = new GreeterAsIGreeterIllusion("Lilith");
 
@@ -173,11 +169,11 @@ internal class Program
             {
                 await Task.CompletedTask;
                 var result = $"{DateTime.Now}: {value}";
-                s_logger.LogInformation("Callback Invoked arg: {0} return: {1}", value, result);
+                s_logger.LogInformation("Callback Invoked arg: {Value} return: {Result}", value, result);
                 return result;
             }, "Hello");
 
-            s_logger.LogInformation("Instance.MethodWithFuncAsync: {0}", callbackResult);
+            s_logger.LogInformation("Instance.MethodWithFuncAsync: {Result}", callbackResult);
         }
 
         {
@@ -185,11 +181,11 @@ internal class Program
             {
                 await Task.CompletedTask;
                 var result = $"{DateTime.Now}: {value}+{value2}";
-                s_logger.LogInformation("Delegate callback Invoked arg1: {0} arg2: {1} return: {3}", value, value2, result);
+                s_logger.LogInformation("Delegate callback Invoked arg1: {Value} arg2: {Value2} return: {Result}", value, value2, result);
                 return result;
             }), "Hello");
 
-            s_logger.LogInformation("Instance.MethodWithDelegateAsync: {0}", callbackResult);
+            s_logger.LogInformation("Instance.MethodWithDelegateAsync: {Result}", callbackResult);
         }
 
         var stopWatch = Stopwatch.StartNew();
@@ -201,13 +197,13 @@ internal class Program
 
             stopWatch.Stop();
 
-            s_logger.LogInformation($"Instance.AsyncMethod ct: {result} - time: {stopWatch.ElapsedMilliseconds} ms");
+            s_logger.LogInformation("Instance.AsyncMethod ct: {Result} - time: {Milliseconds} ms", result, stopWatch.ElapsedMilliseconds);
         }
         catch (OperationCanceledException)
         {
             stopWatch.Stop();
 
-            s_logger.LogInformation("Operation Canceled. time: {0} ms", stopWatch.ElapsedMilliseconds);
+            s_logger.LogInformation("Operation Canceled. time: {Milliseconds} ms", stopWatch.ElapsedMilliseconds);
         }
 
         stopWatch.Restart();
@@ -221,24 +217,24 @@ internal class Program
 
             stopWatch.Stop();
 
-            s_logger.LogInformation($"Instance.AsyncMethod ct: {result} - time: {stopWatch.ElapsedMilliseconds} ms");
+            s_logger.LogInformation("Instance.AsyncMethod ct: {Result} - time: {Milliseconds} ms", result, stopWatch.ElapsedMilliseconds);
         }
         catch (OperationCanceledException)
         {
             stopWatch.Stop();
 
-            s_logger.LogInformation("Operation Canceled. time: {0} ms", stopWatch.ElapsedMilliseconds);
+            s_logger.LogInformation("Operation Canceled. time: {Milliseconds} ms", stopWatch.ElapsedMilliseconds);
         }
 
-        s_logger.LogInformation($"Get Instance Prop: {instance.Prop}");
+        s_logger.LogInformation("Get Instance Prop: {InstanceProp}", instance.Prop);
 
         instance.Prop = "LilithPlus";
 
-        s_logger.LogInformation($"Get Instance Prop after set: {instance.Prop}");
+        s_logger.LogInformation("Get Instance Prop after set: {InstanceProp}", instance.Prop);
 
-        s_logger.LogInformation($"Instance.Method: {instance.Method("张三")}");
+        s_logger.LogInformation("Instance.Method: {Value}", instance.Method("张三"));
 
-        s_logger.LogInformation($"Instance.AsyncMethod: {await instance.AsyncMethod("李四")}");
+        s_logger.LogInformation("Instance.AsyncMethod: {Value}", await instance.AsyncMethod("李四"));
 
         s_logger.LogInformation("End");
 

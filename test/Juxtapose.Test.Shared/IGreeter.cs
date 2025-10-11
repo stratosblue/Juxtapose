@@ -1,9 +1,4 @@
-﻿using System;
-using System.Runtime.Intrinsics.X86;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Juxtapose.Test;
+﻿namespace Juxtapose.Test;
 
 public delegate string GetLongerString(string str1, string str2);
 

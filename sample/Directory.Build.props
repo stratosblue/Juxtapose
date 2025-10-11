@@ -2,16 +2,6 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
-
-    <Nullable>enable</Nullable>
-
     <IsPackable>false</IsPackable>
-
-    <McrVersion>8.0.0</McrVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
-    <McrVersion>9.0.0</McrVersion>
   </PropertyGroup>
 </Project>

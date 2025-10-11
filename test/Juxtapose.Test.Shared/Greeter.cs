@@ -1,9 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Juxtapose.Test;
+﻿namespace Juxtapose.Test;
 
 public class Greeter : IGreeter
 {

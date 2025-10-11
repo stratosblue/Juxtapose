@@ -1,8 +1,4 @@
-﻿using System.Threading.Tasks;
-
-using Juxtapose.ObjectPool;
-
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Juxtapose.ObjectPool;
 
 namespace Juxtapose.Test.ObjectPool;
 

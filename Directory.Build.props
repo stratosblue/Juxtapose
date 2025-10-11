@@ -1,6 +1,22 @@
 ﻿<Project>
   <PropertyGroup>
+    <TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
+
+    <Nullable>enable</Nullable>
+
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>true</ImplicitUsings>
+
+    <NoWarn>$(NoWarn);IDE0130</NoWarn>
+
+    <McrVersion>8.0.0</McrVersion>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <McrVersion>9.0.0</McrVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Cuture.CodeAnalysis.LoggingCodeFixes" Version="1.0.1" />
+  </ItemGroup>
 </Project>
