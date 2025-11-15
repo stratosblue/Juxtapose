@@ -5,27 +5,18 @@ namespace Juxtapose.Messages;
 /// <summary>
 /// Juxtapose 确认消息
 /// </summary>
-public class JuxtaposeAckMessage : JuxtaposeMessage
+[method: DebuggerStepThrough]
+public class JuxtaposeAckMessage(int ackId)
+    : JuxtaposeMessage
 {
     #region Public 属性
 
     /// <summary>
     /// 确认的消息ID
     /// </summary>
-    public int AckId { [DebuggerStepThrough] get; [DebuggerStepThrough] set; }
+    public int AckId { [DebuggerStepThrough] get; [DebuggerStepThrough] set; } = ackId;
 
     #endregion Public 属性
-
-    #region Public 构造函数
-
-    /// <inheritdoc cref="JuxtaposeAckMessage"/>
-    [DebuggerStepThrough]
-    public JuxtaposeAckMessage(int ackId)
-    {
-        AckId = ackId;
-    }
-
-    #endregion Public 构造函数
 
     #region Public 方法
 

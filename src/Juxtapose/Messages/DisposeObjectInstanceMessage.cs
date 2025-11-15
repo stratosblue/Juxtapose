@@ -5,27 +5,17 @@ namespace Juxtapose.Messages;
 /// <summary>
 /// 释放对象实例消息
 /// </summary>
-public class DisposeObjectInstanceMessage : JuxtaposeMessage
+[method: DebuggerStepThrough]
+public class DisposeObjectInstanceMessage(int instanceId) : JuxtaposeMessage
 {
     #region Public 属性
 
     /// <summary>
     /// 实例ID
     /// </summary>
-    public int InstanceId { get; set; }
+    public int InstanceId { get; set; } = instanceId;
 
     #endregion Public 属性
-
-    #region Public 构造函数
-
-    /// <inheritdoc cref="DisposeObjectInstanceMessage"/>
-    [DebuggerStepThrough]
-    public DisposeObjectInstanceMessage(int instanceId)
-    {
-        InstanceId = instanceId;
-    }
-
-    #endregion Public 构造函数
 
     #region Public 方法
 

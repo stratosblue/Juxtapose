@@ -1,31 +1,20 @@
 ﻿namespace Juxtapose.ObjectPool;
 
-internal class DelegateBaseDynamicObjectPool<T> : DynamicObjectPool<T>
+internal class DelegateBaseDynamicObjectPool<T>(IDynamicObjectPoolScheduler<T> scheduler,
+                                                Func<CancellationToken, Task<T>> createDelegate,
+                                                Action<T> destroyDelegate,
+                                                ResourcePressureDelegate resourcePressureDelegate)
+    : DynamicObjectPool<T>(scheduler)
 {
     #region Private 字段
 
-    private readonly Func<CancellationToken, Task<T>> _createDelegate;
+    private readonly Func<CancellationToken, Task<T>> _createDelegate = createDelegate ?? throw new ArgumentNullException(nameof(createDelegate));
 
-    private readonly Action<T> _destroyDelegate;
+    private readonly Action<T> _destroyDelegate = destroyDelegate ?? throw new ArgumentNullException(nameof(destroyDelegate));
 
-    private readonly ResourcePressureDelegate _resourcePressureDelegate;
+    private readonly ResourcePressureDelegate _resourcePressureDelegate = resourcePressureDelegate ?? throw new ArgumentNullException(nameof(resourcePressureDelegate));
 
     #endregion Private 字段
-
-    #region Public 构造函数
-
-    public DelegateBaseDynamicObjectPool(IDynamicObjectPoolScheduler<T> scheduler,
-                                         Func<CancellationToken, Task<T>> createDelegate,
-                                         Action<T> destroyDelegate,
-                                         ResourcePressureDelegate resourcePressureDelegate)
-        : base(scheduler)
-    {
-        _createDelegate = createDelegate ?? throw new ArgumentNullException(nameof(createDelegate));
-        _destroyDelegate = destroyDelegate ?? throw new ArgumentNullException(nameof(destroyDelegate));
-        _resourcePressureDelegate = resourcePressureDelegate ?? throw new ArgumentNullException(nameof(resourcePressureDelegate));
-    }
-
-    #endregion Public 构造函数
 
     #region Protected 方法
 

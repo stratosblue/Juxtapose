@@ -144,10 +144,7 @@ public abstract class JuxtaposeContext : IInitializationContext, IDisposable
     /// </summary>
     protected void ThrowIfDisposed()
     {
-        if (_isDisposed)
-        {
-            throw new ObjectDisposedException(nameof(JuxtaposeContext));
-        }
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
     }
 
     /// <inheritdoc/>

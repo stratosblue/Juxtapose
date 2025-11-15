@@ -8,11 +8,15 @@ namespace Juxtapose;
 /// <summary>
 /// 设置选项
 /// </summary>
-public class JuxtaposeOptions : IJuxtaposeOptions
+[method: DebuggerStepThrough]
+public class JuxtaposeOptions(Dictionary<string, string?>? values = null)
+    : IJuxtaposeOptions
 {
     #region Private 字段
 
-    private readonly Dictionary<string, string?> _values;
+    private readonly Dictionary<string, string?> _values = values is null
+                                                           ? new(8)
+                                                           : new(values, StringComparer.OrdinalIgnoreCase);
 
     #endregion Private 字段
 
@@ -41,19 +45,6 @@ public class JuxtaposeOptions : IJuxtaposeOptions
     public string? this[string key] { get => Get(key); set => Set(value, key); }
 
     #endregion Public 索引器
-
-    #region Public 构造函数
-
-    /// <inheritdoc cref="JuxtaposeOptions"/>
-    [DebuggerStepThrough]
-    public JuxtaposeOptions(Dictionary<string, string?>? values = null)
-    {
-        _values = values is null
-                  ? new(8)
-                  : new(values, StringComparer.OrdinalIgnoreCase);
-    }
-
-    #endregion Public 构造函数
 
     #region Public 方法
 
@@ -100,7 +91,7 @@ public class JuxtaposeOptions : IJuxtaposeOptions
         }
         catch (Exception ex)
         {
-            throw new JuxtaposeException($"the options string may has some error - \"{data.ToString()}\" .", ex);
+            throw new JuxtaposeException($"the options string may has some error - \"{data}\" .", ex);
         }
     }
 

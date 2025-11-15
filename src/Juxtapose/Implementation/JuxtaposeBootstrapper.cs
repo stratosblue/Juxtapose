@@ -114,10 +114,7 @@ public class JuxtaposeBootstrapper : IJuxtaposeBootstrapper
     /// </summary>
     protected void ThrowIfDisposed()
     {
-        if (_isDisposed)
-        {
-            throw new ObjectDisposedException(nameof(JuxtaposeBootstrapper));
-        }
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
     }
 
     /// <inheritdoc/>

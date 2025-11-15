@@ -49,10 +49,7 @@ public abstract class KeepRunningObject : IDisposable
     /// <exception cref="ObjectDisposedException"></exception>
     protected void ThrowIfDisposed()
     {
-        if (_isDisposed)
-        {
-            throw new ObjectDisposedException(this.ToString());
-        }
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
     }
 
     #endregion Protected 方法

@@ -132,10 +132,7 @@ public abstract class DynamicObjectPoolScheduler<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected void ThrowIfDisposed()
     {
-        if (_isDisposed)
-        {
-            throw new ObjectDisposedException(nameof(DynamicObjectPoolScheduler<T>));
-        }
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
     }
 
     /// <inheritdoc/>

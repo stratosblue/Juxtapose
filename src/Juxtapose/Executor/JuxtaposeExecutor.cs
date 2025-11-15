@@ -116,7 +116,11 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
     /// <returns></returns>
     public virtual void AddObjectInstance(int instanceId, object instance)
     {
-        Logger.LogTrace("Try add instance [{Instance}] for id [{InstanceId}]", instance, instanceId);
+        if (Logger.IsEnabled(LogLevel.Trace))
+        {
+            Logger.LogTrace("Try add instance [{Instance}] for id [{InstanceId}]", instance, instanceId);
+        }
+
         if (!ObjectInstances.TryAdd(instanceId, instance ?? throw new ArgumentNullException(nameof(instance))))
         {
             throw new InstanceDuplicateException(instanceId);
@@ -132,14 +136,18 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
     {
         Task.Run(async () =>
         {
-            Logger.LogTrace("Dispose object instance. Id [{InstanceId}]", instanceId);
+            if (Logger.IsEnabled(LogLevel.Trace))
+            {
+                Logger.LogTrace("Dispose object instance. Id [{InstanceId}]", instanceId);
+            }
             try
             {
                 await InvokeMessageAsync(new DisposeObjectInstanceMessage(instanceId), RunningToken);
             }
             catch (Exception ex)
             {
-                if (!IsDisposed)
+                if (!IsDisposed
+                    && Logger.IsEnabled(LogLevel.Warning))
                 {
                     Logger.LogWarning(ex, "Dispose object instance Fail. Id [{InstanceId}]", instanceId);
                 }
@@ -154,7 +162,11 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
     /// <returns></returns>
     public object GetObjectInstance(int instanceId)
     {
-        Logger.LogTrace("Get instance by id [{InstanceId}]", instanceId);
+        if (Logger.IsEnabled(LogLevel.Trace))
+        {
+            Logger.LogTrace("Get instance by id [{InstanceId}]", instanceId);
+        }
+
         if (ObjectInstances.TryGetValue(instanceId, out var instance))
         {
             return instance;
@@ -188,7 +200,11 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
     /// <returns></returns>
     public void RemoveObjectInstance(int instanceId)
     {
-        Logger.LogTrace("Try remove instance by id [{InstanceId}]", instanceId);
+        if (Logger.IsEnabled(LogLevel.Trace))
+        {
+            Logger.LogTrace("Try remove instance by id [{InstanceId}]", instanceId);
+        }
+
         ObjectInstances.TryRemove(instanceId, out _);
     }
 
@@ -219,7 +235,11 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
         {
             if (ObjectInstances.TryRemove(disposeObjectInstanceMessage.InstanceId, out var storedObject))
             {
-                Logger.LogTrace("Dispose object instance. Id [{InstanceId}]", disposeObjectInstanceMessage.InstanceId);
+                if (Logger.IsEnabled(LogLevel.Trace))
+                {
+                    Logger.LogTrace("Dispose object instance. Id [{InstanceId}]", disposeObjectInstanceMessage.InstanceId);
+                }
+
                 if (storedObject is IDisposable disposable)
                 {
                     disposable.Dispose();
@@ -227,7 +247,10 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
             }
             else
             {
-                Logger.LogWarning("Dispose object instance message received. But not found it in executor. Id [{InstanceId}]", disposeObjectInstanceMessage.InstanceId);
+                if (Logger.IsEnabled(LogLevel.Warning))
+                {
+                    Logger.LogWarning("Dispose object instance message received. But not found it in executor. Id [{InstanceId}]", disposeObjectInstanceMessage.InstanceId);
+                }
             }
             return Task.FromResult<JuxtaposeMessage?>(null);
         }
@@ -241,13 +264,21 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
                 //TODO 当取消消息在执行消息之前到达时，将无法正确取消
                 if (ObjectInstances.TryRemove(cancelMessage.InstanceId, out var storedObject))
                 {
-                    Logger.LogTrace("CancellationTokenSource cancel message received. Id [{InstanceId}]", cancelMessage.InstanceId);
+                    if (Logger.IsEnabled(LogLevel.Trace))
+                    {
+                        Logger.LogTrace("CancellationTokenSource cancel message received. Id [{InstanceId}]", cancelMessage.InstanceId);
+                    }
+
                     ((CancellationTokenSource)storedObject).Cancel();
                     return Task.FromResult<JuxtaposeMessage?>(null);
                 }
                 else
                 {
-                    Logger.LogWarning("CancellationTokenSource cancel message received. But not found it in executor. Id [{InstanceId}]", cancelMessage.InstanceId);
+                    if (Logger.IsEnabled(LogLevel.Warning))
+                    {
+                        Logger.LogWarning("CancellationTokenSource cancel message received. But not found it in executor. Id [{InstanceId}]", cancelMessage.InstanceId);
+                    }
+
                     //如果在此处添加对象，可以保证取消，但需要一个恰当的锁定和移除机制
                     return Task.FromResult<JuxtaposeMessage?>(null);
                 }

@@ -5,15 +5,18 @@ using Microsoft.Extensions.Logging;
 namespace Juxtapose;
 
 /// <inheritdoc cref="IJuxtaposeExecutorPool"/>
-public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
+public class JuxtaposeExecutorPool(IInitializationContext context,
+                                   IExecutorPoolPolicy poolPolicy,
+                                   ILoggerFactory loggerFactory)
+    : IJuxtaposeExecutorPool
 {
     #region Private 字段
 
-    private readonly IInitializationContext _context;
+    private readonly IInitializationContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
     private readonly SemaphoreSlim _executorCreateSemaphore = new(1, 1);
 
-    private readonly ILogger _logger;
+    private readonly ILogger _logger = loggerFactory.CreateLogger("Juxtapose.JuxtaposeExecutorPool");
 
     private bool _isDisposed;
 
@@ -27,23 +30,9 @@ public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
     protected ConcurrentDictionary<string, IJuxtaposeExecutorHolder> ExecutorHolders { get; } = new();
 
     /// <inheritdoc cref="IExecutorPoolPolicy"/>
-    protected IExecutorPoolPolicy Policy { get; }
+    protected IExecutorPoolPolicy Policy { get; } = poolPolicy ?? throw new ArgumentNullException(nameof(poolPolicy));
 
     #endregion Protected 属性
-
-    #region Public 构造函数
-
-    /// <inheritdoc cref="JuxtaposeExecutorPool"/>
-    public JuxtaposeExecutorPool(IInitializationContext context,
-                                 IExecutorPoolPolicy poolPolicy,
-                                 ILoggerFactory loggerFactory)
-    {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-        Policy = poolPolicy ?? throw new ArgumentNullException(nameof(poolPolicy));
-        _logger = loggerFactory.CreateLogger("Juxtapose.JuxtaposeExecutorPool");
-    }
-
-    #endregion Public 构造函数
 
     #region Private 方法
 
@@ -61,7 +50,10 @@ public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
         if (holder.IsDisposed
             || holder.Executor.IsDisposed)
         {
-            _logger.LogWarning("Executor holder {Identifier} has disposed. Try get a new holder.", identifier);
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning("Executor holder {Identifier} has disposed. Try get a new holder.", identifier);
+            }
             RemoveExecutorHolder(identifier);
             holder = await TryGetExecutorHolderAsync(creationContext, identifier, holdLimit, cancellation);
         }
@@ -74,9 +66,17 @@ public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
 
         try
         {
-            _logger.LogTrace("Holding executor - {Identifier} .", identifier);
+            if (_logger.IsEnabled(LogLevel.Trace))
+            {
+                _logger.LogTrace("Holding executor - {Identifier} .", identifier);
+            }
+
             await holder.HoldAsync(cancellation);
-            _logger.LogTrace("Executor Holded - {Identifier} .", identifier);
+
+            if (_logger.IsEnabled(LogLevel.Trace))
+            {
+                _logger.LogTrace("Executor Holded - {Identifier} .", identifier);
+            }
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
@@ -84,7 +84,11 @@ public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
             if (shouldRetry
                 && (holder.IsDisposed || holder.Executor.IsDisposed))
             {
-                _logger.LogWarning(ex, "Exception threw while holding executor - {Identifier} . And holder has disposed. Try get a executor again.", identifier);
+                if (_logger.IsEnabled(LogLevel.Warning))
+                {
+                    _logger.LogWarning(ex, "Exception threw while holding executor - {Identifier} . And holder has disposed. Try get a executor again.", identifier);
+                }
+
                 return await GetAndHoldExecutorHolderAsync(creationContext, identifier, holdLimit, cancellation, false);
             }
             else
@@ -157,9 +161,17 @@ public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
     {
         if (ExecutorHolders.TryRemove(identifier, out var executorHolder))
         {
-            _logger.LogTrace("Executor {Identifier} prepare drop starting. Current hold count: {HoldCount}.", identifier, executorHolder.Count);
+            if (_logger.IsEnabled(LogLevel.Trace))
+            {
+                _logger.LogTrace("Executor {Identifier} prepare drop starting. Current hold count: {HoldCount}.", identifier, executorHolder.Count);
+            }
+
             executorHolder.PrepareDrop();
-            _logger.LogTrace("Executor {Identifier} prepare drop complete. Is disposed: {IsDisposed} ", identifier, executorHolder.IsDisposed);
+
+            if (_logger.IsEnabled(LogLevel.Trace))
+            {
+                _logger.LogTrace("Executor {Identifier} prepare drop complete. Is disposed: {IsDisposed} ", identifier, executorHolder.IsDisposed);
+            }
         }
     }
 
@@ -183,7 +195,11 @@ public class JuxtaposeExecutorPool : IJuxtaposeExecutorPool
             {
                 if (!ExecutorHolders.TryGetValue(identifier, out holder))
                 {
-                    _logger.LogDebug("Creating new executor for identifier - {Identifier} .", identifier);
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogDebug("Creating new executor for identifier - {Identifier} .", identifier);
+                    }
+
                     var newExecutor = await CreateExecutorAsync(creationContext, cancellation);
                     holder = CreateExecutorHolder(newExecutor, holdLimit);
                     ExecutorHolders.TryAdd(identifier, holder);

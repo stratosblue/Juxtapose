@@ -101,15 +101,8 @@ public static class VsDebuggerAttacher
 
     private static void InternalAttachToTargetProcessDebugger(int pid, int targetPid)
     {
-        if (pid < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(pid));
-        }
-
-        if (targetPid < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(targetPid));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(pid);
+        ArgumentOutOfRangeException.ThrowIfNegative(targetPid);
 
         var dteInstances = GetInstances();
 

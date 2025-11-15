@@ -7,6 +7,6 @@
 
     <NoWarn>$(NoWarn);CA2253</NoWarn>
 
-    <McrVersion>9.0.*</McrVersion>
+    <McrVersion>10.0.*</McrVersion>
   </PropertyGroup>
 </Project>

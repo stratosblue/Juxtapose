@@ -2,22 +2,14 @@
 
 namespace Juxtapose.SourceGenerator.Model;
 
-public class SubResourceCollection : ContextResourceCollection
+public class SubResourceCollection(ContextResourceCollection contextResourceCollection)
+    : ContextResourceCollection(contextResourceCollection.TypeSymbolAnalyzer)
 {
     #region Private 字段
 
-    private readonly ContextResourceCollection _contextResourceCollection;
+    private readonly ContextResourceCollection _contextResourceCollection = contextResourceCollection ?? throw new ArgumentNullException(nameof(contextResourceCollection));
 
     #endregion Private 字段
-
-    #region Public 构造函数
-
-    public SubResourceCollection(ContextResourceCollection contextResourceCollection) : base(contextResourceCollection.TypeSymbolAnalyzer)
-    {
-        _contextResourceCollection = contextResourceCollection ?? throw new ArgumentNullException(nameof(contextResourceCollection));
-    }
-
-    #endregion Public 构造函数
 
     #region Public 方法
 
@@ -58,7 +50,10 @@ public class SubResourceCollection : ContextResourceCollection
 
     public override bool TryGetRealObjectInvokerSourceCode(INamedTypeSymbol targetTypeSymbol, out RealObjectInvokerSourceCode? invokerSourceCode)
     {
-        _contextResourceCollection.TryGetRealObjectInvokerSourceCode(targetTypeSymbol, out invokerSourceCode);
+        if (_contextResourceCollection.TryGetRealObjectInvokerSourceCode(targetTypeSymbol, out invokerSourceCode))
+        {
+            return true;
+        }
         return base.TryGetRealObjectInvokerSourceCode(targetTypeSymbol, out invokerSourceCode);
     }
 

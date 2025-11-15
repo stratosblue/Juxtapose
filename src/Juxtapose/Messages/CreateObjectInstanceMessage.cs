@@ -3,27 +3,17 @@
 /// <summary>
 /// 创建对象实例消息
 /// </summary>
-public class CreateObjectInstanceMessage<TParameterPack>
-    : MethodInvokeMessage<TParameterPack>
+public class CreateObjectInstanceMessage<TParameterPack>(int instanceId, int commandId)
+    : MethodInvokeMessage<TParameterPack>(commandId)
 {
     #region Public 属性
 
     /// <summary>
     /// 要创建的实例ID
     /// </summary>
-    public int InstanceId { get; set; }
+    public int InstanceId { get; set; } = instanceId;
 
     #endregion Public 属性
-
-    #region Public 构造函数
-
-    /// <inheritdoc cref="CreateObjectInstanceMessage{TParameterPack}"/>
-    public CreateObjectInstanceMessage(int instanceId, int commandId) : base(commandId)
-    {
-        InstanceId = instanceId;
-    }
-
-    #endregion Public 构造函数
 
     #region Public 方法
 

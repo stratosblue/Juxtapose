@@ -3,8 +3,8 @@
 /// <summary>
 /// 实例方法调用结果消息
 /// </summary>
-public class InstanceMethodInvokeResultMessage<TResult>
-    : MethodInvokeResultMessage<TResult>
+public class InstanceMethodInvokeResultMessage<TResult>(int ackId, int instanceId)
+    : MethodInvokeResultMessage<TResult>(ackId)
     , IInstanceMessage
 {
     #region Public 属性
@@ -12,19 +12,9 @@ public class InstanceMethodInvokeResultMessage<TResult>
     /// <summary>
     /// 实例ID
     /// </summary>
-    public int InstanceId { get; set; }
+    public int InstanceId { get; set; } = instanceId;
 
     #endregion Public 属性
-
-    #region Public 构造函数
-
-    /// <inheritdoc cref="InstanceMethodInvokeResultMessage{TResult}"/>
-    public InstanceMethodInvokeResultMessage(int ackId, int instanceId) : base(ackId)
-    {
-        InstanceId = instanceId;
-    }
-
-    #endregion Public 构造函数
 
     #region Public 方法
 

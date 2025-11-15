@@ -3,8 +3,8 @@
 /// <summary>
 /// 实例方法调用消息
 /// </summary>
-public class InstanceMethodInvokeMessage<TParameterPack>
-    : MethodInvokeMessage<TParameterPack>
+public class InstanceMethodInvokeMessage<TParameterPack>(int instanceId, int commandId)
+    : MethodInvokeMessage<TParameterPack>(commandId)
     , IInstanceMessage
 {
     #region Public 属性
@@ -12,19 +12,9 @@ public class InstanceMethodInvokeMessage<TParameterPack>
     /// <summary>
     /// 实例ID
     /// </summary>
-    public int InstanceId { get; set; }
+    public int InstanceId { get; set; } = instanceId;
 
     #endregion Public 属性
-
-    #region Public 构造函数
-
-    /// <inheritdoc cref="InstanceMethodInvokeMessage{TParameterPack}"/>
-    public InstanceMethodInvokeMessage(int instanceId, int commandId) : base(commandId)
-    {
-        InstanceId = instanceId;
-    }
-
-    #endregion Public 构造函数
 
     #region Public 方法
 

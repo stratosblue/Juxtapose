@@ -50,7 +50,7 @@ public class Greeter : IGreeter
 
     public Task<int[]?> AsyncMethod(int[]? input)
     {
-        return Task.FromResult(input.Reverse().ToArray());
+        return Task.FromResult(input.AsEnumerable().Reverse().ToArray());
     }
 
     public Task<int?> AsyncMethod(int? input)

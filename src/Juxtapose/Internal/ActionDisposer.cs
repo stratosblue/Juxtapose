@@ -1,23 +1,14 @@
 ﻿namespace Juxtapose.Internal;
 
-internal sealed class ActionDisposer : IDisposable
+internal sealed class ActionDisposer(Action action) : IDisposable
 {
     #region Private 字段
 
-    private readonly Action _action;
+    private readonly Action _action = action ?? throw new ArgumentNullException(nameof(action));
 
     private int _isDisposed = 0;
 
     #endregion Private 字段
-
-    #region Public 构造函数
-
-    public ActionDisposer(Action action)
-    {
-        _action = action ?? throw new ArgumentNullException(nameof(action));
-    }
-
-    #endregion Public 构造函数
 
     #region Public 方法
 

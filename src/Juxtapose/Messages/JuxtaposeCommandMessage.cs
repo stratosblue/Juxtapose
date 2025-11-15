@@ -3,7 +3,8 @@
 /// <summary>
 /// 指令消息
 /// </summary>
-public abstract class JuxtaposeCommandMessage
+/// <param name="commandId">指令ID</param>
+public abstract class JuxtaposeCommandMessage(int commandId)
     : JuxtaposeMessage
 {
     #region Public 属性
@@ -11,22 +12,9 @@ public abstract class JuxtaposeCommandMessage
     /// <summary>
     /// 指令ID
     /// </summary>
-    public int CommandId { get; }
+    public int CommandId { get; } = commandId;
 
     #endregion Public 属性
-
-    #region Protected 构造函数
-
-    /// <summary>
-    /// <inheritdoc cref="JuxtaposeCommandMessage"/>
-    /// </summary>
-    /// <param name="commandId">指令ID</param>
-    protected JuxtaposeCommandMessage(int commandId)
-    {
-        CommandId = commandId;
-    }
-
-    #endregion Protected 构造函数
 
     #region Public 方法
 

@@ -48,7 +48,7 @@ public static class JuxtaposeEntryPoint
     /// <returns></returns>
     public static async Task AsEndpointAsync(string[] args, Func<IInitializationContext> contextLoadAction, CancellationToken cancellationToken = default)
     {
-        if (!await TryRunAsync(args, () => new[] { contextLoadAction() }, cancellationToken))
+        if (!await TryRunAsync(args, () => [contextLoadAction()], cancellationToken))
         {
             ExitWithNoJuxtaposeCommandLineArguments();
         }
@@ -121,7 +121,7 @@ public static class JuxtaposeEntryPoint
     /// <returns></returns>
     public static async Task TryAsEndpointAsync(string[] args, Func<IInitializationContext> contextLoadAction, CancellationToken cancellationToken = default)
     {
-        if (await TryRunAsync(args, () => new[] { contextLoadAction() }, cancellationToken))
+        if (await TryRunAsync(args, () => [contextLoadAction()], cancellationToken))
         {
             ExitWithSuccessRunAsEndpoint();
         }
@@ -201,10 +201,7 @@ public static class JuxtaposeEntryPoint
     /// <returns>是否已作为子进程运行</returns>
     public static async Task<bool> TryRunAsync(string[] args, IInitializationContextLoader contextLoader, CancellationToken cancellationToken = default)
     {
-        if (contextLoader is null)
-        {
-            throw new ArgumentNullException(nameof(contextLoader));
-        }
+        ArgumentNullException.ThrowIfNull(contextLoader);
 
         if (ExternalProcessArgumentUtil.TryGetJuxtaposeOptions(args, out var startupOptions))
         {

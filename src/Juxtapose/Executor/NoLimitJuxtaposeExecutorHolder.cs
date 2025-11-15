@@ -3,23 +3,14 @@
 /// <summary>
 /// 无持有限制的 <see cref="JuxtaposeExecutor"/> 持有器
 /// </summary>
-public sealed class NoLimitJuxtaposeExecutorHolder : JuxtaposeExecutorHolder
+public sealed class NoLimitJuxtaposeExecutorHolder(JuxtaposeExecutor executor)
+    : JuxtaposeExecutorHolder(executor)
 {
     #region Private 字段
 
-    private readonly Task<JuxtaposeExecutor> _holdResult;
+    private readonly Task<JuxtaposeExecutor> _holdResult = Task.FromResult(executor);
 
     #endregion Private 字段
-
-    #region Public 构造函数
-
-    /// <inheritdoc cref="NoLimitJuxtaposeExecutorHolder"/>
-    public NoLimitJuxtaposeExecutorHolder(JuxtaposeExecutor executor) : base(executor)
-    {
-        _holdResult = Task.FromResult(executor);
-    }
-
-    #endregion Public 构造函数
 
     #region Public 方法
 

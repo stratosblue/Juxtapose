@@ -6,11 +6,11 @@ namespace Juxtapose.Communication.Channel;
 /// <summary>
 /// 基于命名管道的<inheritdoc cref="ICommunicationChannel"/>
 /// </summary>
-public abstract class NamedPipeCommunicationChannel : ICommunicationChannel
+public abstract class NamedPipeCommunicationChannel(PipeStream pipeStream) : ICommunicationChannel
 {
     #region Private 字段
 
-    private readonly PipeStream _pipeStream;
+    private readonly PipeStream _pipeStream = pipeStream ?? throw new ArgumentNullException(nameof(pipeStream));
 
     private bool _isDisposed;
 
@@ -28,16 +28,6 @@ public abstract class NamedPipeCommunicationChannel : ICommunicationChannel
     protected abstract bool IsReady { get; }
 
     #endregion Protected 属性
-
-    #region Public 构造函数
-
-    /// <inheritdoc cref="NamedPipeCommunicationChannel"/>
-    public NamedPipeCommunicationChannel(PipeStream pipeStream)
-    {
-        _pipeStream = pipeStream ?? throw new ArgumentNullException(nameof(pipeStream));
-    }
-
-    #endregion Public 构造函数
 
     #region Private 方法
 

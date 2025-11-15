@@ -95,7 +95,10 @@ public class MessageExchanger : KeepRunningObject, IMessageExchanger
                 buffer = buffer.Slice(frameBuffer.Value.End);
                 var message = _messageCodec.Decode(frameBuffer.Value);
 
-                _logger.LogTrace("Message received: {Message}", message);
+                if (_logger.IsEnabled(LogLevel.Trace))
+                {
+                    _logger.LogTrace("Message received: {Message}", message);
+                }
 
                 await _messageReceivingChannel.Writer.WriteAsync(message, RunningToken);
             }
@@ -116,10 +119,7 @@ public class MessageExchanger : KeepRunningObject, IMessageExchanger
             return;
         }
 
-        if (stream is null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
+        ArgumentNullException.ThrowIfNull(stream);
 
         CancellationTokenSource tokenSource;
 
@@ -208,9 +208,13 @@ public class MessageExchanger : KeepRunningObject, IMessageExchanger
         ThrowIfChannelNotReady(writer);
 
         var localBufferWriter = new ArrayBufferWriter<byte>(1024);
-        var length = await _messageCodec.Encode(message, localBufferWriter);
+        await _messageCodec.Encode(message, localBufferWriter);
 
-        _logger.LogTrace("Message waiting for write: {Message}", message);
+        if (_logger.IsEnabled(LogLevel.Trace))
+        {
+            _logger.LogTrace("Message waiting for write: {Message}", message);
+        }
+
         await _messageWriteSemaphore.WaitAsync(cancellation);
         try
         {
@@ -219,10 +223,7 @@ public class MessageExchanger : KeepRunningObject, IMessageExchanger
         }
         catch
         {
-            if (IsDisposed)
-            {
-                throw new ObjectDisposedException(nameof(MessageExchanger));
-            }
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
             throw;
         }
         finally
@@ -230,7 +231,10 @@ public class MessageExchanger : KeepRunningObject, IMessageExchanger
             _messageWriteSemaphore.Release();
         }
 
-        _logger.LogTrace("Message written: {Message}", message);
+        if (_logger.IsEnabled(LogLevel.Trace))
+        {
+            _logger.LogTrace("Message written: {Message}", message);
+        }
     }
 
     #endregion Public 方法

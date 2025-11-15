@@ -3,15 +3,17 @@
 /// <summary>
 /// 传输选项
 /// </summary>
-public class CommunicationOptions
+public class CommunicationOptions(ICommunicationChannelFactory channelFactory,
+                                  ICommunicationFrameCodecFactory frameCodecFactory,
+                                  ICommunicationMessageCodecFactory messageCodecFactory)
 {
     #region Private 字段
 
-    private ICommunicationChannelFactory _channelFactory;
+    private ICommunicationChannelFactory _channelFactory = channelFactory ?? throw new ArgumentNullException(nameof(channelFactory));
 
-    private ICommunicationFrameCodecFactory _frameCodecFactory;
+    private ICommunicationFrameCodecFactory _frameCodecFactory = frameCodecFactory ?? throw new ArgumentNullException(nameof(frameCodecFactory));
 
-    private ICommunicationMessageCodecFactory _messageCodecFactory;
+    private ICommunicationMessageCodecFactory _messageCodecFactory = messageCodecFactory ?? throw new ArgumentNullException(nameof(messageCodecFactory));
 
     #endregion Private 字段
 
@@ -38,16 +40,4 @@ public class CommunicationOptions
     public virtual IMessageExchangerFactory? MessageExchangerFactory { get; set; }
 
     #endregion Public 属性
-
-    #region Public 构造函数
-
-    /// <inheritdoc cref="CommunicationOptions"/>
-    public CommunicationOptions(ICommunicationChannelFactory channelFactory, ICommunicationFrameCodecFactory frameCodecFactory, ICommunicationMessageCodecFactory messageCodecFactory)
-    {
-        _channelFactory = channelFactory ?? throw new ArgumentNullException(nameof(channelFactory));
-        _frameCodecFactory = frameCodecFactory ?? throw new ArgumentNullException(nameof(frameCodecFactory));
-        _messageCodecFactory = messageCodecFactory ?? throw new ArgumentNullException(nameof(messageCodecFactory));
-    }
-
-    #endregion Public 构造函数
 }

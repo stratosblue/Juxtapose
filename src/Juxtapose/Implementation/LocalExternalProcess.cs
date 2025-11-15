@@ -5,7 +5,8 @@ namespace Juxtapose;
 /// <summary>
 /// 本地<inheritdoc cref="IExternalProcess"/>
 /// </summary>
-public class LocalExternalProcess : KeepRunningObject, IExternalProcess
+public class LocalExternalProcess(ProcessStartInfo processStartInfo)
+    : KeepRunningObject, IExternalProcess
 {
     #region Public 事件
 
@@ -16,7 +17,7 @@ public class LocalExternalProcess : KeepRunningObject, IExternalProcess
 
     #region Private 字段
 
-    private readonly ProcessStartInfo _processStartInfo;
+    private readonly ProcessStartInfo _processStartInfo = processStartInfo ?? throw new ArgumentNullException(nameof(processStartInfo));
 
     private int? _exitCode;
 
@@ -51,16 +52,6 @@ public class LocalExternalProcess : KeepRunningObject, IExternalProcess
     public DateTime StartTime => GetCachedValue(() => GetRequiredProcess().StartTime, ref _startTime);
 
     #endregion Public 属性
-
-    #region Public 构造函数
-
-    /// <inheritdoc cref="LocalExternalProcess"/>
-    public LocalExternalProcess(ProcessStartInfo processStartInfo)
-    {
-        _processStartInfo = processStartInfo ?? throw new ArgumentNullException(nameof(processStartInfo));
-    }
-
-    #endregion Public 构造函数
 
     #region Private 方法
 

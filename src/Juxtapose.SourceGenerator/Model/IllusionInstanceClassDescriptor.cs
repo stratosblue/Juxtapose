@@ -31,7 +31,7 @@ public class IllusionInstanceClassDescriptor : IllusionClassDescriptor
 
     public override bool Equals(IllusionClassDescriptor descriptor)
     {
-        return descriptor is IllusionInstanceClassDescriptor instanceClassDescriptor
+        return descriptor is IllusionInstanceClassDescriptor
                && base.Equals(descriptor);
     }
 

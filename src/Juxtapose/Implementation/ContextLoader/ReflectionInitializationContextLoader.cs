@@ -33,7 +33,9 @@ public class ReflectionInitializationContextLoader : IInitializationContextLoade
             }
             catch
             {
+#pragma warning disable IDE0301 // 简化集合初始化
                 return Array.Empty<Type>();
+#pragma warning restore IDE0301 // 简化集合初始化
             }
         }
 

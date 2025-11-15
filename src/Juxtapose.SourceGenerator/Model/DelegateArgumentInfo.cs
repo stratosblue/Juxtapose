@@ -2,7 +2,7 @@
 
 namespace Juxtapose.SourceGenerator.Model;
 
-internal struct DelegateArgumentInfo
+internal readonly struct DelegateArgumentInfo
 {
     #region Public 属性
 

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Frozen;
+using System.Diagnostics;
 
 namespace Juxtapose;
 
@@ -37,7 +38,7 @@ public static class InitializationContextLoader
     {
         #region Private 字段
 
-        private readonly IReadOnlyDictionary<string, IInitializationContext> _contexts;
+        private readonly FrozenDictionary<string, IInitializationContext> _contexts;
 
         #endregion Private 字段
 
@@ -46,13 +47,10 @@ public static class InitializationContextLoader
         [DebuggerStepThrough]
         public ConstantExecutionContextLoader(params IInitializationContext[] contexts)
         {
-            if (contexts is null
-                || contexts.Length is 0)
-            {
-                throw new ArgumentException("invalid contexts", nameof(contexts));
-            }
+            ArgumentNullException.ThrowIfNull(contexts);
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(contexts.Length);
 
-            _contexts = contexts?.ToDictionary(static (m) => m.Identifier, static (m) => m) ?? throw new ArgumentNullException(nameof(contexts));
+            _contexts = contexts.ToFrozenDictionary(static (m) => m.Identifier, static (m) => m);
         }
 
         #endregion Public 构造函数
@@ -75,11 +73,13 @@ public static class InitializationContextLoader
         #endregion Public 方法
     }
 
-    private class DelayExecutionContextLoader : IInitializationContextLoader
+    [method: DebuggerStepThrough]
+    private class DelayExecutionContextLoader(Func<IEnumerable<IInitializationContext>> contextLoadAction)
+        : IInitializationContextLoader
     {
         #region Private 字段
 
-        private readonly Func<IEnumerable<IInitializationContext>> _contextLoadAction;
+        private readonly Func<IEnumerable<IInitializationContext>> _contextLoadAction = contextLoadAction ?? throw new ArgumentNullException(nameof(contextLoadAction));
 
         private IReadOnlyDictionary<string, IInitializationContext>? _contexts;
 
@@ -87,25 +87,14 @@ public static class InitializationContextLoader
 
         #endregion Private 字段
 
-        #region Public 构造函数
-
-        [DebuggerStepThrough]
-        public DelayExecutionContextLoader(Func<IEnumerable<IInitializationContext>> contextLoadAction)
-        {
-            _contextLoadAction = contextLoadAction ?? throw new ArgumentNullException(nameof(contextLoadAction));
-        }
-
-        #endregion Public 构造函数
-
         #region Private 方法
 
-        private IReadOnlyDictionary<string, IInitializationContext> LoadContexts()
+        private FrozenDictionary<string, IInitializationContext> LoadContexts()
         {
-            var contexts = _contextLoadAction().ToDictionary(static (m) => m.Identifier, static (m) => m) ?? throw new ArgumentNullException(nameof(_contextLoadAction));
-            if (contexts.Count is 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(contexts));
-            }
+            var contexts = _contextLoadAction()?.ToFrozenDictionary(static (m) => m.Identifier, static (m) => m)
+                           ?? throw new InvalidOperationException("Context load faild");
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(contexts.Count);
+
             return contexts;
         }
 

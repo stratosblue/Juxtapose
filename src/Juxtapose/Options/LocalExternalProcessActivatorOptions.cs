@@ -5,7 +5,7 @@ namespace Juxtapose;
 /// <summary>
 /// 本地外部进程激活器选项
 /// </summary>
-public class LocalExternalProcessActivatorOptions
+public class LocalExternalProcessActivatorOptions(ProcessStartInfo? referenceStartInfo = null)
 {
     #region Private 字段
 
@@ -20,19 +20,9 @@ public class LocalExternalProcessActivatorOptions
     /// <summary>
     /// 用于参照的 <see cref="ProcessStartInfo"/>（启动新进程时，参照此对象设置启动信息）
     /// </summary>
-    public ProcessStartInfo? ReferenceStartInfo { get; set; }
+    public ProcessStartInfo? ReferenceStartInfo { get; set; } = referenceStartInfo;
 
     #endregion Public 属性
-
-    #region Public 构造函数
-
-    /// <inheritdoc cref="LocalExternalProcessActivatorOptions"/>
-    public LocalExternalProcessActivatorOptions(ProcessStartInfo? referenceStartInfo = null)
-    {
-        ReferenceStartInfo = referenceStartInfo;
-    }
-
-    #endregion Public 构造函数
 
     #region Public 方法
 
@@ -58,7 +48,7 @@ public class LocalExternalProcessActivatorOptions
             var fileNameInCommandLine = Path.GetFileName(commandLineArgs[0]);
             if (fileNameInCommandLine == Path.GetFileName(fileName))
             {
-                commandLineArgs = commandLineArgs.Skip(1).ToArray();
+                commandLineArgs = [.. commandLineArgs.Skip(1)];
             }
         }
 
@@ -80,7 +70,7 @@ public class LocalExternalProcessActivatorOptions
             && !string.IsNullOrWhiteSpace(dllFile))
         {
             fileName = "dotnet";
-            args = new[] { dllFile }.Concat(args).ToArray();
+            args = [dllFile, .. args];
         }
         else if (!string.IsNullOrWhiteSpace(executableFile))
         {

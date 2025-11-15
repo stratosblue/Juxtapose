@@ -47,7 +47,7 @@ public static class StaticGreeter
 
     public static Task<int[]?> AsyncMethod(int[]? input)
     {
-        return Task.FromResult(input.Reverse().ToArray());
+        return Task.FromResult(input.AsEnumerable().Reverse().ToArray());
     }
 
     public static Task<int?> AsyncMethod(int? input)

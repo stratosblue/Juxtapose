@@ -2,7 +2,7 @@
 
 namespace Juxtapose.SourceGenerator.Model;
 
-internal struct CancellationTokenArgumentInfo
+internal readonly struct CancellationTokenArgumentInfo
 {
     #region Public 属性
 

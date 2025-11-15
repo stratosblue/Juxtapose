@@ -16,10 +16,8 @@ public sealed class LimitedJuxtaposeExecutorHolder : JuxtaposeExecutorHolder
     /// <inheritdoc cref="LimitedJuxtaposeExecutorHolder"/>
     public LimitedJuxtaposeExecutorHolder(JuxtaposeExecutor executor, int limit) : base(executor)
     {
-        if (limit < 1)
-        {
-            throw new ArgumentOutOfRangeException(nameof(limit));
-        }
+        ArgumentOutOfRangeException.ThrowIfLessThan(limit, 1);
+
         _semaphore = new(limit, limit);
     }
 

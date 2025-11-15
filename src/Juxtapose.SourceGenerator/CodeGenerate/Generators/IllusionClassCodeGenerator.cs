@@ -114,7 +114,12 @@ return (executorOwner, instanceId);");
         var generatedTypeName = Descriptor.TypeFullName;
         foreach (var constructor in Resources.GetAllConstructors().Where(m => m.NotStatic()))
         {
-            var ctorAnnotation = $"/// <inheritdoc cref=\"{targetTypeName}.{targetTypeName}({string.Join(", ", constructor.Parameters.Select(m => m.Type.ToFullyQualifiedDisplayString()))})\"/>";
+            var ctorAnnotation = $"""
+                        /// <summary>
+                        /// <inheritdoc cref="{targetTypeName}.{targetTypeName}({string.Join(", ", constructor.Parameters.Select(m => m.Type.ToInheritDocCrefString()))})"/>
+                        /// <br/><br/>generated from <see cref="{Descriptor.TargetType.ToInheritDocCrefString()}"/>
+                        /// </summary>
+                """;
 
             var commandId = Context.Resources.GetCommandId(constructor);
 
@@ -183,7 +188,13 @@ return new {Descriptor.TypeName}(executorOwner, instanceId);");
 
         _sourceBuilder.Namespace(() =>
         {
-            _sourceBuilder.AppendIndentLine($"/// <inheritdoc cref=\"{Descriptor.TargetType.ToFullyQualifiedDisplayString()}\"/>");
+            var classAnnotation = $"""
+                    /// <summary>
+                    /// <inheritdoc cref="{Descriptor.TargetType.ToInheritDocCrefString()}"/>
+                    /// <br/><br/>generated from <see cref="{Descriptor.TargetType.ToInheritDocCrefString()}"/>
+                    /// </summary>
+                """;
+            _sourceBuilder.AppendIndentLine(classAnnotation);
 
             _sourceBuilder.AppendIndentLine($"{Descriptor.Accessibility.ToCodeString()} sealed partial class {Descriptor.TypeName} : global::Juxtapose.IIllusion, {TypeFullNames.System.IDisposable}");
 

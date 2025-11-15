@@ -30,7 +30,9 @@ public class JuxtaposeException : Exception
     #region Protected 构造函数
 
     /// <inheritdoc cref="JuxtaposeException"/>
+#pragma warning disable SYSLIB0051 // 类型或成员已过时
     protected JuxtaposeException(SerializationInfo info, StreamingContext context) : base(info, context)
+#pragma warning restore SYSLIB0051 // 类型或成员已过时
     {
     }
 

@@ -8,7 +8,7 @@
     <File Path=".gitignore" />
     <File Path="Directory.Build.props" />
     <File Path="global.json" />
-    <File Path="readme.md" />
+    <File Path="README.md" />
   </Folder>
   <Folder Name="/Solution Items/.github/" />
   <Folder Name="/Solution Items/.github/workflows/">

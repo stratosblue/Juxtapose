@@ -3,8 +3,8 @@
 /// <summary>
 /// 方法调用结果消息
 /// </summary>
-public abstract class MethodInvokeResultMessage<TResult>
-    : JuxtaposeAckMessage
+public abstract class MethodInvokeResultMessage<TResult>(int ackId)
+    : JuxtaposeAckMessage(ackId)
 {
     #region Public 属性
 
@@ -14,15 +14,6 @@ public abstract class MethodInvokeResultMessage<TResult>
     public TResult? Result { get; set; }
 
     #endregion Public 属性
-
-    #region Public 构造函数
-
-    /// <inheritdoc cref="MethodInvokeResultMessage{TResult}"/>
-    public MethodInvokeResultMessage(int ackId) : base(ackId)
-    {
-    }
-
-    #endregion Public 构造函数
 
     #region Public 方法
 

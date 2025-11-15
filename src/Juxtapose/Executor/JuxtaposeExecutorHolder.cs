@@ -3,7 +3,7 @@
 /// <summary>
 /// 无持有限制的 <see cref="JuxtaposeExecutor"/> 持有器
 /// </summary>
-public abstract class JuxtaposeExecutorHolder : IJuxtaposeExecutorHolder
+public abstract class JuxtaposeExecutorHolder(JuxtaposeExecutor executor) : IJuxtaposeExecutorHolder
 {
     #region Private 字段
 
@@ -30,22 +30,12 @@ public abstract class JuxtaposeExecutorHolder : IJuxtaposeExecutorHolder
     public int Count => _count;
 
     /// <inheritdoc/>
-    public JuxtaposeExecutor Executor { get; }
+    public JuxtaposeExecutor Executor { get; } = executor ?? throw new ArgumentNullException(nameof(executor));
 
     /// <inheritdoc/>
     public bool IsDisposed => _isDisposed;
 
     #endregion Public 属性
-
-    #region Public 构造函数
-
-    /// <inheritdoc cref="JuxtaposeExecutorHolder"/>
-    public JuxtaposeExecutorHolder(JuxtaposeExecutor executor)
-    {
-        Executor = executor ?? throw new ArgumentNullException(nameof(executor));
-    }
-
-    #endregion Public 构造函数
 
     #region Protected 方法
 
@@ -97,10 +87,7 @@ public abstract class JuxtaposeExecutorHolder : IJuxtaposeExecutorHolder
     /// <exception cref="ObjectDisposedException"></exception>
     protected void ThrowIfDisposed()
     {
-        if (_isDisposed)
-        {
-            throw new ObjectDisposedException(nameof(LimitedJuxtaposeExecutorHolder));
-        }
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
     }
 
     /// <summary>

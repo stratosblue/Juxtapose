@@ -87,7 +87,7 @@ public static class JuxtaposeDebuggerAttacher
             }
             else
             {
-                attachMethod.Invoke(null, new object[] { targetProcessId });
+                attachMethod.Invoke(null, [targetProcessId]);
                 ConsoleWriteLineWithColor($"JuxtaposeDebuggerAttacher: dynamic attach process {Environment.ProcessId} to process {targetProcessId}'s debugger done.", ConsoleColor.Green);
             }
         }

@@ -158,7 +158,7 @@ public class JuxtaposeSourceGenerator : IIncrementalGenerator
 
         void AddSource(SourceCode sourceInfo)
         {
-            var hintName = string.Join(".", sourceInfo.HintName.Split('.').Reverse().Where(m => m != "cs" && m != "g"));
+            var hintName = string.Join(".", sourceInfo.HintName.Split('.').AsEnumerable().Reverse().Where(m => m != "cs" && m != "g"));
             hintName = $"{hintName}.g.cs";
 
             if (isSaveGeneratedCodeFile)

@@ -3,18 +3,9 @@
 /// <summary>
 /// 静态方法调用结果消息
 /// </summary>
-public class StaticMethodInvokeResultMessage<TResult>
-    : MethodInvokeResultMessage<TResult>
+public class StaticMethodInvokeResultMessage<TResult>(int ackId)
+    : MethodInvokeResultMessage<TResult>(ackId)
 {
-    #region Public 构造函数
-
-    /// <inheritdoc cref="StaticMethodInvokeResultMessage{TResult}"/>
-    public StaticMethodInvokeResultMessage(int ackId) : base(ackId)
-    {
-    }
-
-    #endregion Public 构造函数
-
     #region Public 方法
 
     /// <inheritdoc/>

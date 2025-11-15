@@ -28,7 +28,8 @@ public class DefaultJsonBasedMessageCodec : ICommunicationMessageCodec
     #region Public 构造函数
 
     /// <inheritdoc cref="DefaultJsonBasedMessageCodec"/>
-    public DefaultJsonBasedMessageCodec(IEnumerable<Type> messageTypes, ILoggerFactory loggerFactory, JsonSerializerOptions? jsonSerializerOptions) : this(IndexMessageTypes(messageTypes), loggerFactory, jsonSerializerOptions)
+    public DefaultJsonBasedMessageCodec(IEnumerable<Type> messageTypes, ILoggerFactory loggerFactory, JsonSerializerOptions? jsonSerializerOptions)
+        : this(IndexMessageTypes(messageTypes), loggerFactory, jsonSerializerOptions)
     {
     }
 
@@ -64,11 +65,15 @@ public class DefaultJsonBasedMessageCodec : ICommunicationMessageCodec
         var jsonReader = new Utf8JsonReader(buffer.Slice(sizeof(int)));
         try
         {
-            return JsonSerializer.Deserialize(ref jsonReader, messageType, _serializerOptions) ?? throw new MessageParseFailException($"消息解析失败，反序列化到对象 {messageType} 失败");
+            return JsonSerializer.Deserialize(ref jsonReader, messageType, _serializerOptions)
+                   ?? throw new MessageParseFailException($"消息解析失败，反序列化到对象 {messageType} 失败");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "JsonSerializer.Deserialize Error \n --------origin message data------- \n [{OriginMessageData}]", Encoding.UTF8.GetString(buffer.Slice(sizeof(int))));
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, "JsonSerializer.Deserialize Error \n --------origin message data------- \n [{OriginMessageData}]", Encoding.UTF8.GetString(buffer.Slice(sizeof(int))));
+            }
             throw;
         }
     }
@@ -93,7 +98,10 @@ public class DefaultJsonBasedMessageCodec : ICommunicationMessageCodec
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "JsonSerializer.Serialize Error \n --------message------- \n [{Message}]", message);
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, "JsonSerializer.Serialize Error \n --------message------- \n [{Message}]", message);
+            }
             throw;
         }
         return new ValueTask<long>(jsonWriter.BytesCommitted + sizeof(int));

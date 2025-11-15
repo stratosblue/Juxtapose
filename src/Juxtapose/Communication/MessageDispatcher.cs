@@ -89,7 +89,10 @@ public abstract class MessageDispatcher : KeepRunningObject, IInitializationable
                     }
                     catch (Exception ex)
                     {
-                        Logger.LogDebug(ex, "Exection has threw at message process - {Message}", message);
+                        if (Logger.IsEnabled(LogLevel.Debug))
+                        {
+                            Logger.LogDebug(ex, "Exection has threw at message process - {Message}", message);
+                        }
                         var originExceptionType = ex is OperationCanceledException
                                                   ? Constants.OperationCanceledExceptionFullType
                                                   : ex.GetType().ToString();
@@ -150,12 +153,18 @@ public abstract class MessageDispatcher : KeepRunningObject, IInitializationable
                 {
                     if (!taskCompletionSource.TrySetResult(juxtaposeAckMessage))
                     {
-                        Logger.LogWarning("Received ack message {AckId} - {Message}. But set result failed.", juxtaposeAckMessage.AckId, juxtaposeAckMessage);
+                        if (Logger.IsEnabled(LogLevel.Warning))
+                        {
+                            Logger.LogWarning("Received ack message {AckId} - {Message}. But set result failed.", juxtaposeAckMessage.AckId, juxtaposeAckMessage);
+                        }
                     }
                 }
                 else
                 {
-                    Logger.LogWarning("Received ack message {AckId} - {Message}. But no waiter found.", juxtaposeAckMessage.AckId, juxtaposeAckMessage);
+                    if (Logger.IsEnabled(LogLevel.Warning))
+                    {
+                        Logger.LogWarning("Received ack message {AckId} - {Message}. But no waiter found.", juxtaposeAckMessage.AckId, juxtaposeAckMessage);
+                    }
                 }
                 break;
 
@@ -200,7 +209,10 @@ public abstract class MessageDispatcher : KeepRunningObject, IInitializationable
 
         try
         {
-            Logger.LogTrace("Start invoke message : {Message}", message);
+            if (Logger.IsEnabled(LogLevel.Trace))
+            {
+                Logger.LogTrace("Start invoke message : {Message}", message);
+            }
 
             var taskCompletionSource = new TaskCompletionSource<JuxtaposeAckMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
             MessageTaskCompletionSources.TryAdd(id, taskCompletionSource);
@@ -221,12 +233,18 @@ public abstract class MessageDispatcher : KeepRunningObject, IInitializationable
                 {
                     if (Constants.OperationCanceledExceptionFullType.Equals(exceptionMessage.OriginExceptionType, StringComparison.Ordinal))
                     {
-                        Logger.LogTrace("Remote OperationCanceledException has been received for message id {MessageId}.", message.Id);
+                        if (Logger.IsEnabled(LogLevel.Trace))
+                        {
+                            Logger.LogTrace("Remote OperationCanceledException has been received for message id {MessageId}.", message.Id);
+                        }
                         throw new OperationCanceledException();
                     }
                     else
                     {
-                        Logger.LogTrace("ExceptionMessage has been received for message id {MessageId}. OriginMessage: {OriginMessage} . OriginStackTrace: {OriginStackTrace}", message.Id, exceptionMessage.OriginMessage, exceptionMessage.OriginStackTrace);
+                        if (Logger.IsEnabled(LogLevel.Trace))
+                        {
+                            Logger.LogTrace("ExceptionMessage has been received for message id {MessageId}. OriginMessage: {OriginMessage} . OriginStackTrace: {OriginStackTrace}", message.Id, exceptionMessage.OriginMessage, exceptionMessage.OriginStackTrace);
+                        }
                         throw new JuxtaposeRemoteException(originStackTrace: exceptionMessage.OriginStackTrace,
                                                            originMessage: exceptionMessage.OriginMessage,
                                                            originToStringValue: exceptionMessage.OriginToStringValue,

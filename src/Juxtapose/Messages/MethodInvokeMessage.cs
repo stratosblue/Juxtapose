@@ -4,8 +4,9 @@
 /// 方法调用消息
 /// </summary>
 /// <typeparam name="TParameterPack">方法参数包类型</typeparam>
-public abstract class MethodInvokeMessage<TParameterPack>
-    : JuxtaposeCommandMessage
+/// <param name="commandId">指令ID</param>
+public abstract class MethodInvokeMessage<TParameterPack>(int commandId)
+    : JuxtaposeCommandMessage(commandId)
 {
     #region Public 属性
 
@@ -15,17 +16,6 @@ public abstract class MethodInvokeMessage<TParameterPack>
     public TParameterPack? ParameterPack { get; set; }
 
     #endregion Public 属性
-
-    #region Protected 构造函数
-
-    /// <summary>
-    /// <inheritdoc cref="MethodInvokeMessage{TParameterPack}"/>
-    /// </summary>
-    /// <param name="commandId">指令ID</param>
-    protected MethodInvokeMessage(int commandId) : base(commandId)
-    { }
-
-    #endregion Protected 构造函数
 
     #region Public 方法
 

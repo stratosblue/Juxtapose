@@ -4,15 +4,19 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Juxtapose;
 
 /// <inheritdoc cref="IMessageExchangerFactory"/>
-public sealed class MessageExchangerFactory : IMessageExchangerFactory
+public sealed class MessageExchangerFactory(ICommunicationChannelFactory communicationChannelFactory,
+                                            ICommunicationFrameCodecFactory communicationFrameCodecFactory,
+                                            ICommunicationMessageCodecFactory communicationMessageCodecFactory,
+                                            ILoggerFactory loggerFactory)
+    : IMessageExchangerFactory
 {
     #region Private 字段
 
-    private readonly ICommunicationChannelFactory _communicationChannelFactory;
+    private readonly ICommunicationChannelFactory _communicationChannelFactory = communicationChannelFactory ?? throw new ArgumentNullException(nameof(communicationChannelFactory));
 
-    private readonly ICommunicationFrameCodecFactory _communicationFrameCodecFactory;
+    private readonly ICommunicationFrameCodecFactory _communicationFrameCodecFactory = communicationFrameCodecFactory ?? throw new ArgumentNullException(nameof(communicationFrameCodecFactory));
 
-    private readonly ICommunicationMessageCodecFactory _communicationMessageCodecFactory;
+    private readonly ICommunicationMessageCodecFactory _communicationMessageCodecFactory = communicationMessageCodecFactory ?? throw new ArgumentNullException(nameof(communicationMessageCodecFactory));
 
     #endregion Private 字段
 
@@ -21,25 +25,9 @@ public sealed class MessageExchangerFactory : IMessageExchangerFactory
     /// <summary>
     /// <see cref="ILoggerFactory"/>
     /// </summary>
-    public ILoggerFactory LoggerFactory { get; }
+    public ILoggerFactory LoggerFactory { get; } = loggerFactory ?? NullLoggerFactory.Instance;
 
     #endregion Public 属性
-
-    #region Public 构造函数
-
-    /// <inheritdoc cref="MessageExchangerFactory"/>
-    public MessageExchangerFactory(ICommunicationChannelFactory communicationChannelFactory,
-                                   ICommunicationFrameCodecFactory communicationFrameCodecFactory,
-                                   ICommunicationMessageCodecFactory communicationMessageCodecFactory,
-                                   ILoggerFactory loggerFactory)
-    {
-        _communicationChannelFactory = communicationChannelFactory ?? throw new ArgumentNullException(nameof(communicationChannelFactory));
-        _communicationFrameCodecFactory = communicationFrameCodecFactory ?? throw new ArgumentNullException(nameof(communicationFrameCodecFactory));
-        _communicationMessageCodecFactory = communicationMessageCodecFactory ?? throw new ArgumentNullException(nameof(communicationMessageCodecFactory));
-        LoggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
-    }
-
-    #endregion Public 构造函数
 
     #region Public 方法
 
