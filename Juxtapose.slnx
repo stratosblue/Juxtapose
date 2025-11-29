@@ -5,9 +5,13 @@
     <Project Path="sample/SampleLibrary/SampleLibrary.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
     <File Path=".gitignore" />
+    <File Path="CodeMaid.config" />
     <File Path="Directory.Build.props" />
     <File Path="global.json" />
+    <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
   <Folder Name="/Solution Items/.github/" />

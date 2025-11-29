@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.5.1</Version>
+    <Version>1.5.2</Version>
 
     <Description>A multi process runtime library based on 'SourceGenerator'. 基于 `SourceGenerator` 的多`进程`运行库。</Description>
 

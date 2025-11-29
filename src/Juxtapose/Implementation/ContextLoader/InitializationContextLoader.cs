@@ -81,9 +81,9 @@ public static class InitializationContextLoader
 
         private readonly Func<IEnumerable<IInitializationContext>> _contextLoadAction = contextLoadAction ?? throw new ArgumentNullException(nameof(contextLoadAction));
 
-        private IReadOnlyDictionary<string, IInitializationContext>? _contexts;
+        private FrozenDictionary<string, IInitializationContext>? _contexts;
 
-        private IReadOnlyDictionary<string, IInitializationContext> Contexts => _contexts ??= LoadContexts();
+        private FrozenDictionary<string, IInitializationContext> Contexts => _contexts ??= LoadContexts();
 
         #endregion Private 字段
 
@@ -91,8 +91,8 @@ public static class InitializationContextLoader
 
         private FrozenDictionary<string, IInitializationContext> LoadContexts()
         {
-            var contexts = _contextLoadAction()?.ToFrozenDictionary(static (m) => m.Identifier, static (m) => m)
-                           ?? throw new InvalidOperationException("Context load faild");
+            var contexts = _contextLoadAction()?.ToFrozenDictionary(static m => m.Identifier, static m => m)
+                           ?? throw new InvalidOperationException("Context load failed");
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(contexts.Count);
 
             return contexts;

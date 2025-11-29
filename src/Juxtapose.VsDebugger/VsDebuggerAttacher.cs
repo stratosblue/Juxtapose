@@ -24,6 +24,7 @@
 
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.Versioning;
 
 using EnvDTE;
@@ -33,7 +34,7 @@ namespace System;
 /// <summary>
 /// VisualStudio调试器附加器
 /// </summary>
-public static class VsDebuggerAttacher
+public static partial class VsDebuggerAttacher
 {
     #region Public 方法
 
@@ -47,7 +48,7 @@ public static class VsDebuggerAttacher
     [SupportedOSPlatform("windows")]
     public static void AttachToTargetProcessDebugger(int pid, int targetPid)
     {
-        if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+        if (!OperatingSystem.IsWindows())
         {
             Console.Error.WriteLine($"{nameof(VsDebuggerAttacher)}.{nameof(AttachToTargetProcessDebugger)} can not run run except windows. Nothing will happen for process {pid} and {targetPid}.");
             return;
@@ -99,6 +100,7 @@ public static class VsDebuggerAttacher
 
     #region Private 方法
 
+    [SupportedOSPlatform("windows")]
     private static void InternalAttachToTargetProcessDebugger(int pid, int targetPid)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(pid);
@@ -106,12 +108,8 @@ public static class VsDebuggerAttacher
 
         var dteInstances = GetInstances();
 
-        var dte = dteInstances.SingleOrDefault(x => x.Debugger.DebuggedProcesses.OfType<Process>().Any(y => y.ProcessID == targetPid));
-
-        if (dte == null)
-        {
-            throw new InvalidOperationException($"Unable to find the DTE instance for the process id \"{targetPid}\"");
-        }
+        var dte = dteInstances.SingleOrDefault(x => x.Debugger.DebuggedProcesses.OfType<Process>().Any(y => y.ProcessID == targetPid))
+                  ?? throw new InvalidOperationException($"Unable to find the DTE instance for the process id \"{targetPid}\"");
 
         MessageFilter.Register();
 
@@ -151,27 +149,31 @@ public static class VsDebuggerAttacher
 
     #region Functions
 
-    [ComImport, Guid("00000016-0000-0000-C000-000000000046"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    private interface IOleMessageFilter
+    [GeneratedComInterface, Guid("00000016-0000-0000-C000-000000000046"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    internal partial interface IOleMessageFilter
     {
+        #region Public 方法
+
         [PreserveSig]
         int HandleInComingCall(int dwCallType, IntPtr hTaskCaller, int dwTickCount, IntPtr lpInterfaceInfo);
 
         [PreserveSig]
-        int RetryRejectedCall(IntPtr hTaskCallee, int dwTickCount, int dwRejectType);
+        int MessagePending(IntPtr hTaskCallee, int dwTickCount, int dwPendingType);
 
         [PreserveSig]
-        int MessagePending(IntPtr hTaskCallee, int dwTickCount, int dwPendingType);
+        int RetryRejectedCall(IntPtr hTaskCallee, int dwTickCount, int dwRejectType);
+
+        #endregion Public 方法
     }
 
-    [DllImport("ole32.dll")]
-    private static extern int CreateBindCtx(uint reserved, out IBindCtx ppbc);
+    [LibraryImport("ole32.dll")]
+    private static partial int CreateBindCtx(uint reserved, out IntPtr ppbcPtr);
 
+    [SupportedOSPlatform("windows")]
     private static IEnumerable<DTE> GetInstances()
     {
-        int retVal = GetRunningObjectTable(0, out IRunningObjectTable rot);
-
-        if (retVal == 0)
+        if (GetRunningObjectTable(0, out var protPtr) == 0
+            && Marshal.GetObjectForIUnknown(protPtr) is IRunningObjectTable rot)
         {
             rot.EnumRunning(out IEnumMoniker enumMoniker);
 
@@ -179,7 +181,11 @@ public static class VsDebuggerAttacher
             IMoniker[] moniker = new IMoniker[1];
             while (enumMoniker.Next(1, moniker, fetched) == 0)
             {
-                CreateBindCtx(0, out IBindCtx bindCtx);
+                if (CreateBindCtx(0, out var ppbcPtr) != 0
+                    || Marshal.GetObjectForIUnknown(ppbcPtr) is not IBindCtx bindCtx)
+                {
+                    continue;
+                }
                 moniker[0].GetDisplayName(bindCtx, null, out string displayName);
                 bool isVisualStudio = displayName.StartsWith("!VisualStudio");
                 if (isVisualStudio)
@@ -194,10 +200,11 @@ public static class VsDebuggerAttacher
         }
     }
 
-    [DllImport("ole32.dll")]
-    private static extern int GetRunningObjectTable(int reserved, out IRunningObjectTable prot);
+    [LibraryImport("ole32.dll")]
+    private static partial int GetRunningObjectTable(int reserved, out IntPtr protPtr);
 
-    private sealed class MessageFilter : IOleMessageFilter
+    [GeneratedComClass]
+    internal sealed partial class MessageFilter : IOleMessageFilter
     {
         #region Private 字段
 
@@ -212,8 +219,8 @@ public static class VsDebuggerAttacher
             CoRegisterMessageFilter(newFilter, out _);
         }
 
-        [DllImport("Ole32.dll")]
-        public static extern int CoRegisterMessageFilter(IOleMessageFilter? newFilter, out IOleMessageFilter oldFilter);
+        [LibraryImport("Ole32.dll")]
+        public static partial int CoRegisterMessageFilter(IOleMessageFilter? newFilter, out IntPtr oldFilterPtr);
 
         public static void Register()
         {

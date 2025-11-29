@@ -1,4 +1,4 @@
-# Juxtapose
+﻿# Juxtapose
 ## 1. Intro
 A multi process runtime library based on 'SourceGenerator'.
 基于 `SourceGenerator` 的多`进程`运行库。
@@ -13,18 +13,18 @@ A multi process runtime library based on 'SourceGenerator'.
 
 ### 注意事项
  - 目前参数不支持定义为父类型，实际传递子类型，序列化时将会按照定义的类型进行序列化和反序列化，会导致具体类型丢失；
+   - 使用默认序列化配置时，可以通过配置 [序列化派生类](https://learn.microsoft.com/zh-cn/dotnet/standard/serialization/system-text-json/polymorphism) 来支持此功能
  - 目前所有的参数都不应该在方法完成后进行保留，`CancellationToken`、`委托`等在方法完成后会被释放；
 
 ## 3. Requirement
- - .Net6.0+(其它版本没有尝试过)
+ - .Net8.0+(其它版本没有尝试过)
 
 ## 4. 使用方法
 
 ### 4.1 引用包
 ```XML
 <ItemGroup>
-  <PackageReference Include="Juxtapose" Version="1.4.0" />
-  <!--<PackageReference Include="Juxtapose.SourceGenerator" Version="1.0.0" /> 1.0.2 以后不再需要单独引用 SourceGenerator 包-->
+  <PackageReference Include="Juxtapose" Version="1.5.0" />
 </ItemGroup>
 ```
 
@@ -85,11 +85,19 @@ await JuxtaposeEntryPoint.TryAsEndpointAsync(args, GreeterJuxtaposeContext.Share
 #### 到此已完成开发，创建类型`Juxtapose.Test.GreeterAsIGreeterIllusion`的对象，并调用其方法，其实际逻辑将在子进程中运行；
 
 
-## 5. 调试子进程（`Windows`&&`VisualStudio` Only）
+## 5. 调试、诊断子进程
+
+### 5.1 调试子进程（`Windows`&&`VisualStudio` Only）
 
 现在会自动附加调试器（启动项目需要直接引用`Juxtapose`包，以确保依赖包正确引入）
 
 #### 在代码中打上断点，运行时将会正确命中断点（只在 `VisualStudio2022 17.0.5` && `Win11 21TH2` 中进行了测试，理论上是通用）
+
+### 5.2 诊断子进程
+
+使用默认外部进程激活器时，默认情况下子进程的诊断会被关闭 (`dotnet-dump`等会无法运行)，以避免生成过多诊断支持文件，可以通过如下方式开启子进程诊断:
+- 显式设置环境变量 [DOTNET_EnableDiagnostics](https://learn.microsoft.com/zh-cn/dotnet/core/runtime-config/debugging-profiling)
+- 设置 `LocalExternalProcessActivator.EnableDotnetDiagnostics` 为 `true`
 
 ------
 

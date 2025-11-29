@@ -21,6 +21,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Cuture.CodeAnalysis.LoggingCodeFixes" Version="1.0.1" PrivateAssets="All" />
+    <PackageReference Include="Cuture.CodeAnalysis.LoggingCodeFixes" Version="1.*" PrivateAssets="All" />
   </ItemGroup>
 </Project>

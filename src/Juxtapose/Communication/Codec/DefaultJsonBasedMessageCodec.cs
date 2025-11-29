@@ -1,5 +1,5 @@
 ﻿using System.Buffers;
-using System.Collections.ObjectModel;
+using System.Collections.Frozen;
 using System.Text;
 using System.Text.Json;
 
@@ -17,9 +17,9 @@ public class DefaultJsonBasedMessageCodec : ICommunicationMessageCodec
 
     private readonly ILogger _logger;
 
-    private readonly ReadOnlyDictionary<int, Type> _messageIdTypes;
+    private readonly FrozenDictionary<int, Type> _messageIdTypes;
 
-    private readonly ReadOnlyDictionary<Type, int> _messageTypeIds;
+    private readonly FrozenDictionary<Type, int> _messageTypeIds;
 
     private readonly JsonSerializerOptions _serializerOptions;
 
@@ -36,8 +36,8 @@ public class DefaultJsonBasedMessageCodec : ICommunicationMessageCodec
     /// <inheritdoc cref="DefaultJsonBasedMessageCodec"/>
     public DefaultJsonBasedMessageCodec(IEnumerable<KeyValuePair<int, Type>> messageTypes, ILoggerFactory loggerFactory, JsonSerializerOptions? jsonSerializerOptions)
     {
-        _messageIdTypes = new ReadOnlyDictionary<int, Type>(new Dictionary<int, Type>(messageTypes ?? throw new ArgumentNullException(nameof(messageTypes))));
-        _messageTypeIds = new ReadOnlyDictionary<Type, int>(_messageIdTypes.ToDictionary(m => m.Value, m => m.Key));
+        _messageIdTypes = messageTypes.ToFrozenDictionary() ?? throw new ArgumentNullException(nameof(messageTypes));
+        _messageTypeIds = _messageIdTypes.ToFrozenDictionary(m => m.Value, m => m.Key);
 
         _logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger("Juxtapose.Communication.Codec.DefaultJsonBasedMessageCodec");
 
@@ -45,6 +45,7 @@ public class DefaultJsonBasedMessageCodec : ICommunicationMessageCodec
         {
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             IncludeFields = true,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault,
         };
     }
 

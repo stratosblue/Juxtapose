@@ -13,11 +13,13 @@ Console.WriteLine($"Current Process Id: {Environment.ProcessId}.");
 
     Console.WriteLine(instance.Where());
     Console.WriteLine(await instance.SayAsync("Tom"));
+    Console.WriteLine((HelloOutputState)await instance.ProcessAsync(new HelloInputState("Tom", 123)));
 
     var ihello = instance as IHello;
 
     Console.WriteLine("IHello: " + ihello.Where());
     Console.WriteLine("IHello: " + await ihello.SayAsync("Tom"));
+    Console.WriteLine("IHello: " + (HelloOutputState)await ihello.ProcessAsync(new HelloInputState("Tom", 123)));
 }
 
 {
@@ -26,11 +28,13 @@ Console.WriteLine($"Current Process Id: {Environment.ProcessId}.");
 
     Console.WriteLine(anotherInstance.Where());
     Console.WriteLine(await anotherInstance.SayAsync("Jerry"));
+    Console.WriteLine((HelloOutputState)await anotherInstance.ProcessAsync(new HelloInputState("Jerry", 123)));
 
     var ihello = anotherInstance as IHello;
 
     Console.WriteLine("IHello: " + ihello.Where());
     Console.WriteLine("IHello: " + await ihello.SayAsync("Jerry"));
+    Console.WriteLine("IHello: " + (HelloOutputState)await ihello.ProcessAsync(new HelloInputState("Jerry", 123)));
 }
 
 Console.WriteLine("Completed.");

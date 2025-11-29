@@ -9,6 +9,18 @@ namespace Juxtapose;
 /// </summary>
 public class LocalExternalProcessActivator : IExternalProcessActivator
 {
+    #region Public 属性
+
+    /// <summary>
+    /// 启用外部进程的.net诊断
+    /// </summary>
+    /// <remarks>
+    /// https://learn.microsoft.com/zh-cn/dotnet/core/runtime-config/debugging-profiling
+    /// </remarks>
+    public static bool EnableDotnetDiagnostics { get; set; } = false;
+
+    #endregion Public 属性
+
     #region Private 字段
 
     private readonly LocalExternalProcessActivatorOptions _options;
@@ -49,17 +61,20 @@ public class LocalExternalProcessActivator : IExternalProcessActivator
 
         ExternalProcessArgumentUtil.SetAsJuxtaposeProcessStartInfo(processStartInfo, options);
 
-        if (!enableDebugger)
-        {
-            //https://docs.microsoft.com/zh-cn/dotnet/core/run-time-config/debugging-profiling
+        const string EnvDOTNET_EnableDiagnostics = "DOTNET_EnableDiagnostics";
 
-            //HACK 默认关闭子进程所有诊断信息
-            //HACK 在不支持.net6之前的版本时，修改环境变量 COMPlus_ 为 DOTNET_
-            processStartInfo.EnvironmentVariables["DOTNET_USE_POLLING_FILE_WATCHER"] = "0";
-            processStartInfo.EnvironmentVariables["COMPlus_EnableDiagnostics"] = "0";
-            processStartInfo.EnvironmentVariables["CORECLR_ENABLE_PROFILING"] = "0";
-            processStartInfo.EnvironmentVariables["COMPlus_PerfMapEnabled"] = "0";
-            processStartInfo.EnvironmentVariables["COMPlus_PerfMapIgnoreSignal"] = "0";
+        if (Environment.GetEnvironmentVariable(EnvDOTNET_EnableDiagnostics) == null)
+        {
+            //https://learn.microsoft.com/zh-cn/dotnet/core/runtime-config/debugging-profiling
+            //https://learn.microsoft.com/zh-cn/dotnet/core/tools/dotnet-environment-variables#dotnet_enablediagnostics
+
+            //HACK 非调试模式并且没有显式指定诊断状态，默认关闭子进程的诊断（避免生成过多诊断支持文件）
+            processStartInfo.EnvironmentVariables[EnvDOTNET_EnableDiagnostics] = "0";
+        }
+
+        if (EnableDotnetDiagnostics)    //强制启用
+        {
+            processStartInfo.EnvironmentVariables[EnvDOTNET_EnableDiagnostics] = "1";
         }
 
         return processStartInfo;
