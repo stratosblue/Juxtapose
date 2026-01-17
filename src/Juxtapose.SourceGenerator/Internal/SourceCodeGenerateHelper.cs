@@ -51,7 +51,8 @@ internal class SourceCodeGenerateHelper
                 GenerateMethodInvokeThroughMessageCode(context, resources, callbackBodyBuilder, callbackMethod, new VariableName(vars) { Instance = parameter.Name });
 
                 builder.AppendLine($@"{TypeFullNames.Juxtapose.ReferenceId}? {parameter.Name}_RID = null;
-if ({parameter.Name} is not null)
+if ({parameter.Name} is not null
+    && !{vars.Executor}.IsDisposed)
 {{
     {parameter.Name}_RID = {vars.Executor}.InstanceIdGenerator.Next();
     {vars.Executor}.AddObjectInstance({parameter.Name}_RID.Value, new {(isAwaitable ? "Async" : "Sync")}DelegateMessageExecutor({(isAwaitable ? "async " : string.Empty)}(exector, {vars.Message}) =>
@@ -138,7 +139,8 @@ finally
 
             foreach (var parameter in delegateParams)
             {
-                builder.AppendLine($@"if ({parameter.ParameterSymbol.Name}_RID.HasValue)
+                builder.AppendLine($@"if ({parameter.ParameterSymbol.Name}_RID.HasValue
+    && !{vars.Executor}.IsDisposed)
 {{
     {vars.Executor}.RemoveObjectInstance({parameter.ParameterSymbol.Name}_RID.Value);
 }}");
@@ -146,7 +148,10 @@ finally
 
             foreach (var parameter in cancellationTokenParams)
             {
-                builder.AppendLine($@"if (shouldSendCancel && {parameter.ParameterSymbol.Name}.IsCancellationRequested && !{vars.RunningToken}.IsCancellationRequested)
+                builder.AppendLine($@"if (shouldSendCancel
+    && {parameter.ParameterSymbol.Name}.IsCancellationRequested
+    && !{vars.RunningToken}.IsCancellationRequested 
+    && !{vars.Executor}.IsDisposed)
 {{
     {(isAwaitable ? "await " : string.Empty)}{vars.Executor}.InvokeInstanceMethodMessage{(isAwaitable ? "Async" : string.Empty)}(CancellationTokenSourceCancelParameterPack.Instance, {parameter.ParameterSymbol.Name}_RID!.Value, (int){TypeFullNames.Juxtapose.SpecialCommand}.{nameof(SpecialCommand.CancelCancellationToken)},{vars.RunningToken});
 }}");
@@ -238,7 +243,8 @@ finally
                 InstanceId = $"{parameter.ParameterSymbol.Name}_RID.Value",
             });
 
-            builder.AppendLine($@"if ({parameter.ParameterSymbol.Name} is not null)
+            builder.AppendLine($@"if ({parameter.ParameterSymbol.Name} is not null
+    && !{vars.Executor}.IsDisposed)
 {{
     {parameter.ParameterSymbol.Name}_RID = {vars.Executor}.InstanceIdGenerator.Next();
     {vars.Executor}.AddObjectInstance({parameter.ParameterSymbol.Name}_RID.Value, new {(isAwaitable ? "Async" : "Sync")}DelegateMessageExecutor({(isAwaitable ? "async " : string.Empty)}(exector, {vars.Message}) =>
@@ -299,7 +305,8 @@ finally
         {
             foreach (var parameter in delegateParams)
             {
-                builder.AppendLine($@"if ({parameter.ParameterSymbol.Name}_RID.HasValue)
+                builder.AppendLine($@"if ({parameter.ParameterSymbol.Name}_RID.HasValue
+    && !{vars.Executor}.IsDisposed)
 {{
     {vars.Executor}.RemoveObjectInstance({parameter.ParameterSymbol.Name}_RID.Value);
 }}");
@@ -307,7 +314,10 @@ finally
 
             foreach (var parameter in cancellationTokenParams)
             {
-                builder.AppendLine($@"if (shouldSendCancel && {parameter.ParameterSymbol.Name}.IsCancellationRequested && !cancellation.IsCancellationRequested)
+                builder.AppendLine($@"if (shouldSendCancel
+&& {parameter.ParameterSymbol.Name}.IsCancellationRequested
+&& !cancellation.IsCancellationRequested
+&& !{vars.Executor}.IsDisposed)
 {{
     {awaitTag}{vars.Executor}.InvokeStaticMethodMessage{asyncTag}(CancellationTokenSourceCancelParameterPack.Instance, (int){TypeFullNames.Juxtapose.SpecialCommand}.{nameof(SpecialCommand.CancelCancellationToken)}, {vars.Executor}.RunningToken);
 }}");

@@ -205,7 +205,7 @@ return new {Descriptor.TypeName}(executorOwner, instanceId);");
                 _sourceBuilder.AppendLine($@"
 private {TypeFullNames.Juxtapose.IJuxtaposeExecutorOwner} _executorOwner;
 
-private {TypeFullNames.Juxtapose.JuxtaposeExecutor} {_vars.Executor} => _executorOwner.Executor;
+private {TypeFullNames.Juxtapose.JuxtaposeExecutor} {_vars.Executor} => _executor;
 
 private readonly int {_vars.InstanceId};
 
@@ -258,8 +258,28 @@ public void Dispose()
         return;
     }}
     _isDisposed = true;
-    {_vars.Executor}.DisposeObjectInstance({_vars.InstanceId});
-    _runningTokenSource.Cancel();
+
+    try
+    {{
+        if (!{_vars.Executor}.IsDisposed)
+        {{
+            {_vars.Executor}.DisposeObjectInstance({_vars.InstanceId});
+        }}
+    }}
+    catch
+    {{
+        //静默所有异常
+    }}
+
+    try
+    {{
+        _runningTokenSource.Cancel();
+    }}
+    catch
+    {{
+        //静默所有异常
+    }}
+
     _runningTokenSource.Dispose();
     _executorOwner.Dispose();
     _runningTokenRegistration?.Dispose();
