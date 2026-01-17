@@ -60,7 +60,7 @@ public class IllusionClassCodeGenerator : ISourceCodeProvider<SourceCode>
     _executor = _executorOwner.Executor;
     _executor.TryGetExternalProcess(out _externalProcess);
 
-    _runningTokenRegistration = _executorOwner.Executor.RunningToken.Register(Dispose);
+    _runningTokenRegistration = _executorOwner.Executor.RunningToken.Register(AsynchronousDelayDispose);
     _runningTokenSource = new CancellationTokenSource();
     {_vars.RunningToken} = _runningTokenSource.Token;
 }}");
@@ -143,7 +143,7 @@ _executorOwner = executorOwner;
 _executor = _executorOwner.Executor;
 _executor.TryGetExternalProcess(out _externalProcess);
 
-_runningTokenRegistration = _executorOwner.Executor.RunningToken.Register(Dispose);
+_runningTokenRegistration = _executorOwner.Executor.RunningToken.Register(AsynchronousDelayDispose);
 _runningTokenSource = new CancellationTokenSource();
 {_vars.RunningToken} = _runningTokenSource.Token;");
             });
@@ -284,19 +284,38 @@ public void Dispose()
 
     try
     {{
-        _runningTokenSource.Cancel();
+        _runningTokenSource?.Cancel();
     }}
     catch
     {{
         //静默所有异常
     }}
 
-    _runningTokenSource.Dispose();
+    _runningTokenSource?.Dispose();
     _executorOwner.Dispose();
     _runningTokenRegistration?.Dispose();
     _runningTokenSource = null!;
     _runningTokenRegistration = null;
     global::System.GC.SuppressFinalize(this);
+}}
+
+/// <summary>
+/// 异步延迟处置当前对象，避免在取消令牌的回调中阻塞
+/// </summary>
+private void AsynchronousDelayDispose()
+{{
+    Task.Run(async () =>
+    {{
+        await Task.Delay(TimeSpan.FromSeconds(2));
+        try
+        {{
+            Dispose();
+        }}
+        catch
+        {{
+            //忽略所有异常
+        }}
+    }});
 }}
 
 /// <inheritdoc/>
