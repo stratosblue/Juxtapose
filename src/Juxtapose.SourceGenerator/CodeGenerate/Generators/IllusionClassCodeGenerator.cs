@@ -115,10 +115,10 @@ return (executorOwner, instanceId);");
         foreach (var constructor in Resources.GetAllConstructors().Where(m => m.NotStatic()))
         {
             var ctorAnnotation = $"""
-                        /// <summary>
-                        /// <inheritdoc cref="{targetTypeName}.{targetTypeName}({string.Join(", ", constructor.Parameters.Select(m => m.Type.ToInheritDocCrefString()))})"/>
-                        /// <br/><br/>generated from <see cref="{Descriptor.TargetType.ToInheritDocCrefString()}"/>
-                        /// </summary>
+                /// <summary>
+                /// <inheritdoc cref="{targetTypeName}.{targetTypeName}({string.Join(", ", constructor.Parameters.Select(m => m.Type.ToInheritDocCrefString()))})"/>
+                /// <br/><br/>generated from <see cref="{Descriptor.TargetType.ToInheritDocCrefString()}"/>
+                /// </summary>
                 """;
 
             var commandId = Context.Resources.GetCommandId(constructor);
@@ -126,7 +126,7 @@ return (executorOwner, instanceId);");
             var ctorArguments = constructor.GenerateMethodArgumentString();
             var accessibility = constructor.GetAccessibilityCodeString();
 
-            _sourceBuilder.AppendIndentLine(ctorAnnotation);
+            _sourceBuilder.AppendLine(ctorAnnotation);
             _sourceBuilder.AppendIndentLine($"[Obsolete(\"Use static method \\\"{Descriptor.TypeName}.NewAsync()\\\" instead of sync constructor.\")]");
             _sourceBuilder.AppendIndentLine($"{accessibility} {Descriptor.TypeName}({ctorArguments})");
             _sourceBuilder.Scope(() =>
@@ -147,7 +147,7 @@ _runningTokenSource = new CancellationTokenSource();
             });
             _sourceBuilder.AppendLine();
 
-            _sourceBuilder.AppendIndentLine(ctorAnnotation);
+            _sourceBuilder.AppendLine(ctorAnnotation);
             _sourceBuilder.AppendIndentLine($"{accessibility} static async Task<{Descriptor.TypeName}> NewAsync({ctorArguments}{(ctorArguments.Length > 0 ? ", " : string.Empty)}CancellationToken cancellation = default)");
             _sourceBuilder.Scope(() =>
             {
@@ -189,12 +189,12 @@ return new {Descriptor.TypeName}(executorOwner, instanceId);");
         _sourceBuilder.Namespace(() =>
         {
             var classAnnotation = $"""
-                    /// <summary>
-                    /// <inheritdoc cref="{Descriptor.TargetType.ToInheritDocCrefString()}"/>
-                    /// <br/><br/>generated from <see cref="{Descriptor.TargetType.ToInheritDocCrefString()}"/>
-                    /// </summary>
+                /// <summary>
+                /// <inheritdoc cref="{Descriptor.TargetType.ToInheritDocCrefString()}"/>
+                /// <br/><br/>generated from <see cref="{Descriptor.TargetType.ToInheritDocCrefString()}"/>
+                /// </summary>
                 """;
-            _sourceBuilder.AppendIndentLine(classAnnotation);
+            _sourceBuilder.AppendLine(classAnnotation);
 
             _sourceBuilder.AppendIndentLine($"{Descriptor.Accessibility.ToCodeString()} sealed partial class {Descriptor.TypeName} : global::Juxtapose.IIllusion, {TypeFullNames.System.IDisposable}");
 

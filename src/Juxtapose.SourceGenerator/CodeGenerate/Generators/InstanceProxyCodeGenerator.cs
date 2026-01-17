@@ -44,12 +44,12 @@ public class InstanceProxyCodeGenerator : ProxyCodeGenerator
         var returnType = methodSymbol.ReturnType;
 
         var methodAnnotation = $"""
-                        /// <summary>
-                        /// <inheritdoc cref="{methodSymbol.ToInheritDocCrefString()}"/>
-                        /// <br/><br/>invoke remote method <see cref="{methodSymbol.ToInheritDocCrefString()}"/>
-                        /// </summary>
+                /// <summary>
+                /// <inheritdoc cref="{methodSymbol.ToInheritDocCrefString()}"/>
+                /// <br/><br/>invoke remote method <see cref="{methodSymbol.ToInheritDocCrefString()}"/>
+                /// </summary>
                 """;
-        builder.AppendIndentLine(methodAnnotation);
+        builder.AppendLine(methodAnnotation);
 
         builder.AppendIndentLine($"public {(TypeSymbolAnalyzer.IsAwaitable(returnType) ? "async " : string.Empty)}{returnType.ToFullyQualifiedDisplayString()} {methodSymbol.Name}({methodSymbol.GenerateMethodArgumentString()})");
         builder.Scope(() =>
