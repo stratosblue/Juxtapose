@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Juxtapose;
 
@@ -37,13 +38,13 @@ public class LocalExternalProcess(ProcessStartInfo processStartInfo)
     public int ExitCode => GetCachedValue(() => GetRequiredProcess().ExitCode, ref _exitCode);
 
     /// <inheritdoc/>
-    public bool HasExited => GetRequiredProcess().HasExited;
+    public bool HasExited => _exitCode.HasValue || GetRequiredProcess().HasExited;
 
     /// <inheritdoc/>
     public int Id => GetCachedValue(() => GetRequiredProcess().Id, ref _processId);
 
     /// <inheritdoc/>
-    public bool IsAlive => _isInitialized && _isInvalid == 0 && Process?.HasExited == false;
+    public bool IsAlive => _isInitialized && _isInvalid == 0 && (!_exitCode.HasValue && Process?.HasExited == false);
 
     /// <inheritdoc cref="LocalExternalProcess"/>
     public Process? Process { get; private set; }
@@ -142,6 +143,24 @@ public class LocalExternalProcess(ProcessStartInfo processStartInfo)
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc/>
+    public override string? ToString()
+    {
+        if (Process is { } process)
+        {
+            if (_exitCode.HasValue
+                || process.HasExited)
+            {
+                return $"Process {Id} [ExitCode: {_exitCode ?? process.ExitCode}]";
+            }
+            else
+            {
+                return $"Process {Id} [Alive]";
+            }
+        }
+        return base.ToString();
+    }
+
     #endregion Public 方法
 
     #region Dispose
@@ -173,11 +192,8 @@ public class LocalExternalProcess(ProcessStartInfo processStartInfo)
                     if (disposing)
                     {
                         //释放进程后可能会无法访问相关信息，尝试提前进行缓存，并忽略可能的异常
-                        try
-                        {
-                            GetCachedValue(() => process.ExitCode, ref _exitCode);
-                        }
-                        catch { }
+                        TryAccessCache(() => ExitCode);
+                        TryAccessCache(() => StartTime);
                     }
                     process.Dispose();
                 }
@@ -188,6 +204,19 @@ public class LocalExternalProcess(ProcessStartInfo processStartInfo)
             return true;
         }
         return false;
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void TryAccessCache<T>(Func<T> action)
+        {
+            try
+            {
+                action();
+            }
+            catch
+            {
+                //忽略所有异常
+            }
+        }
     }
 
     #endregion Dispose

@@ -58,6 +58,7 @@ public class IllusionClassCodeGenerator : ISourceCodeProvider<SourceCode>
     {_vars.InstanceId} = instanceId;
 
     _executor = _executorOwner.Executor;
+    _executor.TryGetExternalProcess(out _externalProcess);
 
     _runningTokenRegistration = _executorOwner.Executor.RunningToken.Register(Dispose);
     _runningTokenSource = new CancellationTokenSource();
@@ -140,6 +141,7 @@ _executorOwner = executorOwner;
 {_vars.InstanceId} = instanceId;
 
 _executor = _executorOwner.Executor;
+_executor.TryGetExternalProcess(out _externalProcess);
 
 _runningTokenRegistration = _executorOwner.Executor.RunningToken.Register(Dispose);
 _runningTokenSource = new CancellationTokenSource();
@@ -196,7 +198,7 @@ return new {Descriptor.TypeName}(executorOwner, instanceId);");
                 """;
             _sourceBuilder.AppendLine(classAnnotation);
 
-            _sourceBuilder.AppendIndentLine($"{Descriptor.Accessibility.ToCodeString()} sealed partial class {Descriptor.TypeName} : global::Juxtapose.IIllusion, {TypeFullNames.System.IDisposable}");
+            _sourceBuilder.AppendIndentLine($"{Descriptor.Accessibility.ToCodeString()} sealed partial class {Descriptor.TypeName} : global::Juxtapose.IIllusion, global::Juxtapose.IExternalProcessHolder, {TypeFullNames.System.IDisposable}");
 
             _sourceBuilder.Scope(() =>
             {
@@ -227,6 +229,15 @@ bool IIllusion.IsAvailable => !_isDisposed;
 
 #endregion IIllusion
 
+#region IExternalProcessHolder
+
+private readonly IExternalProcess? _externalProcess;
+
+/// <inheritdoc/>
+IExternalProcess? IExternalProcessHolder.ExternalProcess => _externalProcess;
+
+#endregion IExternalProcessHolder
+
 ");
                 _sourceBuilder.AppendLine();
 
@@ -242,7 +253,7 @@ private void ThrowIfDisposed()
 {{
     if (_isDisposed)
     {{
-        throw new ObjectDisposedException(""_executorOwner"");
+        throw new ObjectDisposedException($""Cannot access a disposed object.\r\nObject: {{ToString()}}."");
     }}
 }}
 
@@ -286,6 +297,16 @@ public void Dispose()
     _runningTokenSource = null!;
     _runningTokenRegistration = null;
     global::System.GC.SuppressFinalize(this);
+}}
+
+/// <inheritdoc/>
+public override string? ToString()
+{{
+    if (_externalProcess is {{ }} externalProcess)
+    {{
+        return $""{{base.ToString()}}{{(_isDisposed ? ""[Disposed]"" : """")}} ({{externalProcess}})"";
+    }}
+    return $""{{base.ToString()}}{{(_isDisposed ? ""[Disposed]"" : """")}}"";
 }}");
             });
         }, Descriptor.Namespace);
