@@ -24,7 +24,7 @@ A multi process runtime library based on 'SourceGenerator'.
 ### 4.1 引用包
 ```XML
 <ItemGroup>
-  <PackageReference Include="Juxtapose" Version="1.5.0" />
+  <PackageReference Include="Juxtapose" Version="1.5.4" />
 </ItemGroup>
 ```
 
@@ -149,6 +149,9 @@ await JuxtaposeEntryPoint.TryAsEndpointAsync(args, GreeterJuxtaposeContext.Share
 |ParameterPack|参数包|自动生成|将方法参数封装到一个类型中，以便序列化|
 |Illusion|幻象|自动生成|实际使用的类|
 |RealObjectInvoker|真实对象执行器|自动生成|在子进程中接收消息，并进行实际的对象方法调用|
+
+### 7.2 架构图
+![operational_architecture](asset/operational_architecture.png)
 
 ## 更多功能细节参见示例代码
 

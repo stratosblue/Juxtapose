@@ -36,6 +36,8 @@ public class MessageExchanger : KeepRunningObject, IMessageExchanger
 
     private CancellationTokenSource? _channelCancellationTokenSource;
 
+    private readonly IDisposable _initializationConnectedSubscribeDisposer;
+
     private PipeReader? _pipeReader;
 
     private PipeWriter? _pipeWriter;
@@ -59,7 +61,7 @@ public class MessageExchanger : KeepRunningObject, IMessageExchanger
         _logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger("Juxtapose.MessageExchanger");
         _messageReceivingChannel = Channel.CreateUnbounded<object>();
 
-        communicationChannel.RegisterOnInitializationConnected(OnCommunicationChannelConnected);
+        _initializationConnectedSubscribeDisposer = communicationChannel.RegisterOnInitializationConnected(OnCommunicationChannelConnected);
 
         _messageWriteSemaphore = new SemaphoreSlim(1, 1);
     }
@@ -170,6 +172,8 @@ public class MessageExchanger : KeepRunningObject, IMessageExchanger
         if (base.Dispose(disposing))
         {
             OnInvalid?.Invoke(this);
+
+            _initializationConnectedSubscribeDisposer.Dispose();
 
             _communicationChannel.Dispose();
             DisposeChannelCancellationTokenSource();
