@@ -13,9 +13,13 @@ public class LengthBasedFrameCodec : ICommunicationFrameCodec
     /// <inheritdoc/>
     public bool TryGetMessageFrame(ReadOnlySequence<byte> buffer, [NotNullWhen(true)] out ReadOnlySequence<byte>? frameBuffer)
     {
-        if (buffer.Length > sizeof(long))
+        //0长度帧逻辑上不应该存在，但是还是防御性的 >=
+        if (buffer.Length >= sizeof(long))
         {
-            var length = BitConverter.ToInt64(buffer.Slice(0, sizeof(long)).ToArray());
+            Span<byte> lengthBuffer = stackalloc byte[sizeof(long)];
+            buffer.Slice(0, sizeof(long)).CopyTo(lengthBuffer);
+            var length = BitConverter.ToInt64(lengthBuffer);
+
             if (length <= buffer.Length - sizeof(long))
             {
                 frameBuffer = buffer.Slice(sizeof(long), length);

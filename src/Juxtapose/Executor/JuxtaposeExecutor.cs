@@ -72,8 +72,38 @@ public abstract class JuxtaposeExecutor : MessageDispatcher
     {
         if (base.Dispose(disposing))
         {
-            //目前不进行同步等待
-            _ = Task.Run(async () => await _iocContainerHolder.DisposeAsync());
+            var objectInstances = ObjectInstances.ToList();
+            ObjectInstances.Clear();
+
+            // 目前不进行同步等待
+            _ = Task.Run(async () =>
+            {
+                foreach (var objectInstance in objectInstances)
+                {
+                    try
+                    {
+                        switch (objectInstance.Value)
+                        {
+                            case IAsyncDisposable asyncDisposable:
+                                await asyncDisposable.DisposeAsync();
+                                break;
+
+                            case IDisposable disposable:
+                                disposable.Dispose();
+                                break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (Logger.IsEnabled(LogLevel.Warning))
+                        {
+                            Logger.LogWarning(ex, "Dispose object instance failed. Id [{InstanceId}]", objectInstance.Key);
+                        }
+                    }
+                }
+
+                await _iocContainerHolder.DisposeAsync();
+            });
             return true;
         }
         return false;

@@ -56,7 +56,9 @@ public class DefaultJsonBasedMessageCodec : ICommunicationMessageCodec
     /// <inheritdoc/>
     public object Decode(ReadOnlySequence<byte> buffer)
     {
-        var typeIdentifier = BitConverter.ToInt32(buffer.Slice(0, sizeof(int)).ToArray());
+        Span<byte> lengthBuffer = stackalloc byte[sizeof(int)];
+        buffer.Slice(0, sizeof(int)).CopyTo(lengthBuffer);
+        var typeIdentifier = BitConverter.ToInt32(lengthBuffer);
 
         if (!_messageIdTypes.TryGetValue(typeIdentifier, out var messageType))
         {

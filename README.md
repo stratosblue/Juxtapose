@@ -7,7 +7,7 @@ A multi process runtime library based on 'SourceGenerator'.
  - 可以为`类型`、`接口`、`静态类`生成代理，无需手动编写RPC相关代码，即可`多进程`运行；
  - 编译时生成所有代码，运行时无显式的反射调用和动态构造；
  - 支持`委托`和`CancellationToken`类型的方法参数（其余类型未特殊处理，将会进行序列化，目前回调`委托`不支持嵌套和`CancellationToken`）；
- - 支持`Linux`、`Windows`（其它未测试）；
+ - 支持`Linux`、`Windows`；
  - 支持调试子进程（`Windows`&&`VisualStudio` Only）；
  - AOT支持*（net8.0+）；										
 
@@ -15,16 +15,17 @@ A multi process runtime library based on 'SourceGenerator'.
  - 目前参数不支持定义为父类型，实际传递子类型，序列化时将会按照定义的类型进行序列化和反序列化，会导致具体类型丢失；
    - 使用默认序列化配置时，可以通过配置 [序列化派生类](https://learn.microsoft.com/zh-cn/dotnet/standard/serialization/system-text-json/polymorphism) 来支持此功能
  - 目前所有的参数都不应该在方法完成后进行保留，`CancellationToken`、`委托`等在方法完成后会被释放；
+ - 尽可能保证主进程与子进程是同时构建的 (通常单解决方案不会有这个问题)，避免生成内容不同带来的未知问题；
 
 ## 3. Requirement
- - .Net8.0+(其它版本没有尝试过)
+ - .Net8.0+
 
 ## 4. 使用方法
 
 ### 4.1 引用包
 ```XML
 <ItemGroup>
-  <PackageReference Include="Juxtapose" Version="1.5.4" />
+  <PackageReference Include="Juxtapose" Version="1.5.5" />
 </ItemGroup>
 ```
 
@@ -55,12 +56,13 @@ Note!!!
   [Illusion(typeof(Greeter))]
   ```
 
- - ~~为类型生成代理，并继承指定接口，如下示例生成 `Juxtapose.Test.GreeterAsIGreeterIllusion` 类型且继承`IGreeter`接口~~
-	- 现在需要手动声明 `partial` 类来使生成的类型派生自目标接口
+ - 手动声明 `partial` 类来使生成的类型派生自目标接口 (场景：原始类型的某些方法是由接口定义的，生成的类型虽然方法签名一致，但是并不会声明类型由哪些接口派生)
   ```C#
   partial class GreeterIllusion : IGreeter
   { }
   ```
+
+  `注意命名空间需要与生成的类型相同(未指定生成名时，命名空间与原始类型相同)`
 
  - 生成类型，并指定类型名称，如下示例生成 `Juxtapose.Test.HelloGreeter` 类型
   ```C#

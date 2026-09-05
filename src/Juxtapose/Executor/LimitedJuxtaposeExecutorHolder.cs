@@ -31,7 +31,17 @@ public sealed class LimitedJuxtaposeExecutorHolder : JuxtaposeExecutorHolder
         ThrowIfDisposed();
         ThrowIfPreparedDrop();
         IncrementRef();
-        await _semaphore.WaitAsync(cancellationToken);
+
+        try
+        {
+            await _semaphore.WaitAsync(cancellationToken);
+        }
+        catch
+        {
+            //取消时正确释放引用
+            DecrementRef();
+            throw;
+        }
     }
 
     /// <inheritdoc/>

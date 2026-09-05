@@ -24,6 +24,8 @@ public class MessageExchanger : KeepRunningObject, IMessageExchanger
 
     private readonly ICommunicationFrameCodec _frameCodec;
 
+    private readonly IDisposable _initializationConnectedSubscribeDisposer;
+
     private readonly ILogger _logger;
 
     private readonly ICommunicationMessageCodec _messageCodec;
@@ -35,8 +37,6 @@ public class MessageExchanger : KeepRunningObject, IMessageExchanger
     private readonly object _syncRoot = new();
 
     private CancellationTokenSource? _channelCancellationTokenSource;
-
-    private readonly IDisposable _initializationConnectedSubscribeDisposer;
 
     private PipeReader? _pipeReader;
 
@@ -146,9 +146,12 @@ public class MessageExchanger : KeepRunningObject, IMessageExchanger
                 if (!IsDisposed)
                 {
                     _logger.LogCritical(ex, "Message Receive Loop Error!");
-                    Dispose();
                     throw;
                 }
+            }
+            finally
+            {
+                Dispose();
             }
         }, RunningToken);
     }
